@@ -107,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           const Spacer(),
                           Text(
                             data['subtitle']!,
-                            style: AppFonts.headline,
+                            style: AppFonts.headlineH2,
                           ),
                           const SizedBox(height: 32),
                           Text(
