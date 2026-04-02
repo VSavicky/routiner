@@ -1,0 +1,184 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:routiner/core/constants/app_colors.dart';
+import 'package:routiner/core/constants/app_fonts.dart';
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  final List<Map<String, String>> _onboardingData = [
+    {
+      'image': 'assets/images/onboarding/onboarding1.png',
+      'title': 'Welcome to Routiner',
+      'subtitle': 'Create Good Habits',
+      'description': 'Change your life by slowly adding new healthy habits and sticking to them.',
+    },
+    {
+      'image': 'assets/images/onboarding/onboarding2.png',
+      'title': 'Track Your Progress',
+      'subtitle': 'Track Your Progress',
+      'description': 'Everyday you become one step closer to your goal. Don’t give up!',
+    },
+    {
+      'image': 'assets/images/onboarding/onboarding3.png',
+      'title': 'Achieve Your Goals',
+      'subtitle': 'Stay Together and Strong',
+      'description': 'Find friends to discuss common topics. Complete challenges together.',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_currentPage < _onboardingData.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.purple,
+              AppColors.blue,
+            ],
+            stops: [0.0, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemCount: _onboardingData.length,
+                  itemBuilder: (context, index) {
+                    final data = _onboardingData[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Spacer(),
+                          SizedBox(
+                            height: 350,
+                            child: Center(
+                              child: Image.asset(
+                                data['image']!,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            data['subtitle']!,
+                            style: AppFonts.headline,
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            data['description']!,
+                            style: AppFonts.body,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: List.generate(
+                    _onboardingData.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index 
+                              ? Colors.white 
+                              : Colors.white.withOpacity(0.4),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 48),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.go('/auth');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                    ),
+                    child: Text(
+                      'Continue with E-mail',
+                      style: AppFonts.body.copyWith(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+}
