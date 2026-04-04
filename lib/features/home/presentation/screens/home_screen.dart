@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/core/constants/app_colors.dart';
+import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
 import 'package:routiner/core/widgets/week_days_list.dart';
+import 'package:routiner/core/widgets/goals_progress_widget.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 
 class HomePage extends StatefulWidget {
@@ -69,17 +71,50 @@ class _HomePageState extends State<HomePage> {
               // TODO: Implement period change logic
             },
           ),
-          // Список дней недели
-          WeekDaysList(
-            selectedDate: _selectedDate,
-            onDateSelected: (date) {
-              setState(() {
-                _selectedDate = date;
-              });
-              // TODO: Implement date selection logic
-            },
-          ),
+          // Список дней недели или страница Clubs
+          _selectedToggleIndex == 0 
+              ? Column(
+                  children: [
+                    WeekDaysList(
+                      selectedDate: _selectedDate,
+                      onDateSelected: (date) {
+                        setState(() {
+                          _selectedDate = date;
+                        });
+                        // TODO: Implement date selection logic
+                      },
+                    ),
+                    // Колонка с целями
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12, left: 24, right: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Виджет выполнения целей
+                          GoalsProgressWidget(
+                            totalGoals: 4,
+                            completedGoals: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : _buildClubsPage(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildClubsPage() {
+    return Center(
+      child: Text(
+        'Clubs',
+        style: AppFonts.headlineH5.copyWith(
+          color: AppColors.black100,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

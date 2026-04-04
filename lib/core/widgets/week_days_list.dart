@@ -92,13 +92,10 @@ class _WeekDaysListState extends State<WeekDaysList> {
         final screenWidth = MediaQuery.of(context).size.width;
         final centerOffset = targetOffset - (screenWidth / 2) + (itemWidth / 2);
         
-        print('=== DEBUG: Scrolling to week $_currentWeekIndex, offset: $centerOffset ===');
+        print('=== DEBUG: Jumping to week $_currentWeekIndex, offset: $centerOffset ===');
         
-        _scrollController.animateTo(
-          centerOffset,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
+        // Мгновенное позиционирование без анимации
+        _scrollController.jumpTo(centerOffset);
       }
     });
   }

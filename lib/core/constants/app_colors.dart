@@ -14,5 +14,5 @@ class AppColors {
   static const Color blue100 = Color(0xFF3843FF);
   static const Color black60 = Color(0xFF686873);
   static const Color blue10 = Color(0xFFDDF2FC);
-  // static const Color success = Color(0xFF10B981);
+  static const Color blue40 = Color(0xFFAFB4FF);
 }

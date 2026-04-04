@@ -28,6 +28,15 @@ class AppFonts {
     height: 20 / 14, 
     letterSpacing: 0,
   );
+
+   //Body Alternative
+  static const TextStyle bodyAlternative = TextStyle(
+    color: AppColors.blue20,
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    height: 16 / 12, 
+    letterSpacing: 0,
+  );
   
   //Body Title Medium
   static const TextStyle bodyTitleMedium = TextStyle(
