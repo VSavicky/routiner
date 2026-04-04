@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/core/constants/app_colors.dart';
-import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
+import 'package:routiner/core/widgets/week_days_list.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,7 +19,8 @@ class _HomePageState extends State<HomePage> {
   
   UserEntity? _user;
   bool _isLoading = true;
-  int _selectedToggleIndex = 0; 
+  int _selectedToggleIndex = 0;
+  DateTime? _selectedDate; // Для выбора даты 
 
   @override
   void initState() {
@@ -50,21 +51,35 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Header(
-        toggleOptions: ['Today', 'Clubs'],
-        selectedToggleIndex: _selectedToggleIndex,
-        notificationCount: 5, // TODO: Получать из базы данных
-        userName: _user?.firstName,
-        greeting: _user != null 
-            ? 'Hi, ${_user!.firstName}👋' 
-            : 'Hi!',
-        subtitle: 'Let\'s make habbits toghether!',
-        onToggleChanged: (index) {
-          setState(() {
-            _selectedToggleIndex = index;
-          });
-          // TODO: Implement period change logic
-        },
+      body: Column(
+        children: [
+          Header(
+            toggleOptions: ['Today', 'Clubs'],
+            selectedToggleIndex: _selectedToggleIndex,
+            notificationCount: 5, // TODO: Получать из базы данных
+            userName: _user?.firstName,
+            greeting: _user != null 
+                ? 'Hi, ${_user!.firstName}👋' 
+                : 'Hi!',
+            subtitle: 'Let\'s make habbits toghether!',
+            onToggleChanged: (index) {
+              setState(() {
+                _selectedToggleIndex = index;
+              });
+              // TODO: Implement period change logic
+            },
+          ),
+          // Список дней недели
+          WeekDaysList(
+            selectedDate: _selectedDate,
+            onDateSelected: (date) {
+              setState(() {
+                _selectedDate = date;
+              });
+              // TODO: Implement date selection logic
+            },
+          ),
+        ],
       ),
     );
   }
