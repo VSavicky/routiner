@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/core/widgets/header.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   
   UserEntity? _user;
   bool _isLoading = true;
+  int _selectedToggleIndex = 0; 
 
   @override
   void initState() {
@@ -46,96 +48,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.background,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: _isLoading 
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                Text(
-                  'Hi, ${_user?.firstName ?? 'User'}',
-                  style: AppFonts.headlineH5,
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Email:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.email ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Имя:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.firstName ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Фамилия:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.lastName ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Дата рождения:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.birthDate ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Гендер:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.gender ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Привычки:',
-                  style: AppFonts.bodyTitleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _user?.habits.join(', ') ?? 'No data',
-                  style: AppFonts.body.copyWith(
-                    color: AppColors.black40,
-                  ),
-                ),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Header(
+        toggleOptions: ['Today', 'Clubs'],
+        selectedToggleIndex: _selectedToggleIndex,
+        notificationCount: 5, // TODO: Получать из базы данных
+        userName: _user?.firstName,
+        greeting: _user != null 
+            ? 'Hi, ${_user!.firstName}👋' 
+            : 'Hi!',
+        subtitle: 'Let\'s make habbits toghether!',
+        onToggleChanged: (index) {
+          setState(() {
+            _selectedToggleIndex = index;
+          });
+          // TODO: Implement period change logic
+        },
       ),
     );
   }

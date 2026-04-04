@@ -1,0 +1,144 @@
+import 'package:flutter/material.dart';
+import 'package:routiner/core/constants/app_colors.dart';
+import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/core/widgets/notification_icon.dart';
+import 'package:routiner/core/widgets/toggle_button.dart';
+
+class Header extends StatefulWidget {
+  final List<String> toggleOptions;
+  final int selectedToggleIndex;
+  final Function(int) onToggleChanged;
+  final int? notificationCount;
+  final String? userName;
+  final String? greeting;
+  final String? subtitle;
+  final bool showNotifications;
+  final bool showCalendar;
+
+  const Header({
+    Key? key,
+    this.toggleOptions = const ['Today', 'Clubs'],
+    this.selectedToggleIndex = 0,
+    required this.onToggleChanged,
+    this.notificationCount,
+    this.userName,
+    this.greeting,
+    this.subtitle,
+    this.showNotifications = true,
+    this.showCalendar = true,
+  }) : super(key: key);
+
+  @override
+  State<Header> createState() => _HeaderState();
+}
+
+class _HeaderState extends State<Header> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 240,
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Левая колонка: календарь и приветствие
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.showCalendar)
+                    NotificationIcon(
+                      icon: Icons.calendar_month,
+                      hasNotification: false,
+                      onTap: () {
+                        // TODO: Implement calendar navigation
+                      },
+                      size: 30,
+                      iconColor: AppColors.black40,
+                    ),
+                  if (widget.showCalendar) SizedBox(height: 12),
+                  // Приветствие пользователя
+                  Text(
+                    widget.greeting ?? (widget.userName != null 
+                        ? 'Hi, ${widget.userName}👋' 
+                        : 'Hi!'),
+                    style: AppFonts.bodyTitleMedium.copyWith(
+                      color: AppColors.black100,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  // Подзаголовок
+                  Text(
+                    widget.subtitle ?? 'Let\'s make habbits toghether!',
+                    style: AppFonts.body.copyWith(
+                      color: AppColors.black40,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              // Правая колонка: уведомления и смайлик
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (widget.showNotifications)
+                    NotificationIcon(
+                      icon: Icons.notifications,
+                      hasNotification: true,
+                      onTap: () {
+                        // TODO: Implement notifications navigation
+                      },
+                      size: 30,
+                      iconColor: AppColors.black40,
+                    ),
+                  if (widget.showNotifications) SizedBox(height: 12),
+                  // Круг со смайликом
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.blue10,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text('😇', style: TextStyle(fontSize: 24)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          // Тумблер выбора
+          ToggleButton(
+            options: widget.toggleOptions,
+            selectedIndex: widget.selectedToggleIndex,
+            notificationCount: widget.notificationCount,
+            onToggle: widget.onToggleChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}

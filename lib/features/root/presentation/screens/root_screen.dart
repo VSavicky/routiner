@@ -103,7 +103,7 @@ class RootScreen extends StatelessWidget {
         alignment: Alignment.center,
         child: Icon(
           icon,
-          size: size ?? 24.0, // Используем переданный размер или по умолчанию 24
+          size: size ?? 30, // Используем переданный размер или по умолчанию 24
           color: isActive ? AppColors.blue100 : AppColors.black40,
         ),
       ),
