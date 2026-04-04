@@ -6,6 +6,9 @@ import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_input_field.dart';
 import 'package:routiner/features/auth/presentation/widgets/password_input_field.dart';
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
+import 'package:routiner/features/auth/domain/services/auth_service.dart';
+import 'package:routiner/features/auth/domain/entities/user_entity.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,14 +25,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
   
+  final AuthService _authService = AuthService();
+  
   bool _isEmailValid = true;
   bool _isPasswordValid = true;
   bool _isConfirmPasswordValid = true;
+
+  Future<void> _saveRegistrationData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('registration_email', _emailController.text.trim());
+    await prefs.setString('registration_password', _passwordController.text);
+    await prefs.setString('registration_first_name', _firstNameController.text.trim());
+    await prefs.setString('registration_last_name', _lastNameController.text.trim());
+    await prefs.setString('registration_birth_date', _birthDateController.text.trim());
+  }
   bool _isFirstNameValid = true;
   bool _isLastNameValid = true;
   bool _isBirthDateValid = true;
   
-  int _currentStep = 1; 
+  int _currentStep = 1;
+  bool _isLoading = false; 
   
   bool _validateEmail(String email) {
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
@@ -117,7 +132,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now(), // Нельзя выбрать будущую дату
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            // Уменьшаем текст кнопок
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                textStyle: const TextStyle(fontSize: 12),
+                minimumSize: const Size(64, 32),
+              ),
+            ),
+            // Уменьшаем текст в календаре
+            textTheme: const TextTheme(
+              bodyMedium: TextStyle(fontSize: 14),
+              bodySmall: TextStyle(fontSize: 12),
+              labelMedium: TextStyle(fontSize: 12),
+            ),
+            // Уменьшаем заголовок
+            appBarTheme: const AppBarTheme(
+              titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     
     if (picked != null) {
@@ -126,6 +166,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _isBirthDateValid = true;
       });
     }
+  }
+
+  Future<void> _registerUser() async {
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userEntity = await _authService.registerWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        birthDate: _birthDateController.text.trim(),
+        gender: '', // Заполнится на следующем экране
+        habits: [], // Заполнится на следующих экранах
+      );
+
+      if (userEntity != null) {
+        // Сохраняем данные пользователя для передачи на следующие экраны
+        // Переходим на выбор гендера
+        if (mounted) {
+          context.go('/gender');
+        }
+      } else {
+        _showErrorDialog('Registration failed. Please try again.');
+      }
+    } catch (e) {
+      _showErrorDialog('Error: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -306,11 +400,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: _currentStep == 1 ? 'Next' : 'Create Account',
-                    onPressed: _currentStep == 1 ? _nextStep : () {
-                      context.go('/gender');
-                    },
-                    isActive: _isFormValid,
+                    text: _currentStep == 1 ? 'Next' : (_isLoading ? 'Creating...' : 'Create Account'),
+                    onPressed: _currentStep == 1 ? () {
+                      _saveRegistrationData();
+                      _nextStep();
+                    } : (_isLoading ? null : _registerUser),
+                    isActive: _isFormValid && !_isLoading,
                   ),
                 ),
               ],

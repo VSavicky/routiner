@@ -6,6 +6,8 @@ import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_input_field.dart';
 import 'package:routiner/features/auth/presentation/widgets/password_input_field.dart';
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
+import 'package:routiner/features/auth/domain/services/auth_service.dart';
+import 'package:routiner/features/auth/domain/services/google_sign_in_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -17,8 +19,12 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  final GoogleSignInService _googleSignInService = GoogleSignInService();
+  
   bool _isEmailValid = true;
   bool _isPasswordValid = true;
+  bool _isLoading = false;
 
   bool _validateEmail(String email) {
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
@@ -39,6 +45,79 @@ class _AuthScreenState extends State<AuthScreen> {
       _isEmailValid = _validateEmail(_emailController.text);
       _isPasswordValid = _validatePassword(_passwordController.text);
     });
+  }
+
+  Future<void> _signInWithEmail() async {
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userEntity = await _authService.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (userEntity != null) {
+        if (mounted) {
+          context.go('/home');
+        }
+      } else {
+        _showErrorDialog('Sign in failed. Please check your credentials.');
+      }
+    } catch (e) {
+      _showErrorDialog('Error: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userEntity = await _googleSignInService.signInWithGoogle();
+
+      if (userEntity != null) {
+        if (mounted) {
+          context.go('/home');
+        }
+      } else {
+        _showErrorDialog('Google sign in failed.');
+      }
+    } catch (e) {
+      _showErrorDialog('Error: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -157,11 +236,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: 'Next',
-                    onPressed: _isFormValid ? () {
-                      
-                    } : null,
-                    isActive: _isFormValid,
+                    text: _isLoading ? 'Signing In...' : 'Next',
+                    onPressed: _isFormValid && !_isLoading ? _signInWithEmail : null,
+                    isActive: _isFormValid && !_isLoading,
                   ),
                 ),
               ],

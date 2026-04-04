@@ -4,6 +4,9 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HabitSelectionScreen extends StatefulWidget {
   const HabitSelectionScreen({super.key});
@@ -27,6 +30,46 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
     {'emoji': '🎨', 'name': 'Creative Work'},
     {'emoji': '🚴‍♀️', 'name': 'Cycling'},
   ];
+
+  Future<void> _saveUserDataAndNavigate() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && _selectedHabit != null) {
+        // Получаем сохраненные данные из SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        final email = prefs.getString('registration_email') ?? '';
+        final password = prefs.getString('registration_password') ?? '';
+        final firstName = prefs.getString('registration_first_name') ?? '';
+        final lastName = prefs.getString('registration_last_name') ?? '';
+        final birthDate = prefs.getString('registration_birth_date') ?? '';
+        final gender = prefs.getString('registration_gender') ?? '';
+        
+        // Обновляем запись в Firestore с гендером и привычкой
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'gender': gender,
+          'habits': [_selectedHabit!],
+        });
+        
+        // Очищаем временные данные
+        await prefs.remove('registration_email');
+        await prefs.remove('registration_password');
+        await prefs.remove('registration_first_name');
+        await prefs.remove('registration_last_name');
+        await prefs.remove('registration_birth_date');
+        await prefs.remove('registration_gender');
+        
+        // Переходим на главный экран
+        if (mounted) {
+          while (context.canPop()) {
+            context.pop();
+          }
+          context.go('/home');
+        }
+      }
+    } catch (e) {
+      print('Error saving user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,9 +170,9 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: 'Complete',
+                    text: 'Next',
                     onPressed: _selectedHabit != null ? () {
-                      context.go('/home');
+                      _saveUserDataAndNavigate();
                     } : null,
                     isActive: _selectedHabit != null,
                   ),

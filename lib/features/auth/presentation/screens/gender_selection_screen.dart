@@ -4,6 +4,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
   const GenderSelectionScreen({super.key});
@@ -13,8 +14,15 @@ class GenderSelectionScreen extends StatefulWidget {
 }
 
 class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
-  String? _selectedGender; // 'male' or 'female'
+  String? _selectedGender; 
 
+  Future<void> _saveGenderAndNavigate() async {
+    if (_selectedGender != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('registration_gender', _selectedGender!);
+      context.go('/habits');
+    }
+  } 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,7 +159,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                   child: PrimaryButton(
                     text: 'Next',
                     onPressed: _selectedGender != null ? () {
-                      context.go('/habits');
+                      _saveGenderAndNavigate();
                     } : null,
                     isActive: _selectedGender != null,
                   ),
