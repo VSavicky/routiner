@@ -6,6 +6,7 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
 import 'package:routiner/core/widgets/week_days_list.dart';
 import 'package:routiner/core/widgets/challenges_widget.dart';
+import 'package:routiner/core/widgets/habits_widget.dart';
 import 'package:routiner/core/widgets/goals_progress_widget.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   int _selectedToggleIndex = 0;
   DateTime? _selectedDate; // Для выбора даты 
+  int _waterProgress = 500; // Текущий прогресс воды
 
   @override
   void initState() {
@@ -36,6 +38,15 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _addWaterProgress() {
+    setState(() {
+      _waterProgress += 200; // Добавляем 200ML при нажатии на +
+      if (_waterProgress > 2000) {
+        _waterProgress = 2000; // Ограничиваем максимумом
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -135,6 +146,117 @@ class _HomePageState extends State<HomePage> {
                                 onAddFriendPressed: () {
                                   // TODO: Обработать нажатие на добавление друга
                                   print('Add friend pressed');
+                                },
+                              ),
+                              SizedBox(height: 16),
+                              // Виджет привычек
+                              HabitsWidget(
+                                habits: [
+                                  Habit(
+                                    id: 'water',
+                                    title: 'Drink the water',
+                                    subtitle: '$_waterProgress/2000 ML',
+                                    friendsCount: 5,
+                                    currentProgress: _waterProgress,
+                                    targetProgress: 2000,
+                                    onViewPressed: () {
+                                      print('View pressed - showing habit details');
+                                      if (_waterProgress >= 2000) {
+                                        print('Habit completed - showing celebration');
+                                      }
+                                    },
+                                    onDonePressed: () {
+                                      print('Done pressed - marking habit as completed');
+                                      if (_waterProgress >= 2000) {
+                                        print('Habit already completed - showing completion effects');
+                                      } else {
+                                        setState(() {
+                                          _waterProgress = 2000; // Завершаем привычку
+                                        });
+                                      }
+                                    },
+                                    onFallPressed: () {
+                                      print('Fall pressed');
+                                      // TODO: Добавить логику для проваленной привычки
+                                    },
+                                    onSkipPressed: () {
+                                      print('Skip pressed');
+                                      // TODO: Добавить логику для пропущенной привычки
+                                    },
+                                    onAddFriendPressed: () {
+                                      print('Add friend pressed');
+                                      // TODO: Добавить логику добавления друга
+                                    },
+                                    onFriendsPressed: () {
+                                      print('Friends pressed');
+                                      // TODO: Добавить логику друзей
+                                    },
+                                  ),
+                                  Habit(
+                                    id: 'water',
+                                    title: 'Drink the water',
+                                    subtitle: '$_waterProgress/2000 ML',
+                                    friendsCount: 5,
+                                    currentProgress: _waterProgress,
+                                    targetProgress: 2000,
+                                    onViewPressed: () {
+                                      print('View pressed - showing habit details');
+                                      if (_waterProgress >= 2000) {
+                                        print('Habit completed - showing celebration');
+                                      }
+                                    },
+                                    onDonePressed: () {
+                                      print('Done pressed - marking habit as completed');
+                                      if (_waterProgress >= 2000) {
+                                        print('Habit already completed - showing completion effects');
+                                      } else {
+                                        setState(() {
+                                          _waterProgress = 2000; // Завершаем привычку
+                                        });
+                                      }
+                                    },
+                                    onFallPressed: () {
+                                      print('Fall pressed');
+                                      // TODO: Добавить логику для проваленной привычки
+                                    },
+                                    onSkipPressed: () {
+                                      print('Skip pressed');
+                                      // TODO: Добавить логику для пропущенной привычки
+                                    },
+                                    onAddFriendPressed: () {
+                                      print('Add friend pressed');
+                                      // TODO: Добавить логику добавления друга
+                                    },
+                                    onFriendsPressed: () {
+                                      print('Friends pressed');
+                                      // TODO: Добавить логику друзей
+                                    },
+                                  ),
+                                  // Можно добавить больше привычек
+                                  Habit(
+                                    id: 'exercise',
+                                    title: 'Morning Exercise',
+                                    subtitle: '15/30 min',
+                                    friendsCount: 3,
+                                    currentProgress: 15,
+                                    targetProgress: 30,
+                                    onViewPressed: () {
+                                      print('Exercise View pressed');
+                                    },
+                                    onDonePressed: () {
+                                      print('Exercise Done pressed');
+                                    },
+                                    onFallPressed: () {
+                                      print('Exercise Fall pressed');
+                                    },
+                                    onSkipPressed: () {
+                                      print('Exercise Skip pressed');
+                                    },
+                                  ),
+                                ],
+                                onViewAllPressed: () {
+                                  // TODO: Обработать нажатие на VIEW ALL
+                                  print('VIEW ALL habits pressed');
                                 },
                               ),
                             ],
