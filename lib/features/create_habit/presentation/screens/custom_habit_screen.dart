@@ -10,6 +10,13 @@ class CustomHabitScreen extends StatefulWidget {
   final String? selectedHabitName;
   final String? selectedHabitSubtitle;
   final String? selectedHabitEmoji;
+  final Color? selectedHabitColor;
+  final int? targetValue;
+  final String? targetUnit;
+  final String? motivation;
+  final int? frequency;
+  final String? period;
+  final String? reminderTime;
 
   const CustomHabitScreen({
     super.key,
@@ -19,6 +26,13 @@ class CustomHabitScreen extends StatefulWidget {
     this.selectedHabitName,
     this.selectedHabitSubtitle,
     this.selectedHabitEmoji,
+    this.selectedHabitColor,
+    this.targetValue,
+    this.targetUnit,
+    this.motivation,
+    this.frequency,
+    this.period,
+    this.reminderTime,
   });
 
   @override
@@ -40,6 +54,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
 
   // Controller для названия привычки
   late TextEditingController _nameController;
+  late TextEditingController  _motivationController;
 
   // Данные для GOAL
   int _frequency = 1;
@@ -88,15 +103,69 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.selectedHabitName ?? '');
+    _motivationController = TextEditingController(text: widget.motivation ?? '');
+    
+    // Инициализация иконки
     if (widget.selectedHabitEmoji != null) {
       int index = _iconEmojis.indexOf(widget.selectedHabitEmoji!);
       if (index != -1) _selectedIconIndex = index;
+    }
+    
+    // Инициализация цвета
+    if (widget.selectedHabitColor != null) {
+      int colorIndex = _colors.indexWhere((c) => c.value == widget.selectedHabitColor!.value);
+      if (colorIndex != -1) _selectedColorIndex = colorIndex;
+    }
+    
+    // Инициализация target value и unit
+    if (widget.targetValue != null) {
+      _targetValue = widget.targetValue!;
+    }
+    if (widget.targetUnit != null) {
+      _targetUnit = widget.targetUnit!;
+    }
+    
+    // Инициализация frequency и period для GOAL
+    if (widget.frequency != null) {
+      _frequency = widget.frequency!;
+    }
+    if (widget.period != null) {
+      _period = widget.period!;
+      _updatePeriodLabel();
+    }
+    
+    // Инициализация reminderTime
+    if (widget.reminderTime != null) {
+      _reminderTimes = [widget.reminderTime!];
+    }
+    
+    // Habit Type из isBadHabit
+    if (widget.isBadHabit != null) {
+      _isBuildHabit = !widget.isBadHabit!;
+    }
+  }
+  
+  void _updatePeriodLabel() {
+    switch (_period) {
+      case 'day':
+        _periodLabel = 'Daily';
+        _scheduleDetail = 'every day';
+        break;
+      case 'week':
+        _periodLabel = 'Weekly';
+        _scheduleDetail = 'every week';
+        break;
+      case 'month':
+        _periodLabel = 'Monthly';
+        _scheduleDetail = 'every month';
+        break;
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _motivationController.dispose();
     super.dispose();
   }
 
@@ -675,7 +744,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: 'Create Custom Habit',
+            title: widget.selectedHabitName != null ? 'Edit Habit' : 'Create Custom Habit',
             onBackPressed: () => Navigator.of(context).pop(),
           ),
           
@@ -970,7 +1039,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                           _targetUnits.firstWhere(
                                             (u) => u['value'] == _targetUnit,
                                             orElse: () => _targetUnits[4],
-                                          )!['icon']!,
+                                          )['icon'] ?? '🔄',
                                           style: TextStyle(fontSize: 20),
                                         ),
                                         Text(
@@ -1339,6 +1408,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                         ),
                       ),
                       child: TextField(
+                        controller: _motivationController,
                         maxLines: 3,
                         style: AppFonts.bodyAlternative.copyWith(
                           fontSize: 14,

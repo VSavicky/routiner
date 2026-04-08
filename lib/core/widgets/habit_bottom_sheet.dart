@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/core/constants/default_habits.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 
 class HabitBottomSheet extends StatelessWidget {
@@ -150,8 +151,9 @@ class HabitBottomSheet extends StatelessWidget {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.only(left: 24), // Только левый отступ
-              itemCount: 5,
+              itemCount: DefaultHabits.getByType(!isBadHabbit).length,
               itemBuilder: (context, index) {
+                final habit = DefaultHabits.getByType(!isBadHabbit)[index];
                 return GestureDetector(
                   onTap: () {
                     onClose();
@@ -161,19 +163,26 @@ class HabitBottomSheet extends StatelessWidget {
                           isBadHabit: isBadHabbit,
                           moodEmoji: moodEmoji,
                           moodLabel: moodLabel,
-                          selectedHabitName: _getHabitName(index),
-                          selectedHabitSubtitle: _getHabitSubtitle(index),
-                          selectedHabitEmoji: _getHabitEmoji(index),
+                          selectedHabitName: habit.name,
+                          selectedHabitSubtitle: habit.subtitle,
+                          selectedHabitEmoji: habit.emoji,
+                          selectedHabitColor: habit.color,
+                          targetValue: habit.targetValue,
+                          targetUnit: habit.targetUnit,
+                          motivation: habit.motivation,
+                          frequency: habit.frequency,
+                          period: habit.period,
+                          reminderTime: habit.reminderTime,
                         ),
                       ),
                     );
                   },
                   child: Container(
                     width: 140,
-                    margin: EdgeInsets.only(right: index < 4 ? 12 : 24), // Отступ для последней карточки
+                    margin: EdgeInsets.only(right: index < DefaultHabits.getByType(!isBadHabbit).length - 1 ? 12 : 24),
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _getPastelColor(index),
+                      color: habit.color,
                       borderRadius: BorderRadius.circular(16),
                     ),
                   child: Column(
@@ -192,7 +201,7 @@ class HabitBottomSheet extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                _getHabitEmoji(index),
+                                habit.emoji,
                                 style: TextStyle(
                                   fontSize: 16,
                                 ),
@@ -206,34 +215,38 @@ class HabitBottomSheet extends StatelessWidget {
                         ],
                       ),
                       
-                      SizedBox(height: 4), // Уменьшил с 8 до 4
+                      SizedBox(height: 4),
                       
                       // Название привычки
                       Text(
-                        _getHabitName(index),
+                        habit.name,
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: AppColors.black100,
-                          fontSize: 14, // Уменьшил с 18 до 14
+                          fontSize: 13,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       
-                      SizedBox(height: 2), // Уменьшил с 4 до 2
+                      SizedBox(height: 2),
                       
                       // Подпись
                       Text(
-                        _getHabitSubtitle(index),
+                        habit.subtitle,
                         style: AppFonts.bodyAlternative.copyWith(
-                          fontSize: 10, // Уменьшил с 12 до 10
+                          fontSize: 10,
                           color: AppColors.black60,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
               );
             },
-            ),
           ),
+        ),
           
           SizedBox(height: 40),
         ],
@@ -241,30 +254,4 @@ class HabitBottomSheet extends StatelessWidget {
     );
   }
 
-  // Методы для данных популярных привычек
-  Color _getPastelColor(int index) {
-    List<Color> pastelColors = [
-      Color(0xFFFFB3BA),  // Светло-голубой
-      Color(0xFFB3E5FC),  // Светло-фиолетовый  
-      Color(0xFFFFB3BA),  // Светло-розовый
-      Color(0xFFB3FFB3),  // Светло-зеленый
-      Color(0xFFE5B3FF),  // Светло-бирюзовый
-    ];
-    return pastelColors[index % pastelColors.length];
-  }
-
-  String _getHabitEmoji(int index) {
-    List<String> emojis = ['🚶', '📚', '💧', '🧘', '🏃'];
-    return emojis[index % emojis.length];
-  }
-
-  String _getHabitName(int index) {
-    List<String> names = ['Walk', 'Read', 'Drink Water', 'Meditate', 'Run'];
-    return names[index % names.length];
-  }
-
-  String _getHabitSubtitle(int index) {
-    List<String> subtitles = ['10 km', '30 min', '2L', '15 min', '5 km'];
-    return subtitles[index % subtitles.length];
-  }
 }
