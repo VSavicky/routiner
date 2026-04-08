@@ -173,6 +173,7 @@ class HabitBottomSheet extends StatelessWidget {
                           frequency: habit.frequency,
                           period: habit.period,
                           reminderTime: habit.reminderTime,
+                          defaultHabitId: habit.id,
                         ),
                       ),
                     );

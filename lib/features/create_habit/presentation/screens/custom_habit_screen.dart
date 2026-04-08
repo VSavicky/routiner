@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
+import 'package:routiner/features/habits/data/models/habit_model.dart';
+import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 
 class CustomHabitScreen extends StatefulWidget {
   final String? moodEmoji;
@@ -17,6 +19,7 @@ class CustomHabitScreen extends StatefulWidget {
   final int? frequency;
   final String? period;
   final String? reminderTime;
+  final String? defaultHabitId;
 
   const CustomHabitScreen({
     super.key,
@@ -33,6 +36,7 @@ class CustomHabitScreen extends StatefulWidget {
     this.frequency,
     this.period,
     this.reminderTime,
+    this.defaultHabitId,
   });
 
   @override
@@ -40,6 +44,9 @@ class CustomHabitScreen extends StatefulWidget {
 }
 
 class _CustomHabitScreenState extends State<CustomHabitScreen> {
+  final HabitRepository _habitRepository = HabitRepository();
+  bool _isSaving = false;
+  
   int _selectedIconIndex = 0;
   final List<String> _iconEmojis = ['🚶', '📚', '💧', '🧘', '🏃', '😴', '🥗', '🎸', '✍️', '🎯'];
   final List<String> _iconNames = ['Walking', 'Reading', 'Water', 'Meditation', 'Running', 'Sleep', 'Healthy Food', 'Music', 'Writing', 'Target'];
@@ -167,6 +174,67 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
     _nameController.dispose();
     _motivationController.dispose();
     super.dispose();
+  }
+
+  /// Сохранение привычки в Firebase
+  Future<void> _saveHabit() async {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter habit name')),
+      );
+      return;
+    }
+
+    // Проверка авторизации
+    if (!_habitRepository.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please sign in to save habits')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      // Создаем модель привычки
+      final habit = HabitModel(
+        userId: _habitRepository.currentUserId!,
+        name: _nameController.text.trim(),
+        emoji: _iconEmojis[_selectedIconIndex],
+        color: HabitModel.colorToHex(_colors[_selectedColorIndex]),
+        habitType: _isBuildHabit ? 'build' : 'quit',
+        targetValue: _targetValue,
+        targetUnit: _targetUnit,
+        frequency: _frequency,
+        period: _period,
+        remindersEnabled: _remindersEnabled,
+        reminderTimes: _reminderTimes,
+        reminderPeriod: _reminderPeriod,
+        motivation: _motivationController.text.trim().isNotEmpty
+            ? _motivationController.text.trim()
+            : null,
+        isDefaultHabit: widget.defaultHabitId != null,
+        defaultHabitId: widget.defaultHabitId,
+      );
+
+      // Сохраняем в Firestore
+      final createdHabit = await _habitRepository.createHabit(habit);
+
+      setState(() => _isSaving = false);
+
+      // Показываем успех и возвращаемся
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Habit created successfully!')),
+      );
+
+      // Возвращаем созданную привычку на предыдущий экран
+      Navigator.of(context).pop(createdHabit);
+    } catch (e) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create habit: $e')),
+      );
+    }
   }
 
   void _showIconPicker() {
@@ -1445,22 +1513,30 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: _isSaving ? null : _saveHabit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.blue100,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.blue100.withOpacity(0.6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(40),
                   ),
                 ),
-                child: Text(
-                  'Create Habit',
-                  style: AppFonts.bodyTitleMedium.copyWith(
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isSaving
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        widget.selectedHabitName != null ? 'Save Habit' : 'Create Habit',
+                        style: AppFonts.bodyTitleMedium.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ),
