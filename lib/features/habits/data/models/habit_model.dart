@@ -13,6 +13,7 @@ class HabitModel {
   // Target Goal
   final int targetValue;
   final String targetUnit;
+  final int incrementStep; // Шаг инкремента (+1, +100, +15 и т.д.)
   
   // Schedule (GOAL)
   final int frequency;
@@ -44,6 +45,7 @@ class HabitModel {
     required this.habitType,
     this.targetValue = 1,
     this.targetUnit = 'times',
+    this.incrementStep = 1,
     this.frequency = 1,
     this.period = 'day',
     this.remindersEnabled = true,
@@ -70,6 +72,7 @@ class HabitModel {
       habitType: data['habitType'] ?? 'build',
       targetValue: data['targetValue'] ?? 1,
       targetUnit: data['targetUnit'] ?? 'times',
+      incrementStep: data['incrementStep'] ?? 1,
       frequency: data['frequency'] ?? 1,
       period: data['period'] ?? 'day',
       remindersEnabled: data['remindersEnabled'] ?? true,
@@ -94,6 +97,7 @@ class HabitModel {
       'habitType': habitType,
       'targetValue': targetValue,
       'targetUnit': targetUnit,
+      'incrementStep': incrementStep,
       'frequency': frequency,
       'period': period,
       'remindersEnabled': remindersEnabled,

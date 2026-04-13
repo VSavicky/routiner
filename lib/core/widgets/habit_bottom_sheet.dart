@@ -10,6 +10,7 @@ class HabitBottomSheet extends StatelessWidget {
   final String iconPath;
   final bool isBadHabbit;
   final VoidCallback onClose;
+  final VoidCallback? onHabitCreated; // Callback при создании привычки
   final String? moodEmoji;
   final String? moodLabel;
 
@@ -20,6 +21,7 @@ class HabitBottomSheet extends StatelessWidget {
     required this.iconPath,
     required this.isBadHabbit,
     required this.onClose,
+    this.onHabitCreated,
     this.moodEmoji,
     this.moodLabel,
   });
@@ -69,9 +71,9 @@ class HabitBottomSheet extends StatelessWidget {
                 
                 // Контейнер для создания привычки
                 GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     onClose();
-                    Navigator.of(context).push(
+                    final result = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => CustomHabitScreen(
                           isBadHabit: isBadHabbit,
@@ -80,6 +82,10 @@ class HabitBottomSheet extends StatelessWidget {
                         ),
                       ),
                     );
+                    // Если привычка создана, вызываем callback
+                    if (result != null && onHabitCreated != null) {
+                      onHabitCreated!();
+                    }
                   },
                   child: Container(
                     height: 70,
@@ -155,9 +161,9 @@ class HabitBottomSheet extends StatelessWidget {
               itemBuilder: (context, index) {
                 final habit = DefaultHabits.getByType(!isBadHabbit)[index];
                 return GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     onClose();
-                    Navigator.of(context).push(
+                    final result = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => CustomHabitScreen(
                           isBadHabit: isBadHabbit,
@@ -177,6 +183,10 @@ class HabitBottomSheet extends StatelessWidget {
                         ),
                       ),
                     );
+                    // Если привычка создана, вызываем callback
+                    if (result != null && onHabitCreated != null) {
+                      onHabitCreated!();
+                    }
                   },
                   child: Container(
                     width: 140,

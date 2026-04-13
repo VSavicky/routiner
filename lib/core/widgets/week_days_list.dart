@@ -51,34 +51,22 @@ class _WeekDaysListState extends State<WeekDaysList> {
     final now = DateTime.now();
     _allWeeks = [];
     
-    print('=== DEBUG: Current date: ${now.toString()} ===');
-    
     // Генерируем недели за год до и после текущей даты
     for (int i = -26; i <= 26; i++) {
       final weekStart = now.add(Duration(days: i * 7));
       final startOfWeek = weekStart.subtract(Duration(days: weekStart.weekday - 1));
       final weekDays = List.generate(7, (dayIndex) => startOfWeek.add(Duration(days: dayIndex)));
       _allWeeks.add(weekDays);
-      
-      // Логируем текущую неделю
-      if (i == 0) {
-        print('=== DEBUG: Current week days: ===');
-        for (int j = 0; j < weekDays.length; j++) {
-          print('Day $j: ${weekDays[j].toString()} - ${_getDayName(weekDays[j].weekday)}');
-        }
-      }
     }
     
     // Находим индекс текущей недели
     final currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-    print('=== DEBUG: Current week start: ${currentWeekStart.toString()} ===');
     for (int i = 0; i < _allWeeks.length; i++) {
       final week = _allWeeks[i][0]; // Понедельник недели
       if (week.day == currentWeekStart.day &&
           week.month == currentWeekStart.month &&
           week.year == currentWeekStart.year) {
         _currentWeekIndex = i;
-        print('=== DEBUG: Found current week at index: $i ===');
         break;
       }
     }
@@ -91,8 +79,6 @@ class _WeekDaysListState extends State<WeekDaysList> {
         final targetOffset = _currentWeekIndex * itemWidth;
         final screenWidth = MediaQuery.of(context).size.width;
         final centerOffset = targetOffset - (screenWidth / 2) + (itemWidth / 2);
-        
-        print('=== DEBUG: Jumping to week $_currentWeekIndex, offset: $centerOffset ===');
         
         // Мгновенное позиционирование без анимации
         _scrollController.jumpTo(centerOffset);
@@ -109,10 +95,6 @@ class _WeekDaysListState extends State<WeekDaysList> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    print('=== DEBUG: Build method - Today: ${now.toString()} ===');
-    print('=== DEBUG: Build method - Selected: ${_selectedDate.toString()} ===');
-    
     return Container(
       height: 64,
       width: double.infinity,
@@ -136,14 +118,8 @@ class _WeekDaysListState extends State<WeekDaysList> {
                     date.month == DateTime.now().month &&
                     date.year == DateTime.now().year;
                 
-                // Логируем каждый день в текущей неделе
-                if (weekIndex == _currentWeekIndex) {
-                  print('=== DEBUG: Day ${date.day} - ${_getDayName(date.weekday)} - isSelected: $isSelected - isToday: $isToday ===');
-                }
-                
                 return GestureDetector(
                   onTap: () {
-                    print('=== DEBUG: Tapped on date: ${date.toString()} ===');
                     setState(() {
                       _selectedDate = date;
                     });

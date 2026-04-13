@@ -5,6 +5,8 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:routiner/core/widgets/habit_option_widget.dart';
 import 'package:routiner/core/widgets/habit_bottom_sheet.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key, required this.navigationShell});
@@ -19,6 +21,41 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   bool _isAddModalVisible = false;
   int _selectedMoodIndex = 0; // Выбранная иконка настроения
+  
+  final HabitRepository _habitRepository = HabitRepository();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isSavingMood = false;
+  
+  // Список смайликов настроений
+  final List<String> _moodEmojis = ['😊', '😔', '😢', '😡', '😰', '🤢', '😴', '🥱'];
+  // Список названий настроений
+  final List<String> _moodLabels = ['Happy', 'Sad', 'Crying', 'Angry', 'Anxious', 'Sick', 'Tired', 'Sleepy'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTodayMood();
+  }
+  
+  /// Загрузить настроение за сегодня
+  Future<void> _loadTodayMood() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    
+    try {
+      final mood = await _habitRepository.getMoodForDate(user.uid, DateTime.now());
+      if (mood != null) {
+        final index = _moodEmojis.indexOf(mood.emoji);
+        if (index != -1) {
+          setState(() {
+            _selectedMoodIndex = index;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading today mood: $e');
+    }
+  }
 
   void _toggleAddModal() {
     setState(() {
@@ -32,9 +69,30 @@ class _RootScreenState extends State<RootScreen> {
     });
   }
 
-  void _selectMood(int index) {
+  void _selectMood(int index) async {
     setState(() {
       _selectedMoodIndex = index;
+      _isSavingMood = true;
+    });
+    
+    // Сохраняем настроение в БД
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await _habitRepository.saveMood(
+          userId: user.uid,
+          emoji: _moodEmojis[index],
+          label: _moodLabels[index],
+          date: DateTime.now(),
+        );
+        print('Mood saved: ${_moodEmojis[index]} - ${_moodLabels[index]}');
+      } catch (e) {
+        print('Error saving mood: $e');
+      }
+    }
+    
+    setState(() {
+      _isSavingMood = false;
     });
   }
 
@@ -82,6 +140,11 @@ class _RootScreenState extends State<RootScreen> {
         moodEmoji: moodEmojis[_selectedMoodIndex],
         moodLabel: moodLabels[_selectedMoodIndex],
         onClose: () => Navigator.of(context).pop(),
+        onHabitCreated: () {
+          // Привычка создана - можно добавить здесь логику уведомления
+          // Например, через события или глобальный ключ
+          print('Habit created - refreshing...');
+        },
       ),
     );
   }

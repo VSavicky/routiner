@@ -48,8 +48,12 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   bool _isSaving = false;
   
   int _selectedIconIndex = 0;
+  // Иконки для хороших привычек (build)
   final List<String> _iconEmojis = ['🚶', '📚', '💧', '🧘', '🏃', '😴', '🥗', '🎸', '✍️', '🎯'];
   final List<String> _iconNames = ['Walking', 'Reading', 'Water', 'Meditation', 'Running', 'Sleep', 'Healthy Food', 'Music', 'Writing', 'Target'];
+  // Иконки для плохих привычек (quit)
+  final List<String> _badHabitEmojis = ['🚬', '🍺', '🍔', '📱', '🎮', '🛋️', '😤', '🍭', '☕', '💸'];
+  final List<String> _badHabitNames = ['Smoking', 'Alcohol', 'Fast Food', 'Phone', 'Gaming', 'Laziness', 'Anger', 'Sweets', 'Caffeine', 'Spending'];
   
   int _selectedColorIndex = 0;
   final List<Color> _colors = [
@@ -112,10 +116,17 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
     _nameController = TextEditingController(text: widget.selectedHabitName ?? '');
     _motivationController = TextEditingController(text: widget.motivation ?? '');
     
-    // Инициализация иконки
+    // Инициализация иконки - ищем в правильном списке в зависимости от типа привычки
     if (widget.selectedHabitEmoji != null) {
-      int index = _iconEmojis.indexOf(widget.selectedHabitEmoji!);
-      if (index != -1) _selectedIconIndex = index;
+      if (widget.isBadHabit == true) {
+        // Для плохих привычек ищем в списке плохих иконок
+        int index = _badHabitEmojis.indexOf(widget.selectedHabitEmoji!);
+        if (index != -1) _selectedIconIndex = index;
+      } else {
+        // Для хороших привычек ищем в списке хороших иконок
+        int index = _iconEmojis.indexOf(widget.selectedHabitEmoji!);
+        if (index != -1) _selectedIconIndex = index;
+      }
     }
     
     // Инициализация цвета
@@ -151,6 +162,12 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       _isBuildHabit = !widget.isBadHabit!;
     }
   }
+  
+  // Получаем текущий список иконок в зависимости от типа привычки
+  List<String> get _currentIconEmojis => _isBuildHabit ? _iconEmojis : _badHabitEmojis;
+  
+  // Получаем текущий список названий иконок в зависимости от типа привычки
+  List<String> get _currentIconNames => _isBuildHabit ? _iconNames : _badHabitNames;
   
   void _updatePeriodLabel() {
     switch (_period) {
@@ -196,15 +213,46 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
     setState(() => _isSaving = true);
 
     try {
+      // Определяем шаг инкремента на основе единицы измерения
+      int incrementStep = 1;
+      switch (_targetUnit.toLowerCase()) {
+        case 'steps':
+          incrementStep = 100;
+          break;
+        case 'ml':
+          incrementStep = 200;
+          break;
+        case 'minutes':
+        case 'min':
+          incrementStep = 15;
+          break;
+        case 'pages':
+          incrementStep = 10;
+          break;
+        case 'calories':
+        case 'kcal':
+          incrementStep = 50;
+          break;
+        case 'km':
+          incrementStep = 1;
+          break;
+        case 'hours':
+          incrementStep = 1;
+          break;
+        default:
+          incrementStep = 1; // times, workouts, glasses и т.д.
+      }
+      
       // Создаем модель привычки
       final habit = HabitModel(
         userId: _habitRepository.currentUserId!,
         name: _nameController.text.trim(),
-        emoji: _iconEmojis[_selectedIconIndex],
+        emoji: _currentIconEmojis[_selectedIconIndex],
         color: HabitModel.colorToHex(_colors[_selectedColorIndex]),
         habitType: _isBuildHabit ? 'build' : 'quit',
         targetValue: _targetValue,
         targetUnit: _targetUnit,
+        incrementStep: incrementStep,
         frequency: _frequency,
         period: _period,
         remindersEnabled: _remindersEnabled,
@@ -258,38 +306,43 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: List.generate(_iconEmojis.length, (index) {
-                  bool isSelected = _selectedIconIndex == index;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedIconIndex = index;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.blue10 : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? AppColors.blue100 : AppColors.black10,
-                          width: isSelected ? 2.0 : 1.0,
+              StatefulBuilder(
+                builder: (context, setModalState) {
+                  final currentIcons = _isBuildHabit ? _iconEmojis : _badHabitEmojis;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: List.generate(currentIcons.length, (index) {
+                      bool isSelected = _selectedIconIndex == index;
+                      return GestureDetector(
+                        onTap: () {
+                          setModalState(() {
+                            _selectedIconIndex = index;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.blue10 : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected ? AppColors.blue100 : AppColors.black10,
+                              width: isSelected ? 2.0 : 1.0,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              currentIcons[index],
+                              style: TextStyle(fontSize: 28),
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _iconEmojis[index],
-                          style: TextStyle(fontSize: 28),
-                        ),
-                      ),
-                    ),
+                      );
+                    }),
                   );
-                }),
+                },
               ),
               SizedBox(height: 20),
             ],
@@ -902,7 +955,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        _iconEmojis[_selectedIconIndex],
+                                        _currentIconEmojis[_selectedIconIndex],
                                         style: TextStyle(fontSize: 24),
                                       ),
                                     ),
@@ -913,7 +966,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          _iconNames[_selectedIconIndex],
+                                          _currentIconNames[_selectedIconIndex],
                                           style: AppFonts.bodyTitleMedium.copyWith(
                                             color: AppColors.black100,
                                           ),
@@ -1402,6 +1455,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                               onTap: () {
                                 setState(() {
                                   _isBuildHabit = true;
+                                  _selectedIconIndex = 0; // Сбрасываем индекс при смене типа
                                 });
                               },
                               child: Container(
@@ -1427,6 +1481,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                               onTap: () {
                                 setState(() {
                                   _isBuildHabit = false;
+                                  _selectedIconIndex = 0; // Сбрасываем индекс при смене типа
                                 });
                               },
                               child: Container(

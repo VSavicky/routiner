@@ -7,6 +7,8 @@ import 'package:routiner/features/auth/presentation/widgets/primary_button.dart'
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routiner/features/habits/data/models/habit_model.dart';
+import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 
 class HabitSelectionScreen extends StatefulWidget {
   const HabitSelectionScreen({super.key});
@@ -43,6 +45,27 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
         final lastName = prefs.getString('registration_last_name') ?? '';
         final birthDate = prefs.getString('registration_birth_date') ?? '';
         final gender = prefs.getString('registration_gender') ?? '';
+        
+        // Создаем привычку в коллекции habits
+        final habitRepository = HabitRepository();
+        final selectedHabitData = habits.firstWhere((h) => h['name'] == _selectedHabit);
+        
+        final newHabit = HabitModel(
+          id: '', // будет сгенерирован Firestore
+          userId: user.uid,
+          name: selectedHabitData['name']!,
+          emoji: selectedHabitData['emoji']!,
+          color: '#4CAF50', // Зеленый по умолчанию (hex строка)
+          habitType: 'build',
+          targetValue: 1,
+          targetUnit: 'times',
+          frequency: 1,
+          period: 'day',
+          remindersEnabled: true,
+          createdAt: DateTime.now(),
+        );
+        
+        await habitRepository.createHabit(newHabit);
         
         // Обновляем запись в Firestore с гендером и привычкой
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({

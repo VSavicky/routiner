@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/habit_model.dart';
 import '../models/habit_log_model.dart';
+import '../models/mood_model.dart';
 
 /// Репозиторий для работы с привычками в Firestore
 class HabitRepository {
@@ -48,17 +49,36 @@ class HabitRepository {
     }
   }
 
-  /// Получить все привычки пользователя
+  /// Получить все привычки пользователя (простой запрос без orderBy)
   Stream<List<HabitModel>> getUserHabits(String userId) {
     return _firestore
         .collection('habits')
         .where('userId', isEqualTo: userId)
-        .where('isArchived', isEqualTo: false)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => HabitModel.fromFirestore(doc)).toList();
+      final habits = snapshot.docs
+          .map((doc) => HabitModel.fromFirestore(doc))
+          .where((h) => !h.isArchived) // Фильтруем на клиенте
+          .toList();
+      // Сортируем на клиенте по createdAt (новые сначала)
+      habits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return habits;
     });
+  }
+  
+  /// Получить все привычки пользователя принудительно с сервера (без кэша)
+  Future<List<HabitModel>> getUserHabitsFromServer(String userId) async {
+    final snapshot = await _firestore
+        .collection('habits')
+        .where('userId', isEqualTo: userId)
+        .get(GetOptions(source: Source.server));
+    final habits = snapshot.docs
+        .map((doc) => HabitModel.fromFirestore(doc))
+        .where((h) => !h.isArchived) // Фильтруем на клиенте
+        .toList();
+    // Сортируем на клиенте по createdAt (новые сначала)
+    habits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return habits;
   }
 
   /// Получить архивированные привычки пользователя
@@ -124,7 +144,123 @@ class HabitRepository {
 
   // ==================== HABIT LOGS ====================
 
-  /// Отметить привычку как выполненную/невыполненную
+  /// Обновить статус привычки (completed, skipped, failed)
+  Future<HabitLogModel> updateHabitStatus(
+    String habitId,
+    DateTime date,
+    HabitStatus status, {
+    int? value,
+    String? note,
+  }) async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final logId = HabitLogModel.createId(userId, habitId, date);
+      final logRef = _firestore.collection('habitLogs').doc(logId);
+      final doc = await logRef.get();
+
+      final isCompleted = status == HabitStatus.completed;
+      final completedAt = isCompleted ? DateTime.now() : null;
+
+      if (doc.exists) {
+        // Обновляем существующий лог
+        final existingLog = HabitLogModel.fromFirestore(doc);
+        final updatedLog = existingLog.copyWith(
+          status: status,
+          isCompleted: isCompleted,
+          completedAt: completedAt,
+          value: value ?? existingLog.value,
+          note: note ?? existingLog.note,
+        );
+        await logRef.update(updatedLog.toFirestore());
+        return updatedLog;
+      } else {
+        // Создаем новый лог
+        final newLog = HabitLogModel(
+          id: logId,
+          userId: userId,
+          habitId: habitId,
+          date: date,
+          status: status,
+          isCompleted: isCompleted,
+          completedAt: completedAt,
+          value: value,
+          note: note,
+        );
+        await logRef.set(newLog.toFirestore());
+        return newLog;
+      }
+    } catch (e) {
+      throw Exception('Failed to update habit status: $e');
+    }
+  }
+
+  /// Добавить шаг выполнения привычки (инкремент value)
+  Future<HabitLogModel> incrementHabitProgress(
+    String habitId,
+    DateTime date,
+    int increment, {
+    String? note,
+  }) async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final logId = HabitLogModel.createId(userId, habitId, date);
+      final logRef = _firestore.collection('habitLogs').doc(logId);
+      final doc = await logRef.get();
+
+      // Получаем привычку для проверки targetValue
+      final habitDoc = await _firestore.collection('habits').doc(habitId).get();
+      final targetValue = habitDoc.exists 
+          ? (habitDoc.data() as Map<String, dynamic>)['targetValue'] ?? 1 
+          : 1;
+
+      if (doc.exists) {
+        // Обновляем существующий лог
+        final existingLog = HabitLogModel.fromFirestore(doc);
+        final newValue = (existingLog.value ?? 0) + increment;
+        final isCompleted = newValue >= targetValue;
+        
+        final updatedLog = existingLog.copyWith(
+          value: newValue,
+          status: isCompleted ? HabitStatus.completed : existingLog.status,
+          isCompleted: isCompleted,
+          completedAt: isCompleted && !existingLog.isCompleted 
+              ? DateTime.now() 
+              : existingLog.completedAt,
+          note: note ?? existingLog.note,
+        );
+        await logRef.update(updatedLog.toFirestore());
+        return updatedLog;
+      } else {
+        // Создаем новый лог
+        final isCompleted = increment >= targetValue;
+        final newLog = HabitLogModel(
+          id: logId,
+          userId: userId,
+          habitId: habitId,
+          date: date,
+          value: increment,
+          status: isCompleted ? HabitStatus.completed : HabitStatus.pending,
+          isCompleted: isCompleted,
+          completedAt: isCompleted ? DateTime.now() : null,
+          note: note,
+        );
+        await logRef.set(newLog.toFirestore());
+        return newLog;
+      }
+    } catch (e) {
+      throw Exception('Failed to increment habit progress: $e');
+    }
+  }
+
+  /// Отметить привычку как выполненную/невыполненную (legacy)
   Future<HabitLogModel> toggleHabitCompletion(
     String habitId,
     DateTime date, {
@@ -207,6 +343,58 @@ class HabitRepository {
     }
   }
 
+  /// Получить логи привычек за дату (фильтруем на клиенте для избежания индексов)
+  Future<List<HabitLogModel>> getHabitLogsForDate(String userId, DateTime date) async {
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+      // Получаем все логи пользователя и фильтруем на клиенте (не требует индекса)
+      final snapshot = await _firestore
+          .collection('habitLogs')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => HabitLogModel.fromFirestore(doc))
+          .where((log) {
+            final logDate = log.date;
+            return logDate.isAfter(startOfDay.subtract(const Duration(seconds: 1))) &&
+                   logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
+          })
+          .toList();
+    } catch (e) {
+      print('Error getting habit logs: $e');
+      return [];
+    }
+  }
+
+  /// Получить логи привычек за дату принудительно с сервера (без кэша)
+  Future<List<HabitLogModel>> getHabitLogsForDateFromServer(String userId, DateTime date) async {
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+      // Получаем все логи пользователя с сервера и фильтруем на клиенте
+      final snapshot = await _firestore
+          .collection('habitLogs')
+          .where('userId', isEqualTo: userId)
+          .get(GetOptions(source: Source.server));
+
+      return snapshot.docs
+          .map((doc) => HabitLogModel.fromFirestore(doc))
+          .where((log) {
+            final logDate = log.date;
+            return logDate.isAfter(startOfDay.subtract(const Duration(seconds: 1))) &&
+                   logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
+          })
+          .toList();
+    } catch (e) {
+      print('Error getting habit logs from server: $e');
+      return [];
+    }
+  }
+
   /// Получить статистику по привычке
   Future<Map<String, dynamic>> getHabitStats(String habitId, DateTime fromDate) async {
     try {
@@ -270,6 +458,90 @@ class HabitRepository {
       return createdHabits;
     } catch (e) {
       throw Exception('Failed to create habits batch: $e');
+    }
+  }
+
+  // ==================== МЕТОДЫ ДЛЯ РАБОТЫ С НАСТРОЕНИЕМ ====================
+
+  /// Сохранить настроение пользователя
+  Future<MoodModel> saveMood({
+    required String userId,
+    required String emoji,
+    required String label,
+    required DateTime date,
+  }) async {
+    try {
+      // Проверяем, есть ли уже настроение за эту дату
+      final existingMood = await getMoodForDate(userId, date);
+      
+      final mood = MoodModel(
+        id: existingMood?.id,
+        userId: userId,
+        emoji: emoji,
+        label: label,
+        date: date,
+      );
+
+      if (existingMood?.id != null) {
+        // Обновляем существующее
+        await _firestore
+            .collection('moods')
+            .doc(existingMood!.id)
+            .update(mood.toFirestore());
+      } else {
+        // Создаем новое
+        final docRef = await _firestore
+            .collection('moods')
+            .add(mood.toFirestore());
+        return mood.copyWith(id: docRef.id);
+      }
+
+      return mood;
+    } catch (e) {
+      throw Exception('Failed to save mood: $e');
+    }
+  }
+
+  /// Получить настроение за конкретную дату
+  Future<MoodModel?> getMoodForDate(String userId, DateTime date) async {
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+      final snapshot = await _firestore
+          .collection('moods')
+          .where('userId', isEqualTo: userId)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isEmpty) return null;
+      return MoodModel.fromFirestore(snapshot.docs.first);
+    } catch (e) {
+      print('Error getting mood for date: $e');
+      return null;
+    }
+  }
+
+  /// Получить стрим настроений пользователя
+  Stream<List<MoodModel>> getUserMoods(String userId) {
+    return _firestore
+        .collection('moods')
+        .where('userId', isEqualTo: userId)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => MoodModel.fromFirestore(doc)).toList();
+    });
+  }
+
+  /// Удалить настроение
+  Future<void> deleteMood(String moodId) async {
+    try {
+      await _firestore.collection('moods').doc(moodId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete mood: $e');
     }
   }
 }

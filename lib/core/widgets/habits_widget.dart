@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
-import 'package:routiner/core/widgets/notification_icon.dart';
+import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 
 class Habit {
   final String id;
@@ -10,12 +10,21 @@ class Habit {
   final int friendsCount;
   final int currentProgress;
   final int targetProgress;
+  final String emoji; // Иконка привычки
+  final Color? color; // Цвет привычки
+  final int streak; // Текущий streak
+  final String habitType; // 'build' или 'quit'
+  final HabitStatus status; // Текущий статус
+  final int incrementStep; // Шаг инкремента (+1, +100, +15)
   final VoidCallback? onViewPressed;
   final VoidCallback? onDonePressed;
   final VoidCallback? onFallPressed;
   final VoidCallback? onSkipPressed;
   final VoidCallback? onAddFriendPressed;
   final VoidCallback? onFriendsPressed;
+  final VoidCallback? onEditPressed; // Редактировать
+  final VoidCallback? onArchivePressed; // В архив
+  final void Function(int)? onAddPressed; // Добавить шаг (+) с умным шагом
 
   Habit({
     required this.id,
@@ -24,15 +33,75 @@ class Habit {
     required this.friendsCount,
     required this.currentProgress,
     required this.targetProgress,
+    this.emoji = '💧',
+    this.color,
+    this.streak = 0,
+    this.habitType = 'build',
+    this.status = HabitStatus.pending,
+    this.incrementStep = 1,
     this.onViewPressed,
     this.onDonePressed,
     this.onFallPressed,
     this.onSkipPressed,
     this.onAddFriendPressed,
     this.onFriendsPressed,
+    this.onEditPressed,
+    this.onArchivePressed,
+    this.onAddPressed,
   });
 
   bool get isCompleted => currentProgress >= targetProgress;
+  bool get isSkipped => status == HabitStatus.skipped;
+  bool get isFailed => status == HabitStatus.failed;
+  bool get isPending => status == HabitStatus.pending;
+  
+  /// Процент выполнения (0.0 - 1.0)
+  double get progressPercent {
+    if (targetProgress <= 0) return 0.0;
+    final percent = currentProgress / targetProgress;
+    return percent.clamp(0.0, 1.0);
+  }
+  
+  /// Цвет прогресса
+  Color get progressColor {
+    if (isCompleted) return AppColors.green40;
+    if (isFailed) return AppColors.red;
+    if (isSkipped) return AppColors.black40;
+    return color ?? AppColors.blue100;
+  }
+  
+  /// Цвет текста (черный по умолчанию)
+  Color get textColor {
+    if (isCompleted) return AppColors.green40;
+    if (isFailed) return AppColors.red;
+    if (isSkipped) return AppColors.black40;
+    return AppColors.black100; // Черный по умолчанию
+  }
+  
+  /// Фоновый цвет контейнера
+  Color get backgroundColor {
+    if (isSkipped) return AppColors.black10;
+    return Colors.white;
+  }
+  
+  /// Текст статуса
+  String get statusText {
+    if (isCompleted) return 'Completed!';
+    if (isFailed) return 'Failed';
+    if (isSkipped) return 'Skipped';
+    return subtitle;
+  }
+  
+  /// Умный шаг инкремента на основе цели
+  int get smartIncrementStep {
+    if (targetProgress <= 10) return 1;
+    if (targetProgress <= 20) return 5;
+    if (targetProgress <= 50) return 10;
+    if (targetProgress <= 100) return 20;
+    if (targetProgress <= 500) return 50;
+    if (targetProgress <= 1000) return 100;
+    return (targetProgress / 10).ceil(); // Делим на 10 частей
+  }
 }
 
 class HabitsWidget extends StatefulWidget {
@@ -82,6 +151,14 @@ class _HabitsWidgetState extends State<HabitsWidget> {
     });
   }
 
+  /// Сброс панелей в исходное состояние (вызывается после действий Done, Fall, Skip)
+  void _resetPanels(String habitId) {
+    setState(() {
+      _leftPanelVisible[habitId] = false;
+      _rightPanelVisible[habitId] = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -125,6 +202,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
               isLeftPanelVisible: _leftPanelVisible[habit.id] ?? false,
               isRightPanelVisible: _rightPanelVisible[habit.id] ?? false,
               onHorizontalDragEnd: (details) => _onHorizontalDragEnd(habit.id, details),
+              onResetPanels: () => _resetPanels(habit.id),
             ),
           );
         }).toList(),
@@ -138,12 +216,14 @@ class _HabitContainer extends StatelessWidget {
   final bool isLeftPanelVisible;
   final bool isRightPanelVisible;
   final Function(DragEndDetails) onHorizontalDragEnd;
+  final VoidCallback onResetPanels; // Сброс позиции после действий
 
   const _HabitContainer({
     required this.habit,
     required this.isLeftPanelVisible,
     required this.isRightPanelVisible,
     required this.onHorizontalDragEnd,
+    required this.onResetPanels,
   });
 
   @override
@@ -163,18 +243,18 @@ class _HabitContainer extends StatelessWidget {
               AnimatedPositioned(
                 duration: Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                left: isLeftPanelVisible ? 125.0 : (isRightPanelVisible ? -125.0 : 0.0), // Сдвиг влево или вправо
+                left: isLeftPanelVisible ? 125.0 : (isRightPanelVisible ? -125.0 : 0.0),
                 top: 0,
-                right: isLeftPanelVisible ? -125.0 : (isRightPanelVisible ? 125.0 : 0.0), // Компенсируем сдвиг
+                right: isLeftPanelVisible ? -125.0 : (isRightPanelVisible ? 125.0 : 0.0),
                 bottom: 0,
                 child: Container(
                   width: double.infinity,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: habit.backgroundColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.black10,
+                      color: habit.isSkipped ? AppColors.black20 : AppColors.black10,
                       width: 1,
                     ),
                   ),
@@ -187,65 +267,114 @@ class _HabitContainer extends StatelessWidget {
                         Expanded( // Используем Expanded чтобы избежать overflow
                           child: Row(
                             children: [
-                              // Круглый прогресс-бар со смайликом
-                              Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: habit.isCompleted ? AppColors.green40 : AppColors.blue10,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Container(
-                                    width: 26,
-                                    height: 26,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: habit.isCompleted 
-                                          ? Icon(
-                                              Icons.check,
-                                              color: AppColors.green40,
-                                              size: 16,
-                                            )
-                                          : Text(
-                                              '💧',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                    ),
+                              // Круглый прогресс-бар с иконкой привычки
+                              GestureDetector(
+                                onTap: habit.onEditPressed,
+                                child: SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Круговой прогресс бар
+                                      CircularProgressIndicator(
+                                        value: habit.progressPercent,
+                                        strokeWidth: 3,
+                                        backgroundColor: AppColors.black10,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          habit.isSkipped ? AppColors.black40 : habit.progressColor,
+                                        ),
+                                      ),
+                                      // Внутренний круг с иконкой
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: habit.isSkipped ? AppColors.black10 : Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: habit.isCompleted 
+                                              ? Icon(
+                                                  Icons.check,
+                                                  color: AppColors.green40,
+                                                  size: 20,
+                                                )
+                                              : Text(
+                                                  habit.emoji,
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: habit.isSkipped ? AppColors.black40 : null,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                               SizedBox(width: 12),
-                              // Колонка с текстом
-                              Expanded( // Используем Expanded для текста
+                              // Колонка с текстом и прогрессом
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      habit.title,
-                                      style: AppFonts.bodyTitleMedium.copyWith(
-                                        color: AppColors.black100,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      overflow: TextOverflow.ellipsis, // Обрезаем длинный текст
-                                      maxLines: 1,
+                                    // Заголовок и streak
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            habit.title,
+                                            style: AppFonts.bodyTitleMedium.copyWith(
+                                              color: AppColors.black100,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                        // Streak badge
+                                        if (habit.streak > 0)
+                                          Container(
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.orange10,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.local_fire_department,
+                                                  color: AppColors.orange,
+                                                  size: 12,
+                                                ),
+                                                SizedBox(width: 2),
+                                                Text(
+                                                  '${habit.streak}',
+                                                  style: AppFonts.bodyAlternative.copyWith(
+                                                    color: AppColors.orange,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
                                     ),
-                                    SizedBox(height: 1),
+                                    SizedBox(height: 4),
+                                    // Подпись статуса
                                     Text(
-                                      habit.isCompleted ? 'Completed!' : habit.subtitle,
+                                      habit.statusText,
                                       style: AppFonts.bodyAlternative.copyWith(
-                                        color: habit.isCompleted ? AppColors.green40 : AppColors.black40,
+                                        color: habit.textColor,
                                         fontSize: 11,
                                         fontWeight: FontWeight.normal,
                                       ),
-                                      overflow: TextOverflow.ellipsis, // Обрезаем длинный текст
+                                      overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
                                   ],
@@ -273,19 +402,51 @@ class _HabitContainer extends StatelessWidget {
                               ),
                             ),
                             SizedBox(width: 8),
-                            // Иконка добавления
-                            NotificationIcon(
-                              icon: habit.isCompleted ? Icons.check : Icons.add,
-                              hasNotification: false,
-                              onTap: habit.onAddFriendPressed ?? () {
-                                print('Add friend pressed: ${habit.title}');
-                              },
-                              size: 20,
-                              iconColor: habit.isCompleted ? AppColors.green40 : AppColors.black100,
-                              showBorder: true,
-                              borderColor: AppColors.black10,
-                              borderWidth: 2.0,
-                              borderRadius: 16.0,
+                            // Кнопка добавления шага (+)
+                            GestureDetector(
+                              onTap: habit.isCompleted || habit.isSkipped || habit.isFailed
+                                  ? null 
+                                  : () {
+                                      // Вызываем с умным шагом
+                                      final step = habit.smartIncrementStep;
+                                      if (habit.onAddPressed != null) {
+                                        // Передаем шаг через callback с параметром
+                                        (habit.onAddPressed as void Function(int)?)?.call(step);
+                                      } else {
+                                        print('Add step pressed: ${habit.title} +$step');
+                                      }
+                                      // Возвращаем карточку после добавления шага
+                                      onResetPanels();
+                                    },
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: habit.isCompleted 
+                                      ? AppColors.green10 
+                                      : Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: habit.isCompleted 
+                                        ? AppColors.green40 
+                                        : AppColors.black10,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: habit.isCompleted
+                                      ? Icon(
+                                          Icons.check,
+                                          color: AppColors.green40,
+                                          size: 18,
+                                        )
+                                      : Icon(
+                                          Icons.add,
+                                          color: habit.isSkipped ? AppColors.black40 : AppColors.black100,
+                                          size: 18,
+                                        ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -319,12 +480,16 @@ class _HabitContainer extends StatelessWidget {
                       children: [
                         // Левый столбик - икона глаза и View
                         GestureDetector(
-                          onTap: habit.onViewPressed ?? () {
-                            print('View pressed: ${habit.title}');
-                            // Если привычка выполнена, добавляем функционал как при 100%
-                            if (habit.isCompleted) {
-                              print('Habit already completed - showing completion effects');
+                          onTap: () {
+                            if (habit.onViewPressed != null) {
+                              habit.onViewPressed!();
+                            } else {
+                              print('View pressed: ${habit.title}');
+                              if (habit.isCompleted) {
+                                print('Habit already completed - showing completion effects');
+                              }
                             }
+                            onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,12 +520,16 @@ class _HabitContainer extends StatelessWidget {
                         ),
                         // Правый столбик - галочка и Done
                         GestureDetector(
-                          onTap: habit.onDonePressed ?? () {
-                            print('Done pressed: ${habit.title}');
-                            // Если привычка выполнена, добавляем функционал как при 100%
-                            if (habit.isCompleted) {
-                              print('Habit already completed - showing completion effects');
+                          onTap: () {
+                            if (habit.onDonePressed != null) {
+                              habit.onDonePressed!();
+                            } else {
+                              print('Done pressed: ${habit.title}');
+                              if (habit.isCompleted) {
+                                print('Habit already completed - showing completion effects');
+                              }
                             }
+                            onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +557,7 @@ class _HabitContainer extends StatelessWidget {
                   ),
                 ),
               ),
-              // Правая боковая панель (выдвигается при свайпе влево)
+              // Правая боковая панель (выдвигается при свайпе влево) - Fall и Skip
               AnimatedPositioned(
                 duration: Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
@@ -413,9 +582,13 @@ class _HabitContainer extends StatelessWidget {
                       children: [
                         // Левый столбик - крестик и Fall
                         GestureDetector(
-                          onTap: habit.onFallPressed ?? () {
-                            print('Fall pressed: ${habit.title}');
-                            // TODO: Добавить логику для проваленной привычки
+                          onTap: () {
+                            if (habit.onFallPressed != null) {
+                              habit.onFallPressed!();
+                            } else {
+                              print('Fall pressed: ${habit.title}');
+                            }
+                            onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,9 +619,13 @@ class _HabitContainer extends StatelessWidget {
                         ),
                         // Правый столбик - стрелка вправо и Skip
                         GestureDetector(
-                          onTap: habit.onSkipPressed ?? () {
-                            print('Skip pressed: ${habit.title}');
-                            // TODO: Добавить логику для пропущенной привычки
+                          onTap: () {
+                            if (habit.onSkipPressed != null) {
+                              habit.onSkipPressed!();
+                            } else {
+                              print('Skip pressed: ${habit.title}');
+                            }
+                            onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
