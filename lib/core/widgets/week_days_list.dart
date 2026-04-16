@@ -5,11 +5,13 @@ import 'package:routiner/core/constants/app_fonts.dart';
 class WeekDaysList extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime) onDateSelected;
+  final Map<String, double> dailyProgress; // Ключ: YYYY-MM-DD, Значение: прогресс 0.0-1.0
 
   const WeekDaysList({
     Key? key,
     this.selectedDate,
     required this.onDateSelected,
+    this.dailyProgress = const {},
   }) : super(key: key);
 
   @override
@@ -40,7 +42,9 @@ class _WeekDaysListState extends State<WeekDaysList> {
   @override
   void didUpdateWidget(WeekDaysList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedDate != oldWidget.selectedDate) {
+    // Обновляем только если передана новая валидная дата отличная от текущей
+    if (widget.selectedDate != null && 
+        widget.selectedDate != oldWidget.selectedDate) {
       setState(() {
         _selectedDate = widget.selectedDate;
       });
@@ -73,17 +77,21 @@ class _WeekDaysListState extends State<WeekDaysList> {
   }
 
   void _scrollToCurrentWeek() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        final itemWidth = 56.0 * 7; // Ширина одной недели
-        final targetOffset = _currentWeekIndex * itemWidth;
-        final screenWidth = MediaQuery.of(context).size.width;
-        final centerOffset = targetOffset - (screenWidth / 2) + (itemWidth / 2);
-        
-        // Мгновенное позиционирование без анимации
-        _scrollController.jumpTo(centerOffset);
-      }
-    });
+    // Используем несколько попыток прокрутки для надежности
+    for (var i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: 100 * i), () {
+        if (_scrollController.hasClients) {
+          final dayWidth = 50.0; // Ширина одного дня (44 + 6 margin)
+          final itemWidth = dayWidth * 7; // Ширина одной недели
+          final targetOffset = _currentWeekIndex * itemWidth;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final centerOffset = targetOffset - (screenWidth / 2) + (itemWidth / 2);
+          
+          // Мгновенное позиционирование без анимации
+          _scrollController.jumpTo(centerOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+        }
+      });
+    }
   }
 
   bool _isDateSelected(DateTime date) {
@@ -108,7 +116,7 @@ class _WeekDaysListState extends State<WeekDaysList> {
           final weekDays = _allWeeks[weekIndex];
           
           return Container(
-            width: 56 * 7, // 7 дней * (48px + 8px отступ) - убираем лишние отступы
+            width: 50 * 7, // 7 дней * (44px + 6px отступ)
             child: Row(
               children: weekDays.asMap().entries.map((entry) {
                 final dayIndex = entry.key;
@@ -126,53 +134,96 @@ class _WeekDaysListState extends State<WeekDaysList> {
                     widget.onDateSelected(date);
                   },
                   child: Container(
-                    width: 48,
-                    height: 60, // Уменьшаем еще на 3px
-                    margin: EdgeInsets.only(right: dayIndex < 6 ? 8 : 0), // Убираем отступ у последнего элемента
+                    width: 44,
+                    height: 44,
+                    margin: EdgeInsets.only(right: dayIndex < 6 ? 6 : 0, top: 2, bottom: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isSelected 
+                          ? AppColors.blue100.withOpacity(0.15)  // Синий фон для выбранного
+                          : isToday 
+                              ? Colors.white  // Белый фон для сегодня
+                              : Colors.transparent,
+                      shape: BoxShape.circle,
                       border: Border.all(
                         color: isSelected 
-                            ? AppColors.blue100 
+                            ? AppColors.blue100  // Яркая синяя рамка для выбранного
                             : isToday 
-                                ? AppColors.blue100.withOpacity(0.5) // Прозрачность для текущего дня
-                                : AppColors.black10,
-                        width: isSelected 
-                            ? 2 
-                            : isToday 
-                                ? 2 
-                                : 1,
+                                ? AppColors.blue40  // Светлая рамка для сегодня
+                                : Colors.transparent,
+                        width: isSelected ? 2.5 : (isToday ? 1.5 : 0),
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.blue100.withOpacity(0.3),
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                                offset: Offset(0, 2),
+                              ),
+                            ]
+                          : isToday
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.black10.withOpacity(0.2),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          date.day.toString(),
-                          style: AppFonts.headlineH5.copyWith(
-                            color: isSelected 
-                                ? AppColors.blue100 
-                                : isToday 
-                                    ? AppColors.blue100.withOpacity(0.8) // Прозрачность для текста
-                                    : AppColors.black100,
-                            fontSize: 16, // Уменьшаем размер текста
+                    child: Center(
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isSelected ? Colors.white : Colors.transparent,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Круговой прогресс фон
+                              SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: CircularProgressIndicator(
+                                  value: 1.0,
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.black10),
+                                ),
+                              ),
+                              // Круговой прогресс заполнение
+                              SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: CircularProgressIndicator(
+                                  value: widget.dailyProgress[_dateKey(date)] ?? 0.0,
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isSelected 
+                                        ? AppColors.blue100 
+                                        : AppColors.blue40,
+                                  ),
+                                ),
+                              ),
+                              // Число дня
+                              Text(
+                                date.day.toString(),
+                                style: AppFonts.headlineH5.copyWith(
+                                  color: isSelected 
+                                      ? AppColors.blue100 
+                                      : isToday 
+                                          ? AppColors.blue100.withOpacity(0.8)
+                                          : AppColors.black100,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 2), // Уменьшаем отступ еще на 1px
-                        Text(
-                          _getDayName(date.weekday),
-                          style: AppFonts.body.copyWith(
-                            color: isSelected 
-                                ? AppColors.blue100 
-                                : isToday 
-                                    ? AppColors.blue100.withOpacity(0.6) // Прозрачность для текста
-                                    : AppColors.black20,
-                            fontSize: 14, // Уменьшаем размер текста
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -184,24 +235,8 @@ class _WeekDaysListState extends State<WeekDaysList> {
     );
   }
 
-  String _getDayName(int weekday) {
-    switch (weekday) {
-      case 1:
-        return 'Mon';
-      case 2:
-        return 'Tue';
-      case 3:
-        return 'Wed';
-      case 4:
-        return 'Thu';
-      case 5:
-        return 'Fri';
-      case 6:
-        return 'Sat';
-      case 7:
-        return 'Sun';
-      default:
-        return '';
-    }
+  // Форматирование даты в ключ YYYY-MM-DD для Map
+  String _dateKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

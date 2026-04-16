@@ -79,6 +79,7 @@ class HabitBottomSheet extends StatelessWidget {
                           isBadHabit: isBadHabbit,
                           moodEmoji: moodEmoji,
                           moodLabel: moodLabel,
+                          onHabitCreated: onHabitCreated,
                         ),
                       ),
                     );
@@ -180,6 +181,7 @@ class HabitBottomSheet extends StatelessWidget {
                           period: habit.period,
                           reminderTime: habit.reminderTime,
                           defaultHabitId: habit.id,
+                          onHabitCreated: onHabitCreated,
                         ),
                       ),
                     );
@@ -189,7 +191,8 @@ class HabitBottomSheet extends StatelessWidget {
                     }
                   },
                   child: Container(
-                    width: 140,
+                    width: 94,
+                    height: 104,
                     margin: EdgeInsets.only(right: index < DefaultHabits.getByType(!isBadHabbit).length - 1 ? 12 : 24),
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(

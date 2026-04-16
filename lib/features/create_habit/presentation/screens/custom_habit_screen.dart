@@ -20,6 +20,7 @@ class CustomHabitScreen extends StatefulWidget {
   final String? period;
   final String? reminderTime;
   final String? defaultHabitId;
+  final VoidCallback? onHabitCreated;
 
   const CustomHabitScreen({
     super.key,
@@ -37,6 +38,7 @@ class CustomHabitScreen extends StatefulWidget {
     this.period,
     this.reminderTime,
     this.defaultHabitId,
+    this.onHabitCreated,
   });
 
   @override
@@ -275,6 +277,9 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
         SnackBar(content: Text('Habit created successfully!')),
       );
 
+      // Вызываем callback для обновления главного экрана
+      widget.onHabitCreated?.call();
+
       // Возвращаем созданную привычку на предыдущий экран
       Navigator.of(context).pop(createdHabit);
     } catch (e) {
@@ -288,64 +293,69 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   void _showIconPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Icon',
-                style: AppFonts.bodyTitleMedium.copyWith(
-                  color: AppColors.black100,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Icon',
+                  style: AppFonts.bodyTitleMedium.copyWith(
+                    color: AppColors.black100,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20),
-              StatefulBuilder(
-                builder: (context, setModalState) {
-                  final currentIcons = _isBuildHabit ? _iconEmojis : _badHabitEmojis;
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: List.generate(currentIcons.length, (index) {
-                      bool isSelected = _selectedIconIndex == index;
-                      return GestureDetector(
-                        onTap: () {
-                          setModalState(() {
-                            _selectedIconIndex = index;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.blue10 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isSelected ? AppColors.blue100 : AppColors.black10,
-                              width: isSelected ? 2.0 : 1.0,
+                SizedBox(height: 20),
+                StatefulBuilder(
+                  builder: (context, setModalState) {
+                    final currentIcons = _isBuildHabit ? _iconEmojis : _badHabitEmojis;
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: List.generate(currentIcons.length, (index) {
+                        bool isSelected = _selectedIconIndex == index;
+                        return GestureDetector(
+                          onTap: () {
+                            setModalState(() {
+                              _selectedIconIndex = index;
+                            });
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.blue10 : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected ? AppColors.blue100 : AppColors.black10,
+                                width: isSelected ? 2.0 : 1.0,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                currentIcons[index],
+                                style: TextStyle(fontSize: 28),
+                              ),
                             ),
                           ),
-                          child: Center(
-                            child: Text(
-                              currentIcons[index],
-                              style: TextStyle(fontSize: 28),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  );
-                },
-              ),
-              SizedBox(height: 20),
-            ],
+                        );
+                      }),
+                    );
+                  },
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },
@@ -425,88 +435,92 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setPickerState) {
             return Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
               padding: EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Select Frequency',
-                    style: AppFonts.bodyTitleMedium.copyWith(
-                      color: AppColors.black100,
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Select Frequency',
+                      style: AppFonts.bodyTitleMedium.copyWith(
+                        color: AppColors.black100,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  // Выбор количества
-                  Text(
-                    'How many times?',
-                    style: AppFonts.bodyAlternative.copyWith(
-                      color: AppColors.black60,
-                      fontSize: 12,
+                    SizedBox(height: 24),
+                    // Выбор количества
+                    Text(
+                      'How many times?',
+                      style: AppFonts.bodyAlternative.copyWith(
+                        color: AppColors.black60,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _frequencyOptions.map((option) {
-                      bool isSelected = tempFrequency.toString() == option['value'];
-                      return GestureDetector(
-                        onTap: () {
-                          setPickerState(() {
-                            tempFrequency = int.parse(option['value']!);
-                          });
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.blue10 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? AppColors.blue100 : AppColors.black10,
-                              width: isSelected ? 2.0 : 1.0,
+                    SizedBox(height: 16),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: _frequencyOptions.map((option) {
+                        bool isSelected = tempFrequency.toString() == option['value'];
+                        return GestureDetector(
+                          onTap: () {
+                            setPickerState(() {
+                              tempFrequency = int.parse(option['value']!);
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.blue10 : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? AppColors.blue100 : AppColors.black10,
+                                width: isSelected ? 2.0 : 1.0,
+                              ),
+                            ),
+                            child: Text(
+                              option['label']!,
+                              style: AppFonts.bodyTitleMedium.copyWith(
+                                fontSize: 14,
+                                color: AppColors.black100,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            option['label']!,
-                            style: AppFonts.bodyTitleMedium.copyWith(
-                              fontSize: 14,
-                              color: AppColors.black100,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  SizedBox(height: 20),
-                  // Выбор периода
-                  Text(
-                    'How often?',
-                    style: AppFonts.bodyAlternative.copyWith(
-                      color: AppColors.black60,
-                      fontSize: 12,
+                        );
+                      }).toList(),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _periodOptions.map((option) {
-                      bool isSelected = tempPeriod == option['value'];
-                      return GestureDetector(
-                        onTap: () {
-                          setPickerState(() {
-                            tempPeriod = option['value']!;
-                          });
-                          // Обновляем основной state и закрываем
+                    SizedBox(height: 24),
+                    // Выбор периода
+                    Text(
+                      'How often?',
+                      style: AppFonts.bodyAlternative.copyWith(
+                        color: AppColors.black60,
+                        fontSize: 12,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: _periodOptions.map((option) {
+                        bool isSelected = tempPeriod == option['value'];
+                        return GestureDetector(
+                          onTap: () {
+                            setPickerState(() {
+                              tempPeriod = option['value']!;
+                            });
+                            // Обновляем основной state и закрываем
                           setState(() {
                             _frequency = tempFrequency;
                             _period = option['value']!;
@@ -539,11 +553,12 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                   SizedBox(height: 20),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    },
+  );
   }
 
   // iOS стиль свитч

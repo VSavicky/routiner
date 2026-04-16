@@ -35,9 +35,12 @@ class _HomePageState extends State<HomePage> {
   
   // Привычки пользователя
   List<HabitModel> _habits = [];
-  Map<String, HabitLogModel?> _todayLogs = {}; // habitId -> log
+  Map<String, HabitLogModel?> _todayLogs = {}; // habitId -> log for selected date
   bool _isLoadingHabits = true;
   StreamSubscription<List<HabitModel>>? _habitsSubscription; // Подписка на стрим
+  
+  // Прогресс по дням недели для отображения в WeekDaysList (ключ: YYYY-MM-DD)
+  Map<String, double> _dailyProgress = {};
 
   @override
   void initState() {
@@ -107,6 +110,9 @@ class _HomePageState extends State<HomePage> {
         // Загружаем логи для сегодняшней даты только для существующих привычек
         await _loadTodayLogs();
         
+        // Рассчитываем прогресс для каждого дня недели (асинхронно, не блокируем UI)
+        _calculateDailyProgressForWeek();
+        
         setState(() => _isLoadingHabits = false);
       }, onError: (e) {
         print('[HABITS ERROR] Stream error: $e');
@@ -152,6 +158,10 @@ class _HomePageState extends State<HomePage> {
         // Загружаем логи для сегодняшней даты принудительно с сервера
         await _loadTodayLogs(fromServer: true);
         print('[REFRESH] Loaded logs: ${_todayLogs.length} entries');
+        
+        // Рассчитываем прогресс для каждого дня недели (асинхронно)
+        _calculateDailyProgressForWeek();
+        
         for (var entry in _todayLogs.entries) {
           final log = entry.value;
           if (log != null) {
@@ -170,24 +180,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
   
-  /// Загрузка логов выполнения за сегодня (с сервера без кэша)
-  Future<void> _loadTodayLogs({bool fromServer = true}) async {
+  /// Загрузка логов выполнения за выбранную дату
+  Future<void> _loadLogsForDate(DateTime date, {bool fromServer = false}) async {
     final user = _auth.currentUser;
     if (user == null) return;
     
-    print('[LOGS] Loading logs fromServer=$fromServer, habits count=${_habits.length}');
+    print('[LOGS] Loading logs for date: $date, habits count=${_habits.length}');
     
     try {
-      final today = DateTime.now();
-      // Загружаем логи с сервера чтобы избежать проблемы с кэшем
+      // Загружаем логи за выбранную дату
       final logs = fromServer 
-          ? await _habitRepository.getHabitLogsForDateFromServer(user.uid, today)
-          : await _habitRepository.getHabitLogsForDate(user.uid, today);
+          ? await _habitRepository.getHabitLogsForDateFromServer(user.uid, date)
+          : await _habitRepository.getHabitLogsForDate(user.uid, date);
       
-      print('[LOGS] Loaded ${logs.length} logs from Firestore');
-      for (var log in logs) {
-        print('[LOGS]   Firestore log: habitId=${log.habitId}, progress=${log.currentProgress}/${log.targetProgress}, status=${log.status}');
-      }
+      print('[LOGS] Loaded ${logs.length} logs from Firestore for $date');
       
       setState(() {
         // Очищаем только логи для привычек которые существуют
@@ -195,20 +201,74 @@ class _HomePageState extends State<HomePage> {
         for (var log in logs) {
           // Проверяем что привычка существует в списке
           final habitExists = _habits.any((h) => h.id == log.habitId);
-          print('[LOGS] Checking habitId=${log.habitId}, exists=$habitExists');
           if (habitExists) {
             _todayLogs[log.habitId] = log;
-            print('[LOGS]   Added to _todayLogs: ${log.habitId}');
-          } else {
-            print('[LOGS]   Skipped (habit not in list): ${log.habitId}');
           }
         }
-        print('[LOGS] Final _todayLogs count: ${_todayLogs.length}');
       });
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('[LOGS ERROR] $e');
-      print('[LOGS ERROR] $stackTrace');
     }
+  }
+  
+  /// Загрузка логов выполнения за сегодня (с сервера без кэша)
+  Future<void> _loadTodayLogs({bool fromServer = true}) async {
+    final today = DateTime.now();
+    await _loadLogsForDate(today, fromServer: fromServer);
+  }
+  
+  /// Расчет прогресса для текущей недели
+  Future<void> _calculateDailyProgressForWeek() async {
+    final user = _auth.currentUser;
+    if (user == null || _habits.isEmpty) return;
+    
+    // Генерируем дни текущей недели
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final weekDays = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+    
+    final Map<String, double> progress = {};
+    
+    for (final date in weekDays) {
+      final dateKey = _dateKey(date);
+      // Загружаем логи за этот день
+      final logs = await _habitRepository.getHabitLogsForDate(user.uid, date);
+      
+      // Считаем выполненные привычки
+      final completedCount = logs.where((log) => 
+        log.status == HabitStatus.completed &&
+        _habits.any((h) => h.id == log.habitId)
+      ).length;
+      
+      // Прогресс = выполненные / всего привычек
+      progress[dateKey] = _habits.isEmpty ? 0.0 : completedCount / _habits.length;
+    }
+    
+    setState(() {
+      _dailyProgress = progress;
+    });
+  }
+  
+  /// Быстрый пересчет прогресса для сегодняшнего дня (без запроса к БД)
+  void _recalculateTodayProgress() {
+    final today = DateTime.now();
+    final dateKey = _dateKey(today);
+    
+    // Считаем выполненные привычки из текущих логов
+    final completedCount = _todayLogs.values.where((log) => 
+      log?.status == HabitStatus.completed
+    ).length;
+    
+    final progress = _habits.isEmpty ? 0.0 : completedCount / _habits.length;
+    
+    setState(() {
+      _dailyProgress[dateKey] = progress;
+    });
+  }
+
+  /// Форматирование даты в ключ YYYY-MM-DD
+  String _dateKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
   
   /// Обновить статус привычки (completed, skipped, failed)
@@ -219,6 +279,8 @@ class _HomePageState extends State<HomePage> {
       print('[STATUS] Updated: progress=${log.currentProgress}/${log.targetProgress}, status=${log.status}');
       setState(() {
         _todayLogs[habitId] = log;
+        // Мгновенно обновляем прогресс для сегодняшнего дня
+        _recalculateTodayProgress();
       });
     } catch (e, stackTrace) {
       print('[STATUS ERROR] $e');
@@ -239,6 +301,8 @@ class _HomePageState extends State<HomePage> {
       print('[INCREMENT] Result: progress=${log.currentProgress}/${log.targetProgress}');
       setState(() {
         _todayLogs[habitId] = log;
+        // Мгновенно обновляем прогресс для сегодняшнего дня
+        _recalculateTodayProgress();
       });
     } catch (e, stackTrace) {
       print('[INCREMENT ERROR] $e');
@@ -294,11 +358,15 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           WeekDaysList(
                             selectedDate: _selectedDate,
-                            onDateSelected: (date) {
+                            dailyProgress: _dailyProgress,
+                            onDateSelected: (date) async {
                               setState(() {
                                 _selectedDate = date;
                               });
-                              // TODO: Implement date selection logic
+                              // Загружаем логи за выбранную дату
+                              await _loadLogsForDate(date);
+                              // Пересчитываем прогресс для обновления виджета целей
+                              setState(() {});
                             },
                           ),
                         // Колонка с целями
@@ -309,8 +377,8 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               // Виджет выполнения целей
                               GoalsProgressWidget(
-                                totalGoals: 4,
-                                completedGoals: 1,
+                                totalGoals: _habits.length,
+                                completedGoals: _todayLogs.values.where((log) => log?.status == HabitStatus.completed).length,
                               ),
                               SizedBox(height: 16),
                               // Виджет челенджей
@@ -344,50 +412,61 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     )
                                   : _habits.isEmpty
-                                      ? Container(
-                                          padding: EdgeInsets.all(24),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
+                                      ? Center(
                                           child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Icon(
-                                                Icons.calendar_today_outlined,
-                                                size: 48,
-                                                color: AppColors.black40,
-                                              ),
-                                              SizedBox(height: 12),
+                                              SizedBox(height: 40),
                                               Text(
                                                 'No habits yet',
                                                 style: AppFonts.bodyTitleMedium.copyWith(
                                                   color: AppColors.black100,
                                                 ),
+                                                textAlign: TextAlign.center,
                                               ),
-                                              SizedBox(height: 4),
+                                              SizedBox(height: 8),
                                               Text(
                                                 'Create your first habit!',
                                                 style: AppFonts.bodyAlternative.copyWith(
                                                   color: AppColors.black60,
                                                 ),
+                                                textAlign: TextAlign.center,
                                               ),
+                                              SizedBox(height: 40),
                                             ],
                                           ),
                                         )
                                       : HabitsWidget(
-                                          habits: _habits.map((habitModel) {
-                                            // Получаем лог для сегодня
-                                            final todayLog = habitModel.id != null 
+                                          habits: _habits
+                                            // Фильтруем привычки: показываем только если дата создания <= выбранная дата
+                                            .where((habitModel) {
+                                              final habitCreatedDate = DateTime(
+                                                habitModel.createdAt.year,
+                                                habitModel.createdAt.month,
+                                                habitModel.createdAt.day,
+                                              );
+                                              final effectiveSelectedDate = _selectedDate ?? DateTime.now();
+                                              final selectedDate = DateTime(
+                                                effectiveSelectedDate.year,
+                                                effectiveSelectedDate.month,
+                                                effectiveSelectedDate.day,
+                                              );
+                                              return habitCreatedDate.isAtSameMomentAs(selectedDate) || 
+                                                     habitCreatedDate.isBefore(selectedDate);
+                                            })
+                                            .map((habitModel) {
+                                            // Получаем лог для выбранной даты (исторический прогресс)
+                                            final dayLog = habitModel.id != null 
                                                 ? _todayLogs[habitModel.id] 
                                                 : null;
-                                            final isCompleted = todayLog?.isCompleted ?? false;
+                                            final isCompleted = dayLog?.isCompleted ?? false;
                                             
-                                            // Рассчитываем прогресс
+                                            // Показываем исторический прогресс за выбранный день
                                             int currentProgress = 0;
                                             if (isCompleted) {
                                               currentProgress = habitModel.targetValue;
-                                            } else if (todayLog?.value != null) {
-                                              currentProgress = todayLog!.value!;
+                                            } else if (dayLog?.value != null) {
+                                              currentProgress = dayLog!.value!;
                                             }
                                             
                                             return Habit(
@@ -401,7 +480,7 @@ class _HomePageState extends State<HomePage> {
                                               color: habitModel.colorValue,
                                               streak: 0, // TODO: вычислять streak
                                               habitType: habitModel.habitType,
-                                              status: todayLog?.status ?? HabitStatus.pending,
+                                              status: dayLog?.status ?? HabitStatus.pending,
                                               incrementStep: habitModel.incrementStep,
                                               onViewPressed: () {
                                                 print('View ${habitModel.name}');
@@ -436,6 +515,10 @@ class _HomePageState extends State<HomePage> {
                                                       moodEmoji: habitModel.emoji ?? '😊',
                                                       moodLabel: 'Neutral',
                                                       selectedHabitEmoji: habitModel.emoji,
+                                                      onHabitCreated: () {
+                                                        // Обновляем главный экран после сохранения
+                                                        _refreshHabits();
+                                                      },
                                                     ),
                                                   ),
                                                 );
