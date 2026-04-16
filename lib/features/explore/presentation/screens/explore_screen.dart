@@ -30,10 +30,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExploreHeaderWidget(header: 'Explore', onPressed: () {}),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ExploreHeaderWidget(header: 'Explore', onPressed: () {}),
 
           // Заголовок секции с кнопкой VIEW ALL
           Padding(
@@ -170,11 +171,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
           // Секция Habit Clubs
           Padding(
             padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
-            child: Text(
-              'Habit Clubs',
-              style: AppFonts.bodyTitleMedium.copyWith(
-                color: AppColors.black100,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Habit Clubs',
+                  style: AppFonts.bodyTitleMedium.copyWith(
+                    color: AppColors.black100,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    print('VIEW ALL clubs pressed');
+                  },
+                  child: Text(
+                    'VIEW ALL',
+                    style: AppFonts.bodyAlternative.copyWith(
+                      color: AppColors.blue100,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -250,9 +268,346 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
 
           const SizedBox(height: 40),
+
+          // Секция Challenges
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Challenges',
+                  style: AppFonts.bodyTitleMedium.copyWith(
+                    color: AppColors.black100,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    print('VIEW ALL challenges pressed');
+                  },
+                  child: Text(
+                    'VIEW ALL',
+                    style: AppFonts.bodyAlternative.copyWith(
+                      color: AppColors.blue100,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Горизонтальный список челленджей
+          SizedBox(
+            height: 175,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 24),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                final challenges = [
+                  {
+                    'title': 'Best Runners!',
+                    'emoji': '🏃',
+                    'timeLeft': '5 days 13 hours left',
+                    'friends': 2,
+                    'progress': 0.6,
+                  },
+                  {
+                    'title': 'Best Bikers!',
+                    'emoji': '🚴',
+                    'timeLeft': '2 days 11 hours left',
+                    'friends': 1,
+                    'progress': 0.4,
+                  },
+                  {
+                    'title': 'Yoga Masters',
+                    'emoji': '🧘',
+                    'timeLeft': '7 days left',
+                    'friends': 3,
+                    'progress': 0.8,
+                  },
+                ];
+                final challenge = challenges[index];
+                return GestureDetector(
+                  onTap: () {
+                    print('Challenge ${challenge['title']} tapped');
+                  },
+                  child: Container(
+                    width: 200,
+                    height: 160,
+                    margin: EdgeInsets.only(right: index < 2 ? 12 : 24),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.purple,
+                          AppColors.blue,
+                        ],
+                        stops: [0.0, 1.0],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Часы иконка
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.access_time,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Заголовок с эмодзи
+                        Text(
+                          '${challenge['title']} ${challenge['emoji']}',
+                          style: AppFonts.bodyAlternative.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // Осталось времени
+                        Text(
+                          challenge['timeLeft'] as String,
+                          style: AppFonts.bodyAlternative.copyWith(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Прогресс бар
+                        Container(
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: challenge['progress'] as double,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Аватарки друзей
+                        Row(
+                          children: [
+                            // Стек аватарок
+                            SizedBox(
+                              width: 40,
+                              height: 24,
+                              child: Stack(
+                                children: [
+                                  for (int i = 0; i < (challenge['friends'] as int).clamp(0, 2); i++)
+                                    Positioned(
+                                      left: i * 16.0,
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: AppColors.purple,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 14,
+                                          color: AppColors.black60,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${challenge['friends']} friends joined',
+                              style: AppFonts.bodyAlternative.copyWith(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          // Секция Learning
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Learning',
+                  style: AppFonts.bodyTitleMedium.copyWith(
+                    color: AppColors.black100,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    print('VIEW ALL learning pressed');
+                  },
+                  child: Text(
+                    'VIEW ALL',
+                    style: AppFonts.bodyAlternative.copyWith(
+                      color: AppColors.blue100,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Горизонтальный список статей Learning
+          SizedBox(
+            height: 180,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 24),
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                final articles = [
+                  {
+                    'title': 'Why should we drink water often?',
+                    'emoji': '💧',
+                  },
+                  {
+                    'title': 'Benefits of regular walking',
+                    'emoji': '🚶',
+                  },
+                  {
+                    'title': 'Morning routine for success',
+                    'emoji': '🌅',
+                  },
+                ];
+                final article = articles[index];
+                return GestureDetector(
+                  onTap: () {
+                    print('Article ${article['title']} tapped');
+                  },
+                  child: Container(
+                    width: 200,
+                    height: 180,
+                    margin: EdgeInsets.only(right: index < 2 ? 12 : 24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.purple,
+                          AppColors.blue,
+                        ],
+                        stops: [0.0, 1.0],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Верхняя часть с эмодзи (заглушка для изображения)
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                article['emoji']!,
+                                style: const TextStyle(fontSize: 48),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Нижняя синяя часть с заголовком
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: AppColors.blue,
+                            borderRadius: BorderRadius.vertical(
+                              bottom: Radius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Иконка документа
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(
+                                  Icons.article,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Заголовок статьи
+                              Expanded(
+                                child: Text(
+                                  article['title']!,
+                                  style: AppFonts.bodyAlternative.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 40),
         ],
       ),
+    ),
     );
   }
 }
-
