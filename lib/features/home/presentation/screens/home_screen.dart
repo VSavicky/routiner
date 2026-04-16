@@ -249,10 +249,11 @@ class _HomePageState extends State<HomePage> {
     });
   }
   
-  /// Быстрый пересчет прогресса для сегодняшнего дня (без запроса к БД)
+  /// Быстрый пересчет прогресса для выбранной даты (без запроса к БД)
   void _recalculateTodayProgress() {
-    final today = DateTime.now();
-    final dateKey = _dateKey(today);
+    // Используем выбранную дату, а не всегда сегодня
+    final effectiveDate = _selectedDate ?? DateTime.now();
+    final dateKey = _dateKey(effectiveDate);
     
     // Считаем выполненные привычки из текущих логов
     final completedCount = _todayLogs.values.where((log) => 
@@ -266,20 +267,24 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  /// Форматирование даты в ключ YYYY-MM-DD
+  /// Форматирование даты в ключ YYYY-MM-DD для Map (нормализованная дата)
   String _dateKey(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    // Нормализуем дату - убираем время, оставляем только дату
+    final normalized = DateTime(date.year, date.month, date.day);
+    return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}-${normalized.day.toString().padLeft(2, '0')}';
   }
   
   /// Обновить статус привычки (completed, skipped, failed)
   Future<void> _updateHabitStatus(String habitId, HabitStatus status) async {
     print('[STATUS] Updating habit $habitId to status: $status');
     try {
-      final log = await _habitRepository.updateHabitStatus(habitId, DateTime.now(), status);
+      // Используем выбранную дату, а не всегда сегодня
+      final effectiveDate = _selectedDate ?? DateTime.now();
+      final log = await _habitRepository.updateHabitStatus(habitId, effectiveDate, status);
       print('[STATUS] Updated: progress=${log.currentProgress}/${log.targetProgress}, status=${log.status}');
       setState(() {
         _todayLogs[habitId] = log;
-        // Мгновенно обновляем прогресс для сегодняшнего дня
+        // Мгновенно обновляем прогресс для выбранной даты
         _recalculateTodayProgress();
       });
     } catch (e, stackTrace) {
@@ -295,13 +300,13 @@ class _HomePageState extends State<HomePage> {
   Future<void> _incrementHabitProgress(String habitId, int increment) async {
     print('[INCREMENT] Adding $increment to habit $habitId');
     try {
-      // Добавляем шаг в зависимости от типа привычки
-      // Например: +1 раз, +100 шагов, +200ml, +15 минут и т.д.
-      final log = await _habitRepository.incrementHabitProgress(habitId, DateTime.now(), increment);
+      // Используем выбранную дату, а не всегда сегодня
+      final effectiveDate = _selectedDate ?? DateTime.now();
+      final log = await _habitRepository.incrementHabitProgress(habitId, effectiveDate, increment);
       print('[INCREMENT] Result: progress=${log.currentProgress}/${log.targetProgress}');
       setState(() {
         _todayLogs[habitId] = log;
-        // Мгновенно обновляем прогресс для сегодняшнего дня
+        // Мгновенно обновляем прогресс для выбранной даты
         _recalculateTodayProgress();
       });
     } catch (e, stackTrace) {
