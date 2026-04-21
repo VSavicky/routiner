@@ -282,6 +282,7 @@ class _HomePageState extends State<HomePage> {
       final effectiveDate = _selectedDate ?? DateTime.now();
       final log = await _habitRepository.updateHabitStatus(habitId, effectiveDate, status);
       print('[STATUS] Updated: progress=${log.currentProgress}/${log.targetProgress}, status=${log.status}');
+      
       setState(() {
         _todayLogs[habitId] = log;
         // Мгновенно обновляем прогресс для выбранной даты

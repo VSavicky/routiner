@@ -168,6 +168,8 @@ class HabitRepository {
       if (doc.exists) {
         // Обновляем существующий лог
         final existingLog = HabitLogModel.fromFirestore(doc);
+        final wasCompletedBefore = existingLog.status == HabitStatus.completed;
+        
         final updatedLog = existingLog.copyWith(
           status: status,
           isCompleted: isCompleted,
@@ -176,6 +178,12 @@ class HabitRepository {
           note: note ?? existingLog.note,
         );
         await logRef.update(updatedLog.toFirestore());
+        
+        // Начисляем очки только если статус изменился на completed
+        if (isCompleted && !wasCompletedBefore) {
+          await addPoints(userId, 10);
+        }
+        
         return updatedLog;
       } else {
         // Создаем новый лог
@@ -191,6 +199,12 @@ class HabitRepository {
           note: note,
         );
         await logRef.set(newLog.toFirestore());
+        
+        // Начисляем очки если статус completed
+        if (isCompleted) {
+          await addPoints(userId, 10);
+        }
+        
         return newLog;
       }
     } catch (e) {
@@ -227,16 +241,24 @@ class HabitRepository {
         final newValue = (existingLog.value ?? 0) + increment;
         final isCompleted = newValue >= targetValue;
         
+        final wasCompletedBefore = existingLog.isCompleted;
+        
         final updatedLog = existingLog.copyWith(
           value: newValue,
           status: isCompleted ? HabitStatus.completed : existingLog.status,
           isCompleted: isCompleted,
-          completedAt: isCompleted && !existingLog.isCompleted 
+          completedAt: isCompleted && !wasCompletedBefore 
               ? DateTime.now() 
               : existingLog.completedAt,
           note: note ?? existingLog.note,
         );
         await logRef.update(updatedLog.toFirestore());
+        
+        // Начисляем очки если привычка только что стала completed
+        if (isCompleted && !wasCompletedBefore) {
+          await addPoints(userId, 10);
+        }
+        
         return updatedLog;
       } else {
         // Создаем новый лог
@@ -253,6 +275,12 @@ class HabitRepository {
           note: note,
         );
         await logRef.set(newLog.toFirestore());
+        
+        // Начисляем очки если привычка сразу выполнена
+        if (isCompleted) {
+          await addPoints(userId, 10);
+        }
+        
         return newLog;
       }
     } catch (e) {
@@ -542,6 +570,43 @@ class HabitRepository {
       await _firestore.collection('moods').doc(moodId).delete();
     } catch (e) {
       throw Exception('Failed to delete mood: $e');
+    }
+  }
+
+  /// Добавить очки пользователю (система вознаграждения)
+  Future<void> addPoints(String userId, int points) async {
+    try {
+      final userRef = _firestore.collection('users').doc(userId);
+      final userDoc = await userRef.get();
+      
+      if (userDoc.exists) {
+        // Обновляем существующие очки
+        final currentPoints = (userDoc.data()?['points'] ?? 0) as int;
+        await userRef.update({'points': currentPoints + points});
+      } else {
+        // Создаем документ с очками
+        await userRef.set({
+          'points': points,
+          'updatedAt': DateTime.now().toIso8601String(),
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print('Error adding points: $e');
+      throw Exception('Failed to add points: $e');
+    }
+  }
+
+  /// Получить текущие очки пользователя
+  Future<int> getUserPoints(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        return (userDoc.data()?['points'] ?? 0) as int;
+      }
+      return 0;
+    } catch (e) {
+      print('Error getting user points: $e');
+      return 0;
     }
   }
 }

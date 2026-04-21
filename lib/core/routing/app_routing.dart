@@ -9,6 +9,7 @@ import 'package:routiner/features/explore/presentation/screens/explore_screen.da
 import 'package:routiner/features/home/presentation/screens/home_screen.dart';
 import 'package:routiner/features/root/presentation/screens/root_screen.dart';
 import 'package:routiner/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:routiner/features/profile/presentation/screens/profile_screen.dart';
 import 'package:routiner/features/splash/presentation/screens/splash_screen.dart';
 
 final router = GoRouter(
@@ -83,9 +84,7 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: '/profile',
-              builder: (context, state) => const Center(
-                child: Text('Профиль'),
-              ),
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
