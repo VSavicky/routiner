@@ -6,7 +6,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
 import 'package:routiner/core/widgets/week_days_list.dart';
-import 'package:routiner/core/widgets/challenges_widget.dart';
+import 'package:routiner/core/widgets/joined_challenges_widget.dart';
 import 'package:routiner/core/widgets/habits_widget.dart';
 import 'package:routiner/core/widgets/goals_progress_widget.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
@@ -14,6 +14,7 @@ import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
+import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -387,26 +388,14 @@ class _HomePageState extends State<HomePage> {
                                 completedGoals: _todayLogs.values.where((log) => log?.status == HabitStatus.completed).length,
                               ),
                               SizedBox(height: 16),
-                              // Виджет челенджей
-                              ChallengesWidget(
-                                title: 'Best Runners!',
-                                subtitle: '5 days 13 ours left',
-                                friendsCount: 3,
+                              // Виджет челенджей - показывает присоединённые челленджи
+                              JoinedChallengesWidget(
                                 onViewAllPressed: () {
-                                  // TODO: Обработать нажатие на VIEW ALL
-                                  print('VIEW ALL pressed');
-                                },
-                                onContainerPressed: () {
-                                  // TODO: Обработать нажатие на контейнер
-                                  print('Container pressed');
-                                },
-                                onFriendsPressed: () {
-                                  // TODO: Обработать нажатие на друзей
-                                  print('Friends pressed');
-                                },
-                                onAddFriendPressed: () {
-                                  // TODO: Обработать нажатие на добавление друга
-                                  print('Add friend pressed');
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ChallengesListScreen(),
+                                    ),
+                                  );
                                 },
                               ),
                               SizedBox(height: 16),
