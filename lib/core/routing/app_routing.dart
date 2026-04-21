@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:routiner/features/analytics/presentation/screens/analytics_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/auth_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/register_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/gender_selection_screen.dart';
@@ -55,10 +56,8 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/statistics',
-              builder: (context, state) => const Center(
-                child: Text('Статистика'),
-              ),
+              path: '/analytics',
+              builder: (context, state) => const AnalyticsScreen(),
             ),
           ],
         ),
