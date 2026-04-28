@@ -16,6 +16,7 @@ class Habit {
   final String habitType; // 'build' или 'quit'
   final HabitStatus status; // Текущий статус
   final int incrementStep; // Шаг инкремента (+1, +100, +15)
+  final bool isChallenge; // Является ли привычка из челленджа
   final VoidCallback? onViewPressed;
   final VoidCallback? onDonePressed;
   final VoidCallback? onFallPressed;
@@ -39,6 +40,7 @@ class Habit {
     this.habitType = 'build',
     this.status = HabitStatus.pending,
     this.incrementStep = 1,
+    this.isChallenge = false,
     this.onViewPressed,
     this.onDonePressed,
     this.onFallPressed,
@@ -70,18 +72,18 @@ class Habit {
     return color ?? AppColors.blue100;
   }
   
-  /// Цвет текста (черный по умолчанию)
-  Color get textColor {
+  /// Цвет текста
+  Color getTextColor(bool isDarkBackground) {
     if (isCompleted) return AppColors.green40;
     if (isFailed) return AppColors.red;
-    if (isSkipped) return AppColors.black40;
-    return AppColors.black100; // Черный по умолчанию
+    if (isSkipped) return isDarkBackground ? Colors.white.withOpacity(0.5) : AppColors.black40;
+    return isDarkBackground ? Colors.white : AppColors.black100;
   }
   
   /// Фоновый цвет контейнера
-  Color get backgroundColor {
-    if (isSkipped) return AppColors.black10;
-    return Colors.white;
+  Color getBackgroundColor(bool isDarkBackground) {
+    if (isSkipped) return isDarkBackground ? Colors.white.withOpacity(0.1) : AppColors.black10;
+    return isDarkBackground ? Colors.white.withOpacity(0.15) : Colors.white;
   }
   
   /// Текст статуса
@@ -107,11 +109,13 @@ class Habit {
 class HabitsWidget extends StatefulWidget {
   final List<Habit> habits;
   final VoidCallback? onViewAllPressed;
+  final bool isDarkBackground; // true = белые цвета для темного фона
 
   const HabitsWidget({
     super.key,
     required this.habits,
     this.onViewAllPressed,
+    this.isDarkBackground = false,
   });
 
   @override
@@ -171,7 +175,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
             Text(
               'Habits',
               style: AppFonts.bodyTitleMedium.copyWith(
-                color: AppColors.black100,
+                color: widget.isDarkBackground ? Colors.white : AppColors.black100,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -201,6 +205,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
               habit: habit,
               isLeftPanelVisible: _leftPanelVisible[habit.id] ?? false,
               isRightPanelVisible: _rightPanelVisible[habit.id] ?? false,
+              isDarkBackground: widget.isDarkBackground,
               onHorizontalDragEnd: (details) => _onHorizontalDragEnd(habit.id, details),
               onResetPanels: () => _resetPanels(habit.id),
             ),
@@ -217,6 +222,7 @@ class _HabitContainer extends StatelessWidget {
   final bool isRightPanelVisible;
   final Function(DragEndDetails) onHorizontalDragEnd;
   final VoidCallback onResetPanels; // Сброс позиции после действий
+  final bool isDarkBackground;
 
   const _HabitContainer({
     required this.habit,
@@ -224,6 +230,7 @@ class _HabitContainer extends StatelessWidget {
     required this.isRightPanelVisible,
     required this.onHorizontalDragEnd,
     required this.onResetPanels,
+    this.isDarkBackground = false,
   });
 
   @override
@@ -232,11 +239,8 @@ class _HabitContainer extends StatelessWidget {
       height: 80, // Фиксированная высота для Stack
       child: ClipRect( // Обрезаем контент чтобы не было overflow
         child: GestureDetector(
+          behavior: HitTestBehavior.translucent, // Позволяем тапам проходить к дочерним элементам
           onHorizontalDragEnd: onHorizontalDragEnd,
-          onTap: () {
-            // TODO: Добавить обработку нажатия на контейнер
-            print('Habit container pressed: ${habit.title}');
-          },
           child: Stack(
             children: [
               // Основной контейнер привычек (сдвигается при свайпе)
@@ -251,10 +255,12 @@ class _HabitContainer extends StatelessWidget {
                   width: double.infinity,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: habit.backgroundColor,
+                    color: habit.getBackgroundColor(isDarkBackground),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: habit.isSkipped ? AppColors.black20 : AppColors.black10,
+                      color: habit.isSkipped 
+                          ? (isDarkBackground ? Colors.white.withOpacity(0.2) : AppColors.black20)
+                          : (isDarkBackground ? Colors.white.withOpacity(0.1) : AppColors.black10),
                       width: 1,
                     ),
                   ),
@@ -280,9 +286,13 @@ class _HabitContainer extends StatelessWidget {
                                       CircularProgressIndicator(
                                         value: habit.progressPercent,
                                         strokeWidth: 3,
-                                        backgroundColor: AppColors.black10,
+                                        backgroundColor: isDarkBackground 
+                                            ? Colors.white.withOpacity(0.15)
+                                            : AppColors.black10,
                                         valueColor: AlwaysStoppedAnimation<Color>(
-                                          habit.isSkipped ? AppColors.black40 : habit.progressColor,
+                                          habit.isSkipped 
+                                              ? (isDarkBackground ? Colors.white.withOpacity(0.4) : AppColors.black40)
+                                              : habit.progressColor,
                                         ),
                                       ),
                                       // Внутренний круг с иконкой
@@ -290,8 +300,15 @@ class _HabitContainer extends StatelessWidget {
                                         width: 36,
                                         height: 36,
                                         decoration: BoxDecoration(
-                                          color: habit.isSkipped ? AppColors.black10 : Colors.white,
+                                          color: habit.isSkipped 
+                                              ? (isDarkBackground ? Colors.white.withOpacity(0.1) : AppColors.black10)
+                                              : (habit.isCompleted 
+                                                  ? AppColors.green40.withOpacity(0.2)
+                                                  : (isDarkBackground ? Colors.white.withOpacity(0.9) : Colors.white)),
                                           shape: BoxShape.circle,
+                                          border: habit.isCompleted 
+                                              ? Border.all(color: AppColors.green40, width: 2)
+                                              : null,
                                         ),
                                         child: Center(
                                           child: habit.isCompleted 
@@ -327,9 +344,14 @@ class _HabitContainer extends StatelessWidget {
                                           child: Text(
                                             habit.title,
                                             style: AppFonts.bodyTitleMedium.copyWith(
-                                              color: AppColors.black100,
+                                              color: isDarkBackground 
+                                                  ? (habit.isCompleted ? Colors.white : Colors.white)
+                                                  : AppColors.black100,
                                               fontSize: 15,
-                                              fontWeight: FontWeight.w500,
+                                              fontWeight: habit.isCompleted ? FontWeight.w600 : FontWeight.w500,
+                                              decoration: habit.isCompleted ? TextDecoration.lineThrough : null,
+                                              decorationColor: isDarkBackground ? Colors.white.withOpacity(0.5) : AppColors.black40,
+                                              decorationThickness: 2,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -340,7 +362,9 @@ class _HabitContainer extends StatelessWidget {
                                           Container(
                                             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: AppColors.orange10,
+                                              color: isDarkBackground 
+                                                  ? AppColors.orange.withOpacity(0.2)
+                                                  : AppColors.orange10,
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Row(
@@ -366,16 +390,53 @@ class _HabitContainer extends StatelessWidget {
                                       ],
                                     ),
                                     SizedBox(height: 4),
-                                    // Подпись статуса
-                                    Text(
-                                      habit.statusText,
-                                      style: AppFonts.bodyAlternative.copyWith(
-                                        color: habit.textColor,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.normal,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
+                                    Row(
+                                      children: [
+                                        // CHALLENGE тег
+                                        if (habit.isChallenge)
+                                          Container(
+                                            margin: EdgeInsets.only(right: 6),
+                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  AppColors.blue100,
+                                                  AppColors.blue100.withOpacity(0.8),
+                                                ],
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.blue100.withOpacity(0.3),
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              'CHALLENGE',
+                                              style: AppFonts.bodyAlternative.copyWith(
+                                                color: Colors.white,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                        // Подпись статуса
+                                        Expanded(
+                                          child: Text(
+                                            habit.statusText,
+                                            style: AppFonts.bodyAlternative.copyWith(
+                                              color: habit.getTextColor(isDarkBackground),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -423,13 +484,13 @@ class _HabitContainer extends StatelessWidget {
                                 height: 32,
                                 decoration: BoxDecoration(
                                   color: habit.isCompleted 
-                                      ? AppColors.green10 
-                                      : Colors.white,
+                                      ? (isDarkBackground ? AppColors.green40.withOpacity(0.2) : AppColors.green10)
+                                      : (isDarkBackground ? Colors.white.withOpacity(0.9) : Colors.white),
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: habit.isCompleted 
-                                        ? AppColors.green40 
-                                        : AppColors.black10,
+                                        ? AppColors.green40
+                                        : (isDarkBackground ? Colors.white.withOpacity(0.3) : AppColors.black10),
                                     width: 1,
                                   ),
                                 ),
@@ -442,7 +503,9 @@ class _HabitContainer extends StatelessWidget {
                                         )
                                       : Icon(
                                           Icons.add,
-                                          color: habit.isSkipped ? AppColors.black40 : AppColors.black100,
+                                          color: habit.isSkipped 
+                                              ? (isDarkBackground ? Colors.white.withOpacity(0.5) : AppColors.black40)
+                                              : (isDarkBackground ? AppColors.blue100 : AppColors.black100),
                                           size: 18,
                                         ),
                                 ),
@@ -466,10 +529,10 @@ class _HabitContainer extends StatelessWidget {
                   width: 120,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkBackground ? Colors.white.withOpacity(0.15) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.black10,
+                      color: isDarkBackground ? Colors.white.withOpacity(0.2) : AppColors.black10,
                       width: 1,
                     ),
                   ),
@@ -497,14 +560,14 @@ class _HabitContainer extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.visibility,
-                                color: AppColors.black40,
+                                color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
                                 size: 20,
                               ),
                               SizedBox(height: 4),
                               Text(
                                 'View',
                                 style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
+                                  color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
                                   fontSize: 11,
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -516,7 +579,7 @@ class _HabitContainer extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 40,
-                          color: AppColors.black10,
+                          color: isDarkBackground ? Colors.white.withOpacity(0.2) : AppColors.black10,
                         ),
                         // Правый столбик - галочка и Done
                         GestureDetector(
@@ -544,7 +607,7 @@ class _HabitContainer extends StatelessWidget {
                               Text(
                                 'Done',
                                 style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
+                                  color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
                                   fontSize: 11,
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -568,10 +631,10 @@ class _HabitContainer extends StatelessWidget {
                   width: 120,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkBackground ? Colors.white.withOpacity(0.15) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.black10,
+                      color: isDarkBackground ? Colors.white.withOpacity(0.2) : AppColors.black10,
                       width: 1,
                     ),
                   ),
@@ -603,7 +666,7 @@ class _HabitContainer extends StatelessWidget {
                               Text(
                                 'Fall',
                                 style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
+                                  color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
                                   fontSize: 11,
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -615,7 +678,7 @@ class _HabitContainer extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 40,
-                          color: AppColors.black10,
+                          color: isDarkBackground ? Colors.white.withOpacity(0.2) : AppColors.black10,
                         ),
                         // Правый столбик - стрелка вправо и Skip
                         GestureDetector(
@@ -633,14 +696,14 @@ class _HabitContainer extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.arrow_forward,
-                                color: AppColors.black100,
+                                color: isDarkBackground ? Colors.white.withOpacity(0.8) : AppColors.black100,
                                 size: 20,
                               ),
                               SizedBox(height: 4),
                               Text(
                                 'Skip',
                                 style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
+                                  color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
                                   fontSize: 11,
                                   fontWeight: FontWeight.normal,
                                 ),

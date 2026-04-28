@@ -14,6 +14,7 @@ class Header extends StatefulWidget {
   final String? subtitle;
   final bool showNotifications;
   final bool showCalendar;
+  final VoidCallback? onCalendarTap;
 
   const Header({
     Key? key,
@@ -26,6 +27,7 @@ class Header extends StatefulWidget {
     this.subtitle,
     this.showNotifications = true,
     this.showCalendar = true,
+    this.onCalendarTap,
   }) : super(key: key);
 
   @override
@@ -70,7 +72,7 @@ class _HeaderState extends State<Header> {
                       icon: Icons.calendar_month,
                       hasNotification: false,
                       onTap: () {
-                        // TODO: Implement calendar navigation
+                        widget.onCalendarTap?.call();
                       },
                       size: 30,
                       iconColor: AppColors.black40,

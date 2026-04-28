@@ -6,12 +6,14 @@ class WeekDaysList extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime) onDateSelected;
   final Map<String, double> dailyProgress; // Ключ: YYYY-MM-DD, Значение: прогресс 0.0-1.0
+  final Function(List<DateTime>)? onLoadProgressForDates; // Callback для загрузки прогресса дат
 
   const WeekDaysList({
     Key? key,
     this.selectedDate,
     required this.onDateSelected,
     this.dailyProgress = const {},
+    this.onLoadProgressForDates,
   }) : super(key: key);
 
   @override
@@ -23,14 +25,44 @@ class _WeekDaysListState extends State<WeekDaysList> {
   late List<List<DateTime>> _allWeeks;
   late int _currentWeekIndex;
   DateTime? _selectedDate;
+  int? _lastVisibleWeekIndex; // Последняя видимая неделя для избежания дублирования запросов
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     _selectedDate = widget.selectedDate ?? DateTime.now(); // Устанавливаем текущую дату если не выбрана
     _generateAllWeeks();
     _scrollToCurrentWeek();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    
+    final screenWidth = MediaQuery.of(context).size.width;
+    final dayWidth = 50.0;
+    final itemWidth = dayWidth * 7;
+    final centerOffset = _scrollController.offset + screenWidth / 2;
+    final visibleWeekIndex = (centerOffset / itemWidth).floor();
+    
+    if (visibleWeekIndex >= 0 && visibleWeekIndex < _allWeeks.length) {
+      // Избегаем повторных запросов для той же недели
+      if (_lastVisibleWeekIndex != visibleWeekIndex) {
+        _lastVisibleWeekIndex = visibleWeekIndex;
+        final visibleDates = _allWeeks[visibleWeekIndex];
+        
+        // Проверяем, есть ли даты без прогресса
+        final datesNeedingProgress = visibleDates.where((date) {
+          final key = _dateKey(date);
+          return !widget.dailyProgress.containsKey(key);
+        }).toList();
+        
+        if (datesNeedingProgress.isNotEmpty && widget.onLoadProgressForDates != null) {
+          widget.onLoadProgressForDates!(datesNeedingProgress);
+        }
+      }
+    }
   }
 
   @override
@@ -43,11 +75,47 @@ class _WeekDaysListState extends State<WeekDaysList> {
   void didUpdateWidget(WeekDaysList oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Обновляем только если передана новая валидная дата отличная от текущей
-    if (widget.selectedDate != null && 
+    if (widget.selectedDate != null &&
         widget.selectedDate != oldWidget.selectedDate) {
       setState(() {
         _selectedDate = widget.selectedDate;
       });
+      // Прокручиваем к выбранной неделе
+      _scrollToDate(widget.selectedDate!);
+    }
+  }
+
+  void _scrollToDate(DateTime date) {
+    if (!_scrollController.hasClients) return;
+
+    final dayWidth = 50.0;
+    final itemWidth = dayWidth * 7;
+
+    // Находим индекс недели для даты
+    int weekIndex = -1;
+    for (int i = 0; i < _allWeeks.length; i++) {
+      final week = _allWeeks[i];
+      for (final weekDay in week) {
+        if (weekDay.year == date.year &&
+            weekDay.month == date.month &&
+            weekDay.day == date.day) {
+          weekIndex = i;
+          break;
+        }
+      }
+      if (weekIndex != -1) break;
+    }
+
+    if (weekIndex != -1) {
+      final targetOffset = weekIndex * itemWidth;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final centerOffset = targetOffset - (screenWidth / 2) + (itemWidth / 2);
+
+      _scrollController.animateTo(
+        centerOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 

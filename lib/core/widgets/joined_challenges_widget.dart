@@ -8,10 +8,12 @@ import 'package:routiner/features/challenges/presentation/screens/challenge_deta
 
 class JoinedChallengesWidget extends StatefulWidget {
   final VoidCallback? onViewAllPressed;
+  final DateTime? selectedDate; // Дата для которой показывать прогресс (null = сегодня)
 
   const JoinedChallengesWidget({
     super.key,
     this.onViewAllPressed,
+    this.selectedDate,
   });
 
   @override
@@ -29,10 +31,6 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     super.initState();
     // Загружаем челленджи
     _loadJoinedChallenges();
-    // Обновляем каждую минуту для обновления прогресса
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
@@ -48,8 +46,18 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     _loadJoinedChallenges();
   }
 
+  @override
+  void didUpdateWidget(covariant JoinedChallengesWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Перезагружаем челленджи если изменилась выбранная дата
+    if (oldWidget.selectedDate != widget.selectedDate) {
+      _loadJoinedChallenges();
+    }
+  }
+
   Future<void> _loadJoinedChallenges() async {
-    final challenges = await _challengesService.getJoinedChallenges();
+    // Загружаем челленджи, активные на выбранную дату
+    final challenges = await _challengesService.getJoinedChallengesForDate(widget.selectedDate);
     if (mounted) {
       setState(() {
         _joinedChallenges = challenges;
@@ -58,7 +66,29 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     }
   }
 
-  String _formatTimeLeft(DateTime endTime) {
+  String _formatTimeLeft(DateTime endTime, {DateTime? selectedDate}) {
+    // Если выбрана конкретная дата (исторический просмотр)
+    if (selectedDate != null) {
+      final endDay = DateTime(endTime.year, endTime.month, endTime.day);
+      final selectedDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+      
+      // Если челлендж уже завершился к выбранной дате
+      if (selectedDay.isAfter(endDay)) {
+        return 'Ended';
+      }
+      
+      // Показываем сколько дней осталось от выбранной даты до конца
+      final daysRemaining = endDay.difference(selectedDay).inDays;
+      if (daysRemaining == 0) {
+        return 'Last day';
+      } else if (daysRemaining == 1) {
+        return '1 day left';
+      } else {
+        return '$daysRemaining days left';
+      }
+    }
+    
+    // Для текущей даты - стандартная логика
     final now = DateTime.now();
     final difference = endTime.difference(now);
     
@@ -74,17 +104,6 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     } else {
       return '${difference.inMinutes} min left';
     }
-  }
-
-  double _calculateProgress(DateTime startTime, DateTime endTime) {
-    final now = DateTime.now();
-    final total = endTime.difference(startTime).inSeconds;
-    final remaining = endTime.difference(now).inSeconds;
-    
-    if (remaining <= 0) return 0;
-    if (remaining >= total) return 1;
-    
-    return remaining / total;
   }
 
   @override
@@ -260,20 +279,14 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
 
   Widget _buildChallengeCard(Map<String, dynamic> challenge) {
     final String title = challenge['title'] as String? ?? 'Challenge';
+    final String challengeId = challenge['id'] as String? ?? title;
     final DateTime endTime = challenge['endTime'] as DateTime? ?? 
                              DateTime.now().add(const Duration(days: 7));
-    final DateTime startTime = challenge['joinedAt'] != null 
-        ? (challenge['joinedAt'] is DateTime 
-            ? challenge['joinedAt'] as DateTime
-            : DateTime.parse(challenge['joinedAt'] as String))
-        : DateTime.now().subtract(const Duration(days: 2));
     final String icon = challenge['icon'] as String? ?? '🏆';
     final Color color = challenge['color'] as Color? ?? AppColors.blue;
     final int participants = challenge['participants'] as int? ?? 5;
 
-    final String timeLeftText = _formatTimeLeft(endTime);
-    final double progress = _calculateProgress(startTime, endTime);
-    final int progressPercent = (progress * 100).round();
+    final String timeLeftText = _formatTimeLeft(endTime, selectedDate: widget.selectedDate);
 
     return GestureDetector(
       onTap: () {
@@ -353,38 +366,113 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
               ],
             ),
             const SizedBox(height: 12),
-            // Прогресс бар
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: AppColors.black10,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: progress,
+            // Прогресс бар - получаем из Firestore в реальном времени
+            // Для выбранной даты (или сегодня если не указана)
+            StreamBuilder<Map<String, dynamic>>(
+              stream: _challengesService.getChallengeStatsStream(
+                _challengesService.currentUserId ?? '',
+                challengeId,
+                date: widget.selectedDate,
+              ),
+              builder: (context, snapshot) {
+                final stats = snapshot.data ?? {
+                  'progress': 0.0,
+                  'progressPercent': 0,
+                  'completedHabits': 0,
+                  'totalHabits': 0,
+                };
+                final progress = stats['progress'] as double;
+                final progressPercent = stats['progressPercent'] as int;
+                final completedHabits = stats['completedHabits'] as int;
+                final totalHabits = stats['totalHabits'] as int;
+                
+                // Показываем индикатор загрузки если данных еще нет
+                final isLoading = !snapshot.hasData && !snapshot.hasError;
+
+                return Row(
+                  children: [
+                    Expanded(
                       child: Container(
+                        height: 6,
                         decoration: BoxDecoration(
-                          color: color,
+                          color: AppColors.black10,
                           borderRadius: BorderRadius.circular(3),
                         ),
+                        child: isLoading 
+                          ? null
+                          : FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: progress.clamp(0.0, 1.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: progress >= 1.0 ? AppColors.green40 : color,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$progressPercent%',
-                  style: AppFonts.bodyAlternative.copyWith(
-                    color: AppColors.black40,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+                    const SizedBox(width: 8),
+                    isLoading
+                      ? SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: color,
+                          ),
+                        )
+                      : Text(
+                          '$progressPercent%',
+                          style: AppFonts.bodyAlternative.copyWith(
+                            color: progress >= 1.0 ? AppColors.green40 : AppColors.black40,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    if (totalHabits > 0 && !isLoading) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '($completedHabits/$totalHabits)',
+                        style: AppFonts.bodyAlternative.copyWith(
+                          color: progress >= 1.0 ? AppColors.green40 : AppColors.black40,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                    // Индикатор завершения дня
+                    if (progress >= 1.0 && !isLoading) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.green10,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              color: AppColors.green40,
+                              size: 10,
+                            ),
+                            SizedBox(width: 2),
+                            Text(
+                              'Done!',
+                              style: AppFonts.bodyAlternative.copyWith(
+                                color: AppColors.green40,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ],
         ),

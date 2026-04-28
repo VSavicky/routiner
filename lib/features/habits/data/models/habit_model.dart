@@ -31,6 +31,9 @@ class HabitModel {
   final bool isDefaultHabit;
   final String? defaultHabitId;
   
+  // Challenge reference
+  final String? challengeId; // ID челленджа, если привычка из челленджа
+  
   // Metadata
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -54,6 +57,7 @@ class HabitModel {
     this.motivation,
     this.isDefaultHabit = false,
     this.defaultHabitId,
+    this.challengeId,
     DateTime? createdAt,
     DateTime? updatedAt,
     this.isArchived = false,
@@ -81,6 +85,7 @@ class HabitModel {
       motivation: data['motivation'],
       isDefaultHabit: data['isDefaultHabit'] ?? false,
       defaultHabitId: data['defaultHabitId'],
+      challengeId: data['challengeId'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isArchived: data['isArchived'] ?? false,
@@ -106,6 +111,7 @@ class HabitModel {
       'motivation': motivation,
       'isDefaultHabit': isDefaultHabit,
       'defaultHabitId': defaultHabitId,
+      'challengeId': challengeId,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'isArchived': isArchived,
@@ -122,6 +128,7 @@ class HabitModel {
     String? habitType,
     int? targetValue,
     String? targetUnit,
+    int? incrementStep,
     int? frequency,
     String? period,
     bool? remindersEnabled,
@@ -130,6 +137,7 @@ class HabitModel {
     String? motivation,
     bool? isDefaultHabit,
     String? defaultHabitId,
+    String? challengeId,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isArchived,
@@ -143,6 +151,7 @@ class HabitModel {
       habitType: habitType ?? this.habitType,
       targetValue: targetValue ?? this.targetValue,
       targetUnit: targetUnit ?? this.targetUnit,
+      incrementStep: incrementStep ?? this.incrementStep,
       frequency: frequency ?? this.frequency,
       period: period ?? this.period,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
@@ -151,6 +160,7 @@ class HabitModel {
       motivation: motivation ?? this.motivation,
       isDefaultHabit: isDefaultHabit ?? this.isDefaultHabit,
       defaultHabitId: defaultHabitId ?? this.defaultHabitId,
+      challengeId: challengeId ?? this.challengeId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
       isArchived: isArchived ?? this.isArchived,

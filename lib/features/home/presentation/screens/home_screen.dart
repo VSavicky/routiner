@@ -9,6 +9,7 @@ import 'package:routiner/core/widgets/week_days_list.dart';
 import 'package:routiner/core/widgets/joined_challenges_widget.dart';
 import 'package:routiner/core/widgets/habits_widget.dart';
 import 'package:routiner/core/widgets/goals_progress_widget.dart';
+import 'package:routiner/core/widgets/month_calendar_widget.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
@@ -42,6 +43,9 @@ class _HomePageState extends State<HomePage> {
   
   // Прогресс по дням недели для отображения в WeekDaysList (ключ: YYYY-MM-DD)
   Map<String, double> _dailyProgress = {};
+  
+  // Ключ для принудительного обновления JoinedChallengesWidget
+  int _challengesRefreshKey = 0;
 
   @override
   void initState() {
@@ -110,10 +114,13 @@ class _HomePageState extends State<HomePage> {
         
         // Загружаем логи для сегодняшней даты только для существующих привычек
         await _loadTodayLogs();
-        
-        // Рассчитываем прогресс для каждого дня недели (асинхронно, не блокируем UI)
-        _calculateDailyProgressForWeek();
-        
+
+        // Быстрый расчет прогресса для текущего дня (из уже загруженных логов)
+        _recalculateTodayProgress();
+
+        // Рассчитываем прогресс для остальных дней недели
+        await _calculateDailyProgressForWeek();
+
         setState(() => _isLoadingHabits = false);
       }, onError: (e) {
         print('[HABITS ERROR] Stream error: $e');
@@ -159,10 +166,13 @@ class _HomePageState extends State<HomePage> {
         // Загружаем логи для сегодняшней даты принудительно с сервера
         await _loadTodayLogs(fromServer: true);
         print('[REFRESH] Loaded logs: ${_todayLogs.length} entries');
-        
-        // Рассчитываем прогресс для каждого дня недели (асинхронно)
-        _calculateDailyProgressForWeek();
-        
+
+        // Быстрый расчет прогресса для текущего дня
+        _recalculateTodayProgress();
+
+        // Рассчитываем прогресс для остальных дней недели
+        await _calculateDailyProgressForWeek();
+
         for (var entry in _todayLogs.entries) {
           final log = entry.value;
           if (log != null) {
@@ -222,32 +232,34 @@ class _HomePageState extends State<HomePage> {
   Future<void> _calculateDailyProgressForWeek() async {
     final user = _auth.currentUser;
     if (user == null || _habits.isEmpty) return;
-    
+
     // Генерируем дни текущей недели
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     final weekDays = List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
-    
-    final Map<String, double> progress = {};
-    
-    for (final date in weekDays) {
+
+    // Загружаем параллельно для скорости
+    final futures = weekDays.map((date) async {
       final dateKey = _dateKey(date);
-      // Загружаем логи за этот день
       final logs = await _habitRepository.getHabitLogsForDate(user.uid, date);
-      
-      // Считаем выполненные привычки
-      final completedCount = logs.where((log) => 
+
+      final completedCount = logs.where((log) =>
         log.status == HabitStatus.completed &&
         _habits.any((h) => h.id == log.habitId)
       ).length;
-      
-      // Прогресс = выполненные / всего привычек
-      progress[dateKey] = _habits.isEmpty ? 0.0 : completedCount / _habits.length;
+
+      return MapEntry(dateKey, _habits.isEmpty ? 0.0 : completedCount / _habits.length);
+    }).toList();
+
+    final results = await Future.wait(futures);
+    final progress = Map<String, double>.fromEntries(results);
+
+    if (mounted) {
+      setState(() {
+        // Добавляем к существующему, не перезаписываем
+        _dailyProgress.addAll(progress);
+      });
     }
-    
-    setState(() {
-      _dailyProgress = progress;
-    });
   }
   
   /// Быстрый пересчет прогресса для выбранной даты (без запроса к БД)
@@ -274,7 +286,42 @@ class _HomePageState extends State<HomePage> {
     final normalized = DateTime(date.year, date.month, date.day);
     return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}-${normalized.day.toString().padLeft(2, '0')}';
   }
-  
+
+  /// Загрузка прогресса для списка дат (ленивая загрузка при скролле)
+  Future<void> _loadProgressForDates(List<DateTime> dates) async {
+    final user = _auth.currentUser;
+    if (user == null || _habits.isEmpty || dates.isEmpty) return;
+
+    // Фильтруем только даты без прогресса
+    final datesToLoad = dates.where((date) {
+      final dateKey = _dateKey(date);
+      return !_dailyProgress.containsKey(dateKey);
+    }).toList();
+
+    if (datesToLoad.isEmpty) return;
+
+    // Загружаем параллельно
+    final futures = datesToLoad.map((date) async {
+      final dateKey = _dateKey(date);
+      final logs = await _habitRepository.getHabitLogsForDate(user.uid, date);
+      final completedCount = logs.where((log) =>
+        log.status == HabitStatus.completed &&
+        _habits.any((h) => h.id == log.habitId)
+      ).length;
+      final progress = _habits.isEmpty ? 0.0 : completedCount / _habits.length;
+      return MapEntry(dateKey, progress);
+    }).toList();
+
+    final results = await Future.wait(futures);
+    final newProgress = Map<String, double>.fromEntries(results);
+
+    if (mounted && newProgress.isNotEmpty) {
+      setState(() {
+        _dailyProgress.addAll(newProgress);
+      });
+    }
+  }
+
   /// Обновить статус привычки (completed, skipped, failed)
   Future<void> _updateHabitStatus(String habitId, HabitStatus status) async {
     print('[STATUS] Updating habit $habitId to status: $status');
@@ -288,6 +335,8 @@ class _HomePageState extends State<HomePage> {
         _todayLogs[habitId] = log;
         // Мгновенно обновляем прогресс для выбранной даты
         _recalculateTodayProgress();
+        // Обновляем челленджи если привычка из челленджа
+        _challengesRefreshKey++;
       });
     } catch (e, stackTrace) {
       print('[STATUS ERROR] $e');
@@ -310,6 +359,8 @@ class _HomePageState extends State<HomePage> {
         _todayLogs[habitId] = log;
         // Мгновенно обновляем прогресс для выбранной даты
         _recalculateTodayProgress();
+        // Обновляем челленджи если привычка из челленджа
+        _challengesRefreshKey++;
       });
     } catch (e, stackTrace) {
       print('[INCREMENT ERROR] $e');
@@ -318,6 +369,64 @@ class _HomePageState extends State<HomePage> {
         SnackBar(content: Text('Failed to add progress: $e')),
       );
     }
+  }
+
+  /// Открыть диалог с месячным календарем
+  void _showCalendarDialog() {
+    // Загружаем прогресс для текущего месяца перед открытием
+    final now = _selectedDate ?? DateTime.now();
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final currentMonthDates = List.generate(
+      daysInMonth,
+      (index) => DateTime(now.year, now.month, index + 1),
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          // Загружаем прогресс один раз при первой сборке
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _loadProgressForDates(currentMonthDates).then((_) {
+              if (mounted) {
+                setDialogState(() {}); // Перестраиваем диалог с новыми данными
+              }
+            });
+          });
+
+          return MonthCalendarDialog(
+            selectedDate: _selectedDate,
+            initialMonth: _selectedDate,
+            dailyProgress: _dailyProgress,
+            onDateSelected: (date) async {
+              // Закрываем диалог сразу, до асинхронных операций
+              Navigator.of(dialogContext).pop();
+
+              setState(() {
+                _selectedDate = date;
+              });
+              // Загружаем логи за выбранную дату
+              await _loadLogsForDate(date);
+              // Пересчитываем прогресс для выбранной даты
+              _recalculateTodayProgress();
+            },
+            onMonthChanged: (month) {
+              // Загружаем прогресс для всех дней выбранного месяца
+              final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+              final dates = List.generate(
+                daysInMonth,
+                (index) => DateTime(month.year, month.month, index + 1),
+              );
+              _loadProgressForDates(dates).then((_) {
+                if (mounted) {
+                  setDialogState(() {}); // Обновляем диалог после загрузки
+                }
+              });
+            },
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -349,6 +458,7 @@ class _HomePageState extends State<HomePage> {
               });
               // TODO: Implement period change logic
             },
+            onCalendarTap: _showCalendarDialog,
           ),
           // Список дней недели или страница Clubs
           Expanded(
@@ -375,6 +485,10 @@ class _HomePageState extends State<HomePage> {
                               // Пересчитываем прогресс для обновления виджета целей
                               setState(() {});
                             },
+                            onLoadProgressForDates: (dates) async {
+                              // Ленивая загрузка прогресса для видимых дат
+                              await _loadProgressForDates(dates);
+                            },
                           ),
                         // Колонка с целями
                         Padding(
@@ -389,7 +503,11 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: 16),
                               // Виджет челенджей - показывает присоединённые челленджи
+                              // Key включает refreshKey и selectedDate для пересоздания при изменениях
+                              // selectedDate - показывает прогресс для выбранной даты
                               JoinedChallengesWidget(
+                                key: ValueKey('challenges_${_challengesRefreshKey}_${_selectedDate?.toIso8601String()}'),
+                                selectedDate: _selectedDate,
                                 onViewAllPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -464,10 +582,14 @@ class _HomePageState extends State<HomePage> {
                                               currentProgress = dayLog!.value!;
                                             }
                                             
+                                            // Проверяем, является ли привычка из челленджа
+                                            final isChallengeHabit = habitModel.challengeId != null && habitModel.challengeId!.isNotEmpty;
+                                            
                                             return Habit(
                                               id: habitModel.id ?? '',
                                               title: habitModel.name,
                                               subtitle: '$currentProgress/${habitModel.targetValue} ${habitModel.targetUnit}',
+                                              isChallenge: isChallengeHabit,
                                               friendsCount: 0, // TODO: добавить друзей
                                               currentProgress: currentProgress,
                                               targetProgress: habitModel.targetValue,
