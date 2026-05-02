@@ -5,6 +5,7 @@ import 'package:routiner/core/widgets/habits_widget.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
+import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
 
 /// Виджет для отображения привычек челленджа
 /// Загружает привычки напрямую из habits коллекции по challengeId
@@ -163,6 +164,9 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
         id: habit.id ?? '',
         title: habit.name,
         subtitle: subtitle,
+        isChallenge: true, // Всегда true для привычек челленджа
+        challengeId: widget.challengeId,
+        challengeName: null, // TODO: загрузить имя челленджа
         friendsCount: 0,
         currentProgress: currentProgress,
         targetProgress: habit.targetValue,
@@ -172,7 +176,17 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
         habitType: habit.habitType,
         status: status,
         incrementStep: habit.incrementStep,
-        isChallenge: true,
+        onViewPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HabitDetailScreen(
+                habit: habit,
+                challengeId: widget.challengeId,
+                challengeName: null, // TODO: загрузить имя челленджа
+              ),
+            ),
+          );
+        },
         onDonePressed: () => _onHabitAction(habit, HabitAction.done),
         onAddPressed: (value) => _onHabitAction(habit, HabitAction.add),
         onSkipPressed: () => _onHabitAction(habit, HabitAction.skip),

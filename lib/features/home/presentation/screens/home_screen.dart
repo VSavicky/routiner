@@ -16,6 +16,8 @@ import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
+import 'package:routiner/features/habits/presentation/screens/habits_list_screen.dart';
+import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -564,16 +566,16 @@ class _HomePageState extends State<HomePage> {
                                                 effectiveSelectedDate.month,
                                                 effectiveSelectedDate.day,
                                               );
-                                              return habitCreatedDate.isAtSameMomentAs(selectedDate) || 
+                                              return habitCreatedDate.isAtSameMomentAs(selectedDate) ||
                                                      habitCreatedDate.isBefore(selectedDate);
                                             })
                                             .map((habitModel) {
                                             // Получаем лог для выбранной даты (исторический прогресс)
-                                            final dayLog = habitModel.id != null 
-                                                ? _todayLogs[habitModel.id] 
+                                            final dayLog = habitModel.id != null
+                                                ? _todayLogs[habitModel.id]
                                                 : null;
                                             final isCompleted = dayLog?.isCompleted ?? false;
-                                            
+
                                             // Показываем исторический прогресс за выбранный день
                                             int currentProgress = 0;
                                             if (isCompleted) {
@@ -581,15 +583,17 @@ class _HomePageState extends State<HomePage> {
                                             } else if (dayLog?.value != null) {
                                               currentProgress = dayLog!.value!;
                                             }
-                                            
+
                                             // Проверяем, является ли привычка из челленджа
                                             final isChallengeHabit = habitModel.challengeId != null && habitModel.challengeId!.isNotEmpty;
-                                            
+
                                             return Habit(
                                               id: habitModel.id ?? '',
                                               title: habitModel.name,
                                               subtitle: '$currentProgress/${habitModel.targetValue} ${habitModel.targetUnit}',
                                               isChallenge: isChallengeHabit,
+                                              challengeId: habitModel.challengeId,
+                                              challengeName: null, // TODO: загрузить имя челленджа
                                               friendsCount: 0, // TODO: добавить друзей
                                               currentProgress: currentProgress,
                                               targetProgress: habitModel.targetValue,
@@ -600,7 +604,14 @@ class _HomePageState extends State<HomePage> {
                                               status: dayLog?.status ?? HabitStatus.pending,
                                               incrementStep: habitModel.incrementStep,
                                               onViewPressed: () {
-                                                print('View ${habitModel.name}');
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => HabitDetailScreen(
+                                                      habit: habitModel,
+                                                      challengeId: habitModel.challengeId,
+                                                    ),
+                                                  ),
+                                                );
                                               },
                                               onDonePressed: () async {
                                                 if (habitModel.id != null) {
@@ -643,7 +654,16 @@ class _HomePageState extends State<HomePage> {
                                             );
                                           }).toList(),
                                           onViewAllPressed: () {
-                                            print('VIEW ALL habits pressed');
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => HabitsListScreen(
+                                                  selectedDate: _selectedDate,
+                                                ),
+                                              ),
+                                            ).then((_) {
+                                              // Обновляем при возврате
+                                              _refreshHabits();
+                                            });
                                           },
                                         ),
                             ],

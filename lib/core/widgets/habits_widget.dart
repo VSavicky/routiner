@@ -17,6 +17,8 @@ class Habit {
   final HabitStatus status; // Текущий статус
   final int incrementStep; // Шаг инкремента (+1, +100, +15)
   final bool isChallenge; // Является ли привычка из челленджа
+  final String? challengeId; // ID челленджа
+  final String? challengeName; // Название челленджа
   final VoidCallback? onViewPressed;
   final VoidCallback? onDonePressed;
   final VoidCallback? onFallPressed;
@@ -41,6 +43,8 @@ class Habit {
     this.status = HabitStatus.pending,
     this.incrementStep = 1,
     this.isChallenge = false,
+    this.challengeId,
+    this.challengeName,
     this.onViewPressed,
     this.onDonePressed,
     this.onFallPressed,
@@ -341,20 +345,23 @@ class _HabitContainer extends StatelessWidget {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: Text(
-                                            habit.title,
-                                            style: AppFonts.bodyTitleMedium.copyWith(
-                                              color: isDarkBackground 
-                                                  ? (habit.isCompleted ? Colors.white : Colors.white)
-                                                  : AppColors.black100,
-                                              fontSize: 15,
-                                              fontWeight: habit.isCompleted ? FontWeight.w600 : FontWeight.w500,
-                                              decoration: habit.isCompleted ? TextDecoration.lineThrough : null,
-                                              decorationColor: isDarkBackground ? Colors.white.withOpacity(0.5) : AppColors.black40,
-                                              decorationThickness: 2,
+                                          child: GestureDetector(
+                                            onTap: habit.onViewPressed,
+                                            child: Text(
+                                              habit.title,
+                                              style: AppFonts.bodyTitleMedium.copyWith(
+                                                color: isDarkBackground 
+                                                    ? (habit.isCompleted ? Colors.white : Colors.white)
+                                                    : AppColors.black100,
+                                                fontSize: 15,
+                                                fontWeight: habit.isCompleted ? FontWeight.w600 : FontWeight.w500,
+                                                decoration: habit.isCompleted ? TextDecoration.lineThrough : null,
+                                                decorationColor: isDarkBackground ? Colors.white.withOpacity(0.5) : AppColors.black40,
+                                                decorationThickness: 2,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
                                           ),
                                         ),
                                         // Streak badge

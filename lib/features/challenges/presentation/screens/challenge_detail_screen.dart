@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import '../../domain/services/challenges_service.dart';
 import '../widgets/challenge_habits_widget.dart';
@@ -213,27 +214,31 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     final participants = widget.challenge['participants'] as int;
     final habits = widget.challenge['habits'] as List<dynamic>? ?? [];
     final endTime = widget.challenge['endTime'] as DateTime?;
-    final challengeColor = widget.challenge['color'] as Color;
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              challengeColor,
-              challengeColor.withOpacity(0.7),
+              AppColors.purple,
+              AppColors.blue,
             ],
-            stops: const [0.0, 1.0],
+            stops: [0.0, 1.0],
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                 // Header - теперь прокручивается с контентом
                 Padding(
                   padding: const EdgeInsets.only(top: 8, bottom: 20),
@@ -249,10 +254,10 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                         ),
                         child: IconButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.arrow_back_ios_new,
                             size: 18,
-                            color: challengeColor,
+                            color: AppColors.purple,
                           ),
                         ),
                       ),
@@ -343,7 +348,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(24),
                                       border: Border.all(
-                                        color: challengeColor,
+                                        color: AppColors.purple,
                                         width: 2,
                                       ),
                                     ),
@@ -378,7 +383,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(24),
                                     border: Border.all(
-                                      color: challengeColor,
+                                      color: AppColors.purple,
                                       width: 2,
                                     ),
                                   ),
@@ -388,7 +393,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: challengeColor,
+                                        color: AppColors.purple,
                                       ),
                                     ),
                                   ),
@@ -422,7 +427,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           onPressed: _toggleJoin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: challengeColor,
+                            foregroundColor: AppColors.purple,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(28),
@@ -495,7 +500,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                         ChallengeHabitsWidget(
                           key: ValueKey('challenge_habits_${_isJoined}_${_selectedDate?.toIso8601String()}'),
                           challengeId: widget.challenge['id'] as String? ?? widget.challenge['title'] as String,
-                          challengeColor: challengeColor,
+                          challengeColor: AppColors.purple,
                           selectedDate: _selectedDate,
                           onProgressChanged: () {
                             // Перезагружаем прогресс по дням при изменении привычки
@@ -505,16 +510,20 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                       else
                         // Preview of challenge habits (before joining)
                         for (int i = 0; i < habits.length; i++)
-                          _buildHabitCard(habits[i] as Map<String, dynamic>, challengeColor),
+                          _buildHabitCard(habits[i] as Map<String, dynamic>, AppColors.purple),
                       
                       const SizedBox(height: 32),
                     ],
                   ),
                 ),
               ),
-            ),
-          );
-  }
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
 
   String _formatTimeLeft(Duration duration) {
     if (duration.isNegative) return 'Ended';
@@ -667,7 +676,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: challengeColor.withOpacity(0.1),
+                      color: AppColors.purple.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: Colors.white,
@@ -680,7 +689,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: challengeColor,
+                          color: AppColors.purple,
                         ),
                       ),
                     ),
