@@ -10,6 +10,7 @@ import 'package:routiner/features/create_habit/presentation/screens/custom_habit
 import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
 import 'package:routiner/features/challenges/domain/services/challenges_service.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
+import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
 
 /// Экран списка всех привычек с горизонтальными списками как в Explore
 class HabitsListScreen extends StatefulWidget {
@@ -30,9 +31,11 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
 
   List<HabitModel> _userHabits = [];
   List<HabitModel> _challengeHabits = [];
+  List<HabitModel> _clubHabits = [];
   Map<String, HabitLogModel> _habitLogs = {};
   Map<String, String> _challengeNames = {}; // challengeId -> name
   Map<String, Map<String, dynamic>> _challengesData = {}; // challengeId -> full challenge data
+  Map<String, Map<String, dynamic>> _clubsData = {}; // clubId -> full club data
   bool _isLoading = true;
 
   @override
@@ -55,9 +58,19 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       final habitsStream = _habitRepository.getUserHabits(user.uid);
       final allHabits = await habitsStream.first;
 
-      // Разделяем на обычные и челлендж-привычки
+      // Разделяем на обычные, челлендж-привычки и клубные привычки
       final userHabits = allHabits.where((h) => h.challengeId == null || h.challengeId!.isEmpty).toList();
-      final challengeHabits = allHabits.where((h) => h.challengeId != null && h.challengeId!.isNotEmpty).toList();
+      final challengeHabits = allHabits.where((h) => h.challengeId != null && !h.challengeId!.startsWith('club_')).toList();
+      final clubHabits = allHabits.where((h) => h.challengeId != null && h.challengeId!.startsWith('club_')).toList();
+
+      // Отладочная информация
+      print('[HABITS LIST] Total habits: ${allHabits.length}');
+      print('[HABITS LIST] User habits: ${userHabits.length}');
+      print('[HABITS LIST] Challenge habits: ${challengeHabits.length}');
+      print('[HABITS LIST] Club habits: ${clubHabits.length}');
+      for (final clubHabit in clubHabits) {
+        print('[HABITS LIST] Club habit: ${clubHabit.name} - ${clubHabit.challengeId}');
+      }
 
       // Загружаем челленджи для получения их данных
       final challengesService = ChallengesService();
@@ -71,6 +84,81 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
         challengesData[id] = challenge;
       }
 
+      // Загружаем данные клубов
+      final clubsData = <String, Map<String, dynamic>>{};
+      final allClubs = [
+        {
+          'id': 'cat_lovers',
+          'name': 'Cat Lovers',
+          'description': 'Build daily habits while celebrating our feline friends',
+          'emoji': '🐱',
+          'members': '500+',
+          'color': const Color(0xFFFF6B6B),
+        },
+        {
+          'id': 'book_worms',
+          'name': 'Book Worms',
+          'description': 'Cultivate reading habits and expand your knowledge daily',
+          'emoji': '📚',
+          'members': '1.2k',
+          'color': const Color(0xFF4ECDC4),
+        },
+        {
+          'id': 'runners',
+          'name': 'Runners',
+          'description': 'Build consistent running habits and achieve your fitness goals',
+          'emoji': '🏃',
+          'members': '800+',
+          'color': const Color(0xFF95E1D3),
+        },
+        {
+          'id': 'yoga_life',
+          'name': 'Yoga Life',
+          'description': 'Transform your life through daily yoga and mindfulness practices',
+          'emoji': '🧘',
+          'members': '2k',
+          'color': const Color(0xFFA8E6CF),
+        },
+        {
+          'id': 'meditation',
+          'name': 'Meditation',
+          'description': 'Find inner peace and build mental clarity through meditation',
+          'emoji': '🧠',
+          'members': '3k+',
+          'color': const Color(0xFFC7CEEA),
+        },
+        {
+          'id': 'fitness_gurus',
+          'name': 'Fitness Gurus',
+          'description': 'Build strength and endurance with daily workout routines',
+          'emoji': '💪',
+          'members': '1.5k',
+          'color': const Color(0xFFFFD93D),
+        },
+        {
+          'id': 'creative_minds',
+          'name': 'Creative Minds',
+          'description': 'Nurture your creativity with daily artistic practices',
+          'emoji': '🎨',
+          'members': '750+',
+          'color': const Color(0xFFE8B4F8),
+        },
+        {
+          'id': 'eco_warriors',
+          'name': 'Eco Warriors',
+          'description': 'Build sustainable habits and protect our planet daily',
+          'emoji': '🌱',
+          'members': '900+',
+          'color': const Color(0xFF90EE90),
+        },
+      ];
+      
+      for (final club in allClubs) {
+        final clubId = club['id'] as String;
+        clubsData[clubId] = club;
+        print('[HABITS LIST] Added club data: $clubId -> ${club['name']}');
+      }
+
       // Загружаем логи для выбранной даты
       final effectiveDate = widget.selectedDate ?? DateTime.now();
       final logs = await _habitRepository.getHabitLogsForDate(user.uid, effectiveDate);
@@ -81,14 +169,18 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       }
 
       if (mounted) {
+        print('[HABITS LIST] Setting state with club habits: ${clubHabits.length}');
         setState(() {
           _userHabits = userHabits;
           _challengeHabits = challengeHabits;
+          _clubHabits = clubHabits;
           _habitLogs = logsMap;
           _challengeNames = challengeNames;
           _challengesData = challengesData;
+          _clubsData = clubsData;
           _isLoading = false;
         });
+        print('[HABITS LIST] State updated, _clubHabits.length: ${_clubHabits.length}');
       }
     } catch (e) {
       print('[HABITS LIST ERROR] $e');
@@ -184,6 +276,9 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
         // === ПРИВЫЧКИ ЧЕЛЛЕНДЖА (сгруппированы по челленджам) ===
         ..._buildChallengeSections(),
 
+        // === ПРИВЫЧКИ КЛУБОВ (сгруппированы по клубам) ===
+        ..._buildClubSections(),
+
         // === ПОПУЛЯРНЫЕ (горизонтальный список со смешанными привычками) ===
         _buildHorizontalSection(
           title: 'Popular',
@@ -274,6 +369,183 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
     });
 
     return sections;
+  }
+
+  /// Группирует клубные привычки по клубам и возвращает виджеты секций
+  List<Widget> _buildClubSections() {
+    print('[HABITS LIST] _buildClubSections() called, _clubHabits.length: ${_clubHabits.length}');
+    if (_clubHabits.isEmpty) {
+      print('[HABITS LIST] No club habits found, returning empty list');
+      return [];
+    }
+
+    // Группируем привычки по clubId (извлекаем из challengeId)
+    final Map<String, List<HabitModel>> groupedHabits = {};
+    print('[HABITS LIST] Processing ${_clubHabits.length} club habits:');
+    for (final habit in _clubHabits) {
+      final challengeId = habit.challengeId ?? '';
+      final clubId = challengeId.startsWith('club_') ? challengeId.substring(5) : 'unknown';
+      print('[HABITS LIST] Club habit: ${habit.name}, challengeId: $challengeId, extracted clubId: $clubId');
+      groupedHabits.putIfAbsent(clubId, () => []);
+      groupedHabits[clubId]!.add(habit);
+    }
+
+    print('[HABITS LIST] Available clubs data: ${_clubsData.keys}');
+    final List<Widget> sections = [];
+    groupedHabits.forEach((clubId, habits) {
+      print('[HABITS LIST] Looking for club with ID: $clubId');
+      final club = _clubsData[clubId];
+      if (club == null) {
+        print('[HABITS LIST] Club not found for ID: $clubId');
+        return;
+      }
+
+      final clubName = club['name'] as String? ?? 'Club';
+      print('[HABITS LIST] Found club: $clubName with ${habits.length} habits');
+
+      sections.addAll([
+        _buildSectionHeader(
+          clubName,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  // Импортируем ClubDetailScreen
+                  return ClubDetailScreen(club: club);
+                },
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ...habits.map((habit) => _buildClubHabitCard(habit, clubName)).toList(),
+        const SizedBox(height: 24),
+      ]);
+    });
+
+    return sections;
+  }
+
+  /// Карточка привычки клуба (вертикальная с градиентом)
+  Widget _buildClubHabitCard(HabitModel habit, String? clubName) {
+    final habitId = habit.id?.isNotEmpty == true ? habit.id : null;
+    final dayLog = habitId != null ? _habitLogs[habitId] : null;
+    final isCompleted = dayLog?.isCompleted ?? false;
+    final targetValue = habit.targetValue > 0 ? habit.targetValue : 1;
+    final currentProgress = isCompleted ? targetValue : ((dayLog?.value ?? 0) > 0 ? dayLog!.value! : 0);
+    final progressPercent = targetValue > 0
+        ? (currentProgress / targetValue).clamp(0.0, 1.0)
+        : 0.0;
+    final targetUnit = habit.targetUnit.isNotEmpty ? habit.targetUnit : 'times';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => HabitDetailScreen(
+              habit: habit,
+              challengeId: habit.challengeId,
+              challengeName: clubName,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF9C27B0), Color(0xFF673AB7)], // Фиолетовый градиент для клубов
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            // Иконка
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  habit.emoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Информация
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    habit.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '$currentProgress/$targetValue $targetUnit',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'CLUBS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Прогресс бар
+                  Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: progressPercent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Карточка привычки пользователя (вертикальная цветная)

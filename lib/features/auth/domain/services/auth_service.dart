@@ -47,7 +47,7 @@ class AuthService {
       return userEntity;
     } catch (e) {
       print('Error during registration: $e');
-      return null;
+      rethrow;
     }
   }
 

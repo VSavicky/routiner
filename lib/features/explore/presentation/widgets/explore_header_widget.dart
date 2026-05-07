@@ -24,27 +24,11 @@ class ExploreHeaderWidget extends StatelessWidget {
             children: [
      const SizedBox(height: 70),
      Row(
-       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+       mainAxisAlignment: MainAxisAlignment.start,
        children: [
          Text(
            header,
            style: AppFonts.headlineH5,
-         ),
-         GestureDetector(
-           onTap: onPressed,
-           child: Container(
-             width: 48,
-             height: 48,
-             decoration: BoxDecoration(
-               border: Border.all(color: AppColors.black10, width: 2),
-               borderRadius: BorderRadius.circular(16),
-             ),
-             child: const Icon(
-               Icons.explore,
-               color: AppColors.black40,
-               size: 20,
-             ),
-           ),
          ),
        ],
      ),

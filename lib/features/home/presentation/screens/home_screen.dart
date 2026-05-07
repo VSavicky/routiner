@@ -16,8 +16,12 @@ import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
+import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
 import 'package:routiner/features/habits/presentation/screens/habits_list_screen.dart';
 import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
+import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
+import 'package:routiner/features/clubs/presentation/screens/clubs_list_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,6 +52,10 @@ class _HomePageState extends State<HomePage> {
   
   // Ключ для принудительного обновления JoinedChallengesWidget
   int _challengesRefreshKey = 0;
+  
+  // Присоединенные клубы
+  List<Map<String, dynamic>> _joinedClubs = [];
+  bool _isLoadingClubs = true;
 
   @override
   void initState() {
@@ -77,10 +85,14 @@ class _HomePageState extends State<HomePage> {
       
       // Загружаем привычки пользователя
       await _loadUserHabits();
+      
+      // Загружаем присоединенные клубы
+      await _loadJoinedClubs();
     } catch (e) {
       setState(() {
         _isLoading = false;
         _isLoadingHabits = false;
+        _isLoadingClubs = false;
       });
     }
   }
@@ -138,6 +150,147 @@ class _HomePageState extends State<HomePage> {
   /// Публичный метод для обновления списка привычек (вызывается при возврате с других экранов)
   void refreshHabits() {
     _loadUserHabits();
+  }
+  
+  /// Загрузка присоединенных клубов из SharedPreferences
+  Future<void> _loadJoinedClubs() async {
+    print('[CLUBS] Loading joined clubs...');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final joinedClubIds = prefs.getStringList('joined_clubs') ?? [];
+      
+      // Все доступные клубы (те же что в ClubsListScreen)
+      final allClubs = [
+        {
+          'id': 'cat_lovers',
+          'name': 'Cat Lovers',
+          'description': 'Build daily habits while celebrating our feline friends',
+          'emoji': '🐱',
+          'members': '500+',
+          'color': const Color(0xFFFF6B6B),
+          'habits': [
+            {'title': 'Morning pet care', 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Cat feeding routine', 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': 'Play with cat', 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'book_worms',
+          'name': 'Book Worms',
+          'description': 'Cultivate reading habits and expand your knowledge daily',
+          'emoji': '📚',
+          'members': '1.2k',
+          'color': const Color(0xFF4ECDC4),
+          'habits': [
+            {'title': 'Daily reading', 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+            {'title': 'Book notes', 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': 'Library visit', 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'runners',
+          'name': 'Runners',
+          'description': 'Build consistent running habits and achieve your fitness goals',
+          'emoji': '🏃',
+          'members': '800+',
+          'color': const Color(0xFF95E1D3),
+          'habits': [
+            {'title': 'Morning run', 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': 'Stretching', 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Hydration', 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'yoga_life',
+          'name': 'Yoga Life',
+          'description': 'Transform your life through daily yoga and mindfulness practices',
+          'emoji': '🧘',
+          'members': '2k',
+          'color': const Color(0xFFA8E6CF),
+          'habits': [
+            {'title': 'Morning yoga', 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Meditation', 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Breathing exercises', 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'meditation',
+          'name': 'Meditation',
+          'description': 'Find inner peace and build mental clarity through meditation',
+          'emoji': '🧠',
+          'members': '3k+',
+          'color': const Color(0xFFC7CEEA),
+          'habits': [
+            {'title': 'Daily meditation', 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Mindful breathing', 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
+            {'title': 'Gratitude journal', 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'fitness_gurus',
+          'name': 'Fitness Gurus',
+          'description': 'Build strength and endurance with daily workout routines',
+          'emoji': '💪',
+          'members': '1.5k',
+          'color': const Color(0xFFFFD93D),
+          'habits': [
+            {'title': 'Strength training', 'emoji': '💪', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Protein intake', 'emoji': '🥗', 'targetValue': 25, 'targetUnit': 'grams', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Recovery stretching', 'emoji': '🤸', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'creative_minds',
+          'name': 'Creative Minds',
+          'description': 'Nurture your creativity with daily artistic practices',
+          'emoji': '🎨',
+          'members': '750+',
+          'color': const Color(0xFFE8B4F8),
+          'habits': [
+            {'title': 'Daily sketch', 'emoji': '✏️', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+            {'title': 'Creative writing', 'emoji': '✍️', 'targetValue': 200, 'targetUnit': 'words', 'incrementStep': 50, 'habitType': 'build'},
+            {'title': 'Inspiration gathering', 'emoji': '💡', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          ],
+        },
+        {
+          'id': 'eco_warriors',
+          'name': 'Eco Warriors',
+          'description': 'Build sustainable habits and protect our planet daily',
+          'emoji': '🌱',
+          'members': '900+',
+          'color': const Color(0xFF90EE90),
+          'habits': [
+            {'title': 'Recycling', 'emoji': '♻️', 'targetValue': 5, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': 'Water conservation', 'emoji': '💧', 'targetValue': 10, 'targetUnit': 'liters', 'incrementStep': 2, 'habitType': 'build'},
+            {'title': 'Plastic reduction', 'emoji': '🚫', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'quit'},
+          ],
+        },
+      ];
+      
+      // Фильтруем только присоединенные клубы
+      final clubs = allClubs.where((club) => joinedClubIds.contains(club['id'] as String)).toList();
+      
+      // Отладочная информация
+      for (final club in clubs) {
+        final habits = club['habits'] as List<dynamic>? ?? [];
+        print('[CLUBS] Club: ${club['name']}, habits count: ${habits.length}');
+        for (final habit in habits) {
+          print('[CLUBS]   Habit: ${habit['title']}');
+        }
+      }
+      
+      setState(() {
+        _joinedClubs = clubs;
+        _isLoadingClubs = false;
+      });
+      
+      print('[CLUBS] Loaded ${clubs.length} joined clubs');
+    } catch (e) {
+      print('[CLUBS ERROR] $e');
+      setState(() {
+        _isLoadingClubs = false;
+      });
+    }
   }
   
   /// Принудительное обновление с сервера (для pull-to-refresh)
@@ -440,7 +593,7 @@ class _HomePageState extends State<HomePage> {
           Header(
             toggleOptions: ['Today', 'Clubs'],
             selectedToggleIndex: _selectedToggleIndex,
-            notificationCount: 5, // TODO: Получать из базы данных
+            notificationCount: _joinedClubs.length,
             userName: _user?.firstName,
             greeting: _user != null 
                 ? 'Hi, ${_user!.firstName}👋' 
@@ -584,8 +737,9 @@ class _HomePageState extends State<HomePage> {
                                               currentProgress = dayLog!.value!;
                                             }
 
-                                            // Проверяем, является ли привычка из челленджа
+                                            // Проверяем, является ли привычка из челленджа или клуба
                                             final isChallengeHabit = habitModel.challengeId != null && habitModel.challengeId!.isNotEmpty;
+                                            final isClubHabit = isChallengeHabit && habitModel.challengeId!.startsWith('club_');
 
                                             return Habit(
                                               id: habitModel.id ?? '',
@@ -594,6 +748,7 @@ class _HomePageState extends State<HomePage> {
                                               isChallenge: isChallengeHabit,
                                               challengeId: habitModel.challengeId,
                                               challengeName: null, // TODO: загрузить имя челленджа
+                                              isClubHabit: isClubHabit,
                                               friendsCount: 0, // TODO: добавить друзей
                                               currentProgress: currentProgress,
                                               targetProgress: habitModel.targetValue,
@@ -681,13 +836,225 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildClubsPage() {
-    return Center(
-      child: Text(
-        'Clubs',
-        style: AppFonts.headlineH5.copyWith(
-          color: AppColors.black100,
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
+    if (_isLoadingClubs) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    
+    if (_joinedClubs.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.black10,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: const Icon(
+                Icons.groups,
+                size: 40,
+                color: AppColors.black40,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No clubs yet',
+              style: AppFonts.headlineH5.copyWith(
+                color: AppColors.black100,
+                fontSize: 24,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Join clubs from Explore to see them here',
+              style: AppFonts.bodyAlternative.copyWith(
+                color: AppColors.black60,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ClubsListScreen(),
+                  ),
+                ).then((_) {
+                  // Обновляем список клубов при возврате со списка клубов
+                  _loadJoinedClubs();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue100,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(
+                'Explore Clubs',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _loadJoinedClubs();
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Заголовок
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Your Clubs',
+                style: AppFonts.headlineH5.copyWith(
+                  color: AppColors.black100,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Список присоединенных клубов
+            ..._joinedClubs.map((club) {
+              return GestureDetector(
+                onTap: () {
+                  print('[HOME] Tapping club: ${club['name']}');
+                  print('[HOME] Club keys before navigation: ${club.keys}');
+                  final habits = club['habits'] as List<dynamic>? ?? [];
+                  print('[HOME] Habits count before navigation: ${habits.length}');
+                  
+                  // Создаем полную копию данных клуба с привычками
+                  final clubWithHabits = <String, dynamic>{};
+                  clubWithHabits.addAll(club);
+                  
+                  // Убедимся что привычки есть в копии
+                  if (habits.isNotEmpty) {
+                    clubWithHabits['habits'] = habits;
+                    print('[HOME] Created club copy with ${habits.length} habits');
+                  }
+                  
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ClubDetailScreen(
+                        club: clubWithHabits,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        club['color'] as Color,
+                        (club['color'] as Color).withOpacity(0.8),
+                      ],
+                      stops: [0.0, 1.0],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        // Иконка клуба
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: Text(
+                              club['emoji'] as String,
+                              style: const TextStyle(fontSize: 28),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Информация о клубе
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                club['name'] as String,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                club['description'] as String,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${(club['habits'] as List<dynamic>).length} habits',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    club['members'] as String,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
         ),
       ),
     );

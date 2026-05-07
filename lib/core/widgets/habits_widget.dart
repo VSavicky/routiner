@@ -19,6 +19,7 @@ class Habit {
   final bool isChallenge; // Является ли привычка из челленджа
   final String? challengeId; // ID челленджа
   final String? challengeName; // Название челленджа
+  final bool isClubHabit; // Является ли привычка из клуба
   final VoidCallback? onViewPressed;
   final VoidCallback? onDonePressed;
   final VoidCallback? onFallPressed;
@@ -45,6 +46,7 @@ class Habit {
     this.isChallenge = false,
     this.challengeId,
     this.challengeName,
+    this.isClubHabit = false,
     this.onViewPressed,
     this.onDonePressed,
     this.onFallPressed,
@@ -399,34 +401,21 @@ class _HabitContainer extends StatelessWidget {
                                     SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        // CHALLENGE тег
+                                        // CHALLENGE/CLUBS тег
                                         if (habit.isChallenge)
                                           Container(
                                             margin: EdgeInsets.only(right: 6),
                                             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  AppColors.blue100,
-                                                  AppColors.blue100.withOpacity(0.8),
-                                                ],
-                                              ),
-                                              borderRadius: BorderRadius.circular(6),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: AppColors.blue100.withOpacity(0.3),
-                                                  blurRadius: 4,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ],
+                                              color: habit.isClubHabit ? Colors.purple : Colors.orange,
+                                              borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Text(
-                                              'CHALLENGE',
+                                              habit.isClubHabit ? 'CLUBS' : 'CHALLENGE',
                                               style: AppFonts.bodyAlternative.copyWith(
                                                 color: Colors.white,
                                                 fontSize: 9,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.5,
+                                                fontWeight: FontWeight.w600,
                                               ),
                                             ),
                                           ),

@@ -328,7 +328,6 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
 
   Widget _buildChallengeCard(Map<String, dynamic> challenge) {
     final color = challenge['color'] as Color;
-    final participants = challenge['participants'] as int;
     final habits = challenge['habits'] as List<dynamic>? ?? [];
     final endTime = challenge['endTime'] as DateTime;
     final timeLeft = endTime.difference(DateTime.now());
@@ -399,84 +398,23 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Participants avatars - ФИКС: увеличил ширину Stack
+              // Количество привычек
               Row(
                 children: [
-                  SizedBox(
-                    width: 130, // Увеличили с 100 до 130
-                    height: 44,
-                    child: Stack(
-                      children: [
-                        for (int i = 0; i < 3 && i < participants; i++)
-                          Positioned(
-                            left: i * 16.0, // Намного ближе друг к другу (наезд)
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: color,
-                                  width: 2,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.network(
-                                  'https://i.pravatar.cc/150?img=${10 + i}',
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      color: Colors.grey[300],
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 18,
-                                        color: Colors.grey[600],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (participants > 3)
-                          Positioned(
-                            left: 48, // Корректируем позицию бейджа
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: color,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '+${participants - 3}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: color,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.task_alt,
+                      color: Colors.white,
+                      size: 14,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Habits count
-              Row(
-                children: [
+                  const SizedBox(width: 8),
                   Text(
                     '${habits.length} habits',
                     style: TextStyle(

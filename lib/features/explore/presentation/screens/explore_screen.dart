@@ -6,6 +6,13 @@ import 'package:routiner/core/widgets/header.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/explore/presentation/widgets/explore_header_widget.dart';
+import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
+import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
+import 'package:routiner/features/habits/presentation/screens/habits_list_screen.dart';
+import 'package:routiner/features/learning/presentation/screens/learning_detail_screen.dart';
+import 'package:routiner/features/learning/presentation/screens/learning_list_screen.dart';
+import 'package:routiner/features/clubs/presentation/screens/clubs_list_screen.dart';
+import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -50,8 +57,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // TODO: Navigate to all habits page
-                    print('VIEW ALL pressed');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const HabitsListScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'VIEW ALL',
@@ -182,7 +192,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    print('VIEW ALL clubs pressed');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ClubsListScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'VIEW ALL',
@@ -205,16 +219,82 @@ class _ExploreScreenState extends State<ExploreScreen> {
               itemCount: 5,
               itemBuilder: (context, index) {
                 final clubs = [
-                  {'name': 'Cat Lovers', 'members': '500+', 'emoji': '🐱'},
-                  {'name': 'Book Worms', 'members': '1.2k', 'emoji': '📚'},
-                  {'name': 'Runners', 'members': '800+', 'emoji': '🏃'},
-                  {'name': 'Yoga Life', 'members': '2k', 'emoji': '🧘'},
-                  {'name': 'Meditation', 'members': '3k+', 'emoji': '🧠'},
+                  {
+                    'id': 'cat_lovers',
+                    'name': 'Cat Lovers',
+                    'description': 'Build daily habits while celebrating our feline friends',
+                    'emoji': '🐱',
+                    'members': '500+',
+                    'color': const Color(0xFFFF6B6B),
+                    'habits': [
+                      {'title': 'Morning pet care', 'emoji': '�', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Cat feeding routine', 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': 'Play with cat', 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                    ],
+                  },
+                  {
+                    'id': 'book_worms',
+                    'name': 'Book Worms',
+                    'description': 'Cultivate reading habits and expand your knowledge daily',
+                    'emoji': '📚',
+                    'members': '1.2k',
+                    'color': const Color(0xFF4ECDC4),
+                    'habits': [
+                      {'title': 'Daily reading', 'emoji': '�', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+                      {'title': 'Book notes', 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': 'Library visit', 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
+                  },
+                  {
+                    'id': 'runners',
+                    'name': 'Runners',
+                    'description': 'Build consistent running habits and achieve your fitness goals',
+                    'emoji': '🏃',
+                    'members': '800+',
+                    'color': const Color(0xFF95E1D3),
+                    'habits': [
+                      {'title': 'Morning run', 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': 'Stretching', 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Hydration', 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
+                  },
+                  {
+                    'id': 'yoga_life',
+                    'name': 'Yoga Life',
+                    'description': 'Transform your life through daily yoga and mindfulness practices',
+                    'emoji': '🧘',
+                    'members': '2k',
+                    'color': const Color(0xFFA8E6CF),
+                    'habits': [
+                      {'title': 'Morning yoga', 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Meditation', 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Breathing exercises', 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
+                  },
+                  {
+                    'id': 'meditation',
+                    'name': 'Meditation',
+                    'description': 'Find inner peace and build mental clarity through meditation',
+                    'emoji': '🧠',
+                    'members': '3k+',
+                    'color': const Color(0xFFC7CEEA),
+                    'habits': [
+                      {'title': 'Daily meditation', 'emoji': '�', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Mindful breathing', 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
+                      {'title': 'Gratitude journal', 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
+                  },
                 ];
                 final club = clubs[index];
                 return GestureDetector(
                   onTap: () {
-                    print('Club ${club['name']} tapped');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ClubDetailScreen(
+                          club: club,
+                        ),
+                      ),
+                    );
                   },
                   child: Container(
                     width: 110,
@@ -237,12 +317,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Center(
-                            child: Text(club['emoji']!, style: const TextStyle(fontSize: 18)),
+                            child: Text(club['emoji'] as String, style: const TextStyle(fontSize: 18)),
                           ),
                         ),
                         const Spacer(),
                         Text(
-                          club['name']!,
+                          club['name'] as String,
                           style: AppFonts.bodyAlternative.copyWith(
                             color: AppColors.black100,
                             fontWeight: FontWeight.w600,
@@ -283,7 +363,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    print('VIEW ALL challenges pressed');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ChallengesListScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'VIEW ALL',
@@ -305,33 +389,72 @@ class _ExploreScreenState extends State<ExploreScreen> {
               padding: const EdgeInsets.only(left: 24),
               itemCount: 3,
               itemBuilder: (context, index) {
+                final now = DateTime.now();
                 final challenges = [
                   {
-                    'title': 'Best Runners!',
-                    'emoji': '🏃',
-                    'timeLeft': '5 days 13 hours left',
-                    'friends': 2,
-                    'progress': 0.6,
+                    'id': '7_day_water',
+                    'title': '7-Day Water Challenge',
+                    'endTime': now.add(const Duration(days: 7)),
+                    'description': 'Start your wellness journey with proper hydration. Drink 8 glasses of water daily for one week.',
+                    'icon': '💧',
+                    'color': const Color(0xFF29B6F6),
+                    'participants': 128,
+                    'habits': [
+                      {'title': 'Drink water', 'icon': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
                   },
                   {
-                    'title': 'Best Bikers!',
-                    'emoji': '🚴',
-                    'timeLeft': '2 days 11 hours left',
-                    'friends': 1,
-                    'progress': 0.4,
+                    'id': '21_day_fitness',
+                    'title': '21-Day Fitness Kickstart',
+                    'endTime': now.add(const Duration(days: 21)),
+                    'description': 'Build a consistent workout habit in just 3 weeks.',
+                    'icon': '🏃',
+                    'color': const Color(0xFF5B6EFC),
+                    'participants': 256,
+                    'habits': [
+                      {'title': 'Daily workout', 'icon': '💪', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Take 8K steps', 'icon': '🚶', 'targetValue': 8000, 'targetUnit': 'steps', 'incrementStep': 1000, 'habitType': 'build'},
+                    ],
                   },
                   {
-                    'title': 'Yoga Masters',
-                    'emoji': '🧘',
-                    'timeLeft': '7 days left',
-                    'friends': 3,
-                    'progress': 0.8,
+                    'id': 'morning_routine',
+                    'title': 'Perfect Morning Routine',
+                    'endTime': now.add(const Duration(days: 14)),
+                    'description': 'Transform your mornings and set the tone for productive days.',
+                    'icon': '🌅',
+                    'color': const Color(0xFFFFA726),
+                    'participants': 89,
+                    'habits': [
+                      {'title': 'Meditate', 'icon': '🧘', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': 'Morning stretch', 'icon': '🤸', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+                    ],
                   },
                 ];
                 final challenge = challenges[index];
+                final endTime = challenge['endTime'] as DateTime;
+                final timeLeft = endTime.difference(DateTime.now());
+                final days = timeLeft.inDays;
+                final hours = timeLeft.inHours.remainder(24);
+                final timeLeftText = days > 0 ? '$days days ${hours}h left' : '$hours hours left';
+                
                 return GestureDetector(
                   onTap: () {
-                    print('Challenge ${challenge['title']} tapped');
+                    // Создаем полную копию данных челленджа для ChallengeDetailScreen
+                    final fullChallengeData = Map<String, dynamic>.from(challenge);
+                    // Добавляем недостающие поля, которые ожидает ChallengeDetailScreen
+                    fullChallengeData['startDate'] = now.subtract(const Duration(days: 1)).toIso8601String();
+                    fullChallengeData['endDate'] = (challenge['endTime'] as DateTime).toIso8601String();
+                    
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChallengeDetailScreen(
+                          challenge: fullChallengeData,
+                          onJoinChanged: () {
+                            // Callback при изменении состояния присоединения
+                          },
+                        ),
+                      ),
+                    );
                   },
                   child: Container(
                     width: 200,
@@ -340,12 +463,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.purple,
-                          AppColors.blue,
+                          challenge['color'] as Color,
+                          (challenge['color'] as Color).withOpacity(0.8),
                         ],
                         stops: [0.0, 1.0],
                       ),
@@ -353,7 +476,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Часы иконка
+                        // Иконка эмодзи челленджа
                         Container(
                           width: 28,
                           height: 28,
@@ -361,16 +484,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(
-                            Icons.access_time,
-                            color: Colors.white,
-                            size: 16,
+                          child: Center(
+                            child: Text(
+                              challenge['icon'] as String,
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
                         // Заголовок с эмодзи
                         Text(
-                          '${challenge['title']} ${challenge['emoji']}',
+                          '${challenge['title']} ${challenge['icon']}',
                           style: AppFonts.bodyAlternative.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -382,68 +506,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         const SizedBox(height: 4),
                         // Осталось времени
                         Text(
-                          challenge['timeLeft'] as String,
+                          timeLeftText,
                           style: AppFonts.bodyAlternative.copyWith(
                             color: Colors.white.withOpacity(0.8),
                             fontSize: 12,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Прогресс бар
-                        Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: challenge['progress'] as double,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Аватарки друзей
+                        // Количество привычек
                         Row(
                           children: [
-                            // Стек аватарок
-                            SizedBox(
-                              width: 40,
+                            Container(
+                              width: 24,
                               height: 24,
-                              child: Stack(
-                                children: [
-                                  for (int i = 0; i < (challenge['friends'] as int).clamp(0, 2); i++)
-                                    Positioned(
-                                      left: i * 16.0,
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: AppColors.purple,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 14,
-                                          color: AppColors.black60,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.task_alt,
+                                color: Colors.white,
+                                size: 14,
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${challenge['friends']} friends joined',
+                              '${(challenge['habits'] as List<dynamic>?)?.length ?? 1} habits',
                               style: AppFonts.bodyAlternative.copyWith(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 12,
@@ -475,7 +563,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    print('VIEW ALL learning pressed');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LearningListScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'VIEW ALL',
@@ -489,7 +581,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
 
-          // Горизонтальный список статей Learning
+          // Горизонтальный список уроков Learning
           SizedBox(
             height: 180,
             child: ListView.builder(
@@ -497,24 +589,48 @@ class _ExploreScreenState extends State<ExploreScreen> {
               padding: const EdgeInsets.only(left: 24),
               itemCount: 3,
               itemBuilder: (context, index) {
-                final articles = [
+                final lessons = [
                   {
-                    'title': 'Why should we drink water often?',
+                    'id': 'water_benefits',
+                    'title': 'Hydration Science',
+                    'subtitle': 'Why water is essential',
                     'emoji': '💧',
+                    'duration': '5 min read',
+                    'difficulty': 'Beginner',
+                    'color': const Color(0xFF29B6F6),
+                    'readTime': 5,
                   },
                   {
-                    'title': 'Benefits of regular walking',
+                    'id': 'walking_benefits',
+                    'title': 'Walking for Wellness',
+                    'subtitle': 'Transform your health with daily walks',
                     'emoji': '🚶',
+                    'duration': '8 min read',
+                    'difficulty': 'Beginner',
+                    'color': const Color(0xFF66BB6A),
+                    'readTime': 8,
                   },
                   {
-                    'title': 'Morning routine for success',
+                    'id': 'morning_routine',
+                    'title': 'Perfect Morning',
+                    'subtitle': 'Build a routine for success',
                     'emoji': '🌅',
+                    'duration': '12 min read',
+                    'difficulty': 'Intermediate',
+                    'color': const Color(0xFFFFA726),
+                    'readTime': 12,
                   },
                 ];
-                final article = articles[index];
+                final lesson = lessons[index];
                 return GestureDetector(
                   onTap: () {
-                    print('Article ${article['title']} tapped');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => LearningDetailScreen(
+                          lesson: lesson,
+                        ),
+                      ),
+                    );
                   },
                   child: Container(
                     width: 200,
@@ -522,12 +638,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     margin: EdgeInsets.only(right: index < 2 ? 12 : 24),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.purple,
-                          AppColors.blue,
+                          lesson['color'] as Color,
+                          (lesson['color'] as Color).withOpacity(0.8),
                         ],
                         stops: [0.0, 1.0],
                       ),
@@ -535,65 +651,93 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Верхняя часть с эмодзи (заглушка для изображения)
+                        // Верхняя часть с эмодзи
                         Expanded(
+                          flex: 3,
                           child: Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withOpacity(0.15),
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(16),
                               ),
                             ),
                             child: Center(
                               child: Text(
-                                article['emoji']!,
+                                lesson['emoji'] as String,
                                 style: const TextStyle(fontSize: 48),
                               ),
                             ),
                           ),
                         ),
-                        // Нижняя синяя часть с заголовком
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(
-                            color: AppColors.blue,
-                            borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(16),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              // Иконка документа
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Icon(
-                                  Icons.article,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
+                        // Нижняя часть с информацией
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
                               ),
-                              const SizedBox(width: 8),
-                              // Заголовок статьи
-                              Expanded(
-                                child: Text(
-                                  article['title']!,
-                                  style: AppFonts.bodyAlternative.copyWith(
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Заголовок
+                                Text(
+                                  lesson['title'] as String,
+                                  style: const TextStyle(
                                     color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
                                   ),
-                                  maxLines: 2,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 2),
+                                // Подзаголовок
+                                Text(
+                                  lesson['subtitle'] as String,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 10,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Spacer(),
+                                // Метаданные
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        lesson['difficulty'] as String,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      lesson['duration'] as String,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.7),
+                                        fontSize: 8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

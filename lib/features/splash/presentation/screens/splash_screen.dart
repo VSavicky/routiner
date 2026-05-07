@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:routiner/features/auth/domain/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,6 +11,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final AuthService _authService = AuthService();
+  
   @override
   void initState() {
     super.initState();
@@ -31,9 +33,9 @@ class _SplashScreenState extends State<SplashScreen> {
         await prefs.setBool('is_first_run', false);
         context.pushReplacement('/onboarding');
       } else {
-        // Не первый запуск - проверяем авторизацию
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
+        // Не первый запуск - проверяем авторизацию через сохраненную сессию
+        final isLoggedIn = await _authService.isLoggedIn();
+        if (isLoggedIn) {
           // Пользователь авторизован - на главный экран
           context.pushReplacement('/home');
         } else {

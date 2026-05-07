@@ -211,7 +211,6 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    final participants = widget.challenge['participants'] as int;
     final habits = widget.challenge['habits'] as List<dynamic>? ?? [];
     final endTime = widget.challenge['endTime'] as DateTime?;
 
@@ -329,81 +328,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           ],
                         ),
                       
-                      const SizedBox(height: 24),
-                      
-                      // Participants avatars - наезжают друг на друга (по центру)
-                      Center(
-                        child: SizedBox(
-                          width: 160,
-                          height: 52,
-                          child: Stack(
-                            children: [
-                              for (int i = 0; i < 4 && i < participants; i++)
-                                Positioned(
-                                  left: i * 20.0, // Намного ближе друг к другу (наезд)
-                                  child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: AppColors.purple,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
-                                      child: Image.network(
-                                        'https://i.pravatar.cc/150?img=${10 + i}',
-                                        width: 48,
-                                        height: 48,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Container(
-                                            color: Colors.grey[300],
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 22,
-                                              color: Colors.grey[600],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            if (participants > 4)
-                              Positioned(
-                                left: 80, // Корректируем позицию бейджа
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: AppColors.purple,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '+${participants - 4}',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.purple,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
+                                            
                       const SizedBox(height: 24),
                       
                       // Description
@@ -632,73 +557,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
               ],
             ),
           ),
-          // Participants mini avatars - ФИКС
-          SizedBox(
-            width: 70,
-            height: 32,
-            child: Stack(
-              children: [
-                for (int i = 0; i < 2; i++)
-                  Positioned(
-                    right: i * 18.0,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          'https://i.pravatar.cc/150?img=${20 + i}',
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person,
-                              size: 16,
-                              color: Colors.grey[600],
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  right: 36,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.purple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '+3',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.purple,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+                  ],
       ),
     );
   }
