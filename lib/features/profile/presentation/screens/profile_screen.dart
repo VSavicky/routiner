@@ -58,6 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           .collection('habitLogs')
           .where('userId', isEqualTo: userId)
           .where('status', isEqualTo: 'completed')
+          .limit(1000) // Ограничиваем для быстрой загрузки
           .get();
       
       // 10 очков за каждую выполненную привычку
@@ -115,16 +116,22 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           }
         }
         
+        // Загружаем все данные параллельно для ускорения
+        final futures = <Future>[];
+        
         // Load activities (logs from last month)
-        await _loadActivities(user.uid);
+        futures.add(_loadActivities(user.uid));
         
         // Load friends (mock data for now - will be from friends collection)
-        await _loadFriends(user.uid);
+        futures.add(_loadFriends(user.uid));
         
         // Load achievements
-        await _loadAchievements(user.uid);
+        futures.add(_loadAchievements(user.uid));
         
-        // Check and award achievements
+        // Ждем выполнения всех запросов параллельно
+        await Future.wait(futures);
+        
+        // Check and award achievements (после загрузки данных)
         await _checkAndAwardAchievements(user.uid);
       }
     } catch (e) {
@@ -288,57 +295,34 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   
   Future<void> _loadAchievements(String userId) async {
     try {
-      print('[PROFILE DEBUG] Loading achievements for user: $userId');
-      
-      // Сначала проверяем все достижения в коллекции для отладки
-      print('[PROFILE DEBUG] Checking ALL achievements in Firestore...');
-      final allAchievementsQuery = await FirebaseFirestore.instance
-          .collection('achievements')
-          .get();
-      
-      print('[PROFILE DEBUG] Total achievements in Firestore: ${allAchievementsQuery.docs.length}');
-      for (final doc in allAchievementsQuery.docs) {
-        final data = doc.data();
-        print('[PROFILE DEBUG] ALL Achievement: ${doc.id} - userId: ${data['userId']} - title: ${data['title']}');
-      }
-      
       // Get achievements directly from Firestore like activities
       final achievementsQuery = await FirebaseFirestore.instance
           .collection('achievements')
           .where('userId', isEqualTo: userId)
+          .limit(50) // Ограничиваем для быстрой загрузки
           .get();
-      
-      print('[PROFILE DEBUG] Found ${achievementsQuery.docs.length} achievement documents');
       
       final achievements = <AchievementModel>[];
       
       for (final doc in achievementsQuery.docs) {
         final data = doc.data();
-        print('[PROFILE DEBUG] Achievement document: ${doc.id}');
-        print('[PROFILE DEBUG] Achievement data: $data');
-        print('[PROFILE DEBUG] Achievement title: ${data['title']}');
-        print('[PROFILE DEBUG] Achievement userId: ${data['userId']}');
         
         try {
           final achievement = AchievementModel.fromFirestore(data, doc.id);
-          print('[PROFILE DEBUG] Parsed achievement: ${achievement.title} - ${achievement.userId}');
-          print('[PROFILE DEBUG] Achievement earnedAt: ${achievement.earnedAt}');
           achievements.add(achievement);
-          print('[PROFILE DEBUG] Added achievement: ${achievement.title}');
         } catch (e) {
           print('[PROFILE ERROR] Failed to parse achievement ${doc.id}: $e');
-          print('[PROFILE ERROR] Achievement data: $data');
         }
       }
       
       // Сортируем по дате (новые сверху)
       achievements.sort((a, b) => b.earnedAt.compareTo(a.earnedAt));
       
-      print('[PROFILE DEBUG] Successfully loaded ${achievements.length} achievements');
-      
-      setState(() {
-        _achievements = achievements;
-      });
+      if (mounted) {
+        setState(() {
+          _achievements = achievements;
+        });
+      }
     } catch (e) {
       print('[PROFILE ERROR] Failed to load achievements: $e');
     }
@@ -437,7 +421,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             ),
             child: IconButton(
               onPressed: () {
-                // Navigate to settings
                 context.push('/settings');
               },
               icon: const Icon(
