@@ -244,11 +244,22 @@ class AchievementService {
     try {
       print('[ACHIEVEMENT DEBUG] Checking first habit achievement for user: $userId');
       
-      // Сначала проверяем есть ли уже такое достижение
-      final hasFirstHabit = await _achievementRepository.hasAchievementByTitle(userId, 'First Habit');
-      print('[ACHIEVEMENT DEBUG] Has First Habit achievement: $hasFirstHabit');
+      // ДВУКРАТНАЯ ПРОВЕРКА - по названию и прямым запросом
+      final hasFirstHabitByTitle = await _achievementRepository.hasAchievementByTitle(userId, 'First Habit');
       
-      if (hasFirstHabit) {
+      // Прямой запрос для надежности
+      final directQuery = await _firestore
+          .collection('achievements')
+          .where('userId', isEqualTo: userId)
+          .where('title', isEqualTo: 'First Habit')
+          .get();
+      
+      final hasFirstHabitDirect = directQuery.docs.isNotEmpty;
+      
+      print('[ACHIEVEMENT DEBUG] Has First Habit by title: $hasFirstHabitByTitle');
+      print('[ACHIEVEMENT DEBUG] Has First Habit direct: $hasFirstHabitDirect');
+      
+      if (hasFirstHabitByTitle || hasFirstHabitDirect) {
         print('[ACHIEVEMENT DEBUG] User already has First Habit achievement - skipping');
         return;
       }
@@ -345,11 +356,23 @@ class AchievementService {
     try {
       print('[ACHIEVEMENT DEBUG] Checking any habit achievement for user: $userId');
       
-      // Сначала проверяем есть ли уже такое достижение по названию
+      // ДВУКРАТНАЯ ПРОВЕРКА - по названию и прямым запросом
       final hasAchievementByTitle = await _achievementRepository.hasAchievementByTitle(userId, 'Habit Master');
       
-      if (hasAchievementByTitle) {
-        print('[ACHIEVEMENT DEBUG] User already has Habit Master achievement (by title) - skipping');
+      // Прямой запрос для надежности
+      final directQuery = await _firestore
+          .collection('achievements')
+          .where('userId', isEqualTo: userId)
+          .where('title', isEqualTo: 'Habit Master')
+          .get();
+      
+      final hasAchievementDirect = directQuery.docs.isNotEmpty;
+      
+      print('[ACHIEVEMENT DEBUG] Has Habit Master by title: $hasAchievementByTitle');
+      print('[ACHIEVEMENT DEBUG] Has Habit Master direct: $hasAchievementDirect');
+      
+      if (hasAchievementByTitle || hasAchievementDirect) {
+        print('[ACHIEVEMENT DEBUG] User already has Habit Master achievement - skipping');
         return;
       }
       
