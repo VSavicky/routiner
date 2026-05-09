@@ -5,12 +5,15 @@ import 'package:routiner/features/auth/presentation/screens/auth_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/register_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/gender_selection_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/habit_selection_screen.dart';
+import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/explore/presentation/screens/explore_screen.dart';
 import 'package:routiner/features/home/presentation/screens/home_screen.dart';
-import 'package:routiner/features/root/presentation/screens/root_screen.dart';
 import 'package:routiner/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:routiner/features/profile/presentation/screens/profile_screen.dart';
+import 'package:routiner/features/root/presentation/screens/root_screen.dart';
 import 'package:routiner/features/splash/presentation/screens/splash_screen.dart';
+import 'package:routiner/features/achievements/presentation/screens/all_achievements_screen.dart';
+import 'package:routiner/features/settings/presentation/screens/settings_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -67,7 +70,7 @@ final router = GoRouter(
             GoRoute(
               path: '/add',
               builder: (context, state) => const Center(
-                child: Text('Добавить привычку'),
+                child: Text('Custom Habit Screen - Coming Soon'),
               ),
             ),
           ],
@@ -85,6 +88,22 @@ final router = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/all_achievements',
+              builder: (context, state) => const AllAchievementsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) => const SettingsScreen(),
             ),
           ],
         ),

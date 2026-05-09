@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/src/route.dart';
+import 'package:go_router/go_router.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:routiner/core/widgets/habit_option_widget.dart';
 import 'package:routiner/core/widgets/habit_bottom_sheet.dart';
+import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 
@@ -20,41 +21,13 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   bool _isAddModalVisible = false;
-  int _selectedMoodIndex = 0; // Выбранная иконка настроения
   
   final HabitRepository _habitRepository = HabitRepository();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isSavingMood = false;
-  
-  // Список смайликов настроений
-  final List<String> _moodEmojis = ['😊', '😔', '😢', '😡', '😰', '🤢', '😴', '🥱'];
-  // Список названий настроений
-  final List<String> _moodLabels = ['Happy', 'Sad', 'Crying', 'Angry', 'Anxious', 'Sick', 'Tired', 'Sleepy'];
 
   @override
   void initState() {
     super.initState();
-    _loadTodayMood();
-  }
-  
-  /// Загрузить настроение за сегодня
-  Future<void> _loadTodayMood() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-    
-    try {
-      final mood = await _habitRepository.getMoodForDate(user.uid, DateTime.now());
-      if (mood != null) {
-        final index = _moodEmojis.indexOf(mood.emoji);
-        if (index != -1) {
-          setState(() {
-            _selectedMoodIndex = index;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error loading today mood: $e');
-    }
   }
 
   void _toggleAddModal() {
@@ -69,33 +42,7 @@ class _RootScreenState extends State<RootScreen> {
     });
   }
 
-  void _selectMood(int index) async {
-    setState(() {
-      _selectedMoodIndex = index;
-      _isSavingMood = true;
-    });
-    
-    // Сохраняем настроение в БД
-    final user = _auth.currentUser;
-    if (user != null) {
-      try {
-        await _habitRepository.saveMood(
-          userId: user.uid,
-          emoji: _moodEmojis[index],
-          label: _moodLabels[index],
-          date: DateTime.now(),
-        );
-        print('Mood saved: ${_moodEmojis[index]} - ${_moodLabels[index]}');
-      } catch (e) {
-        print('Error saving mood: $e');
-      }
-    }
-    
-    setState(() {
-      _isSavingMood = false;
-    });
-  }
-
+  
   void _onQuitBadHabbit() {
     print('Quit Bad Habbit pressed');
     _closeAddModal();
@@ -118,16 +65,34 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
+  void _onCustomHabbit() async {
+    print('Custom Habbit pressed');
+    _closeAddModal();
+    
+    // Переходим на экран создания кастомной привычки как в HabitBottomSheet
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CustomHabitScreen(
+          isBadHabit: false, // Для кастомной привычки считаем ее хорошей
+          moodEmoji: '😊',
+          moodLabel: 'Happy',
+        ),
+      ),
+    );
+    
+    // Если привычка создана, можно добавить логику обновления
+    if (result != null) {
+      print('Custom habit created successfully');
+      // Здесь можно добавить обновление UI или уведомления
+    }
+  }
+
   void _showHabitBottomSheet({
     required String title,
     required String subtitle,
     required String iconPath,
     required bool isBadHabbit,
   }) {
-    // Смайлики и лейблы для настроений
-    List<String> moodEmojis = ['😡', '☹', '😐', '🙂', '😍 '];
-    List<String> moodLabels = ['Angry', 'Sad', 'Neutral', 'Happy', 'Love'];
-    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -137,8 +102,8 @@ class _RootScreenState extends State<RootScreen> {
         subtitle: subtitle,
         iconPath: iconPath,
         isBadHabbit: isBadHabbit,
-        moodEmoji: moodEmojis[_selectedMoodIndex],
-        moodLabel: moodLabels[_selectedMoodIndex],
+        moodEmoji: '😊',
+        moodLabel: 'Happy',
         onClose: () => Navigator.of(context).pop(),
         onHabitCreated: () {
           // Привычка создана - можно добавить здесь логику уведомления
@@ -232,6 +197,52 @@ class _RootScreenState extends State<RootScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Верхний широкий контейнер для кастомной привычки
+                          GestureDetector(
+                            onTap: _onCustomHabbit,
+                            child: Container(
+                              margin: EdgeInsets.symmetric(horizontal: 24),
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              height: 80,
+                            child: Row(
+                              children: [
+                                // Центрированный текст на всю ширину
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Custom Habbit',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.black100,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'Create your own routine',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.black40,
+                                          fontFamily: 'SF Pro Display',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ),
+                          ),
+                          
+                          SizedBox(height: 8), // Отступ между блоками
+                          
                           // Два узких контейнера вверху
                           Container(
                             margin: EdgeInsets.symmetric(horizontal: 24),
@@ -242,8 +253,8 @@ class _RootScreenState extends State<RootScreen> {
                                   child: GestureDetector(
                                     onTap: _onQuitBadHabbit,
                                     child: Container(
-                                      height: 70, // Увеличил с 50 до 70 чтобы все помещалось по центру
-                                      padding: EdgeInsets.all(10), // Уменьшил с 16 до 10
+                                      height: 90, // Увеличиваем с 70 до 90 для соответствия
+                                      padding: EdgeInsets.all(16), // Увеличиваем паддинг для большего пространства
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(16),
@@ -259,19 +270,18 @@ class _RootScreenState extends State<RootScreen> {
                                                 Text(
                                                   'Quit Bad Habbit',
                                                   style: TextStyle(
-                                                    fontSize: 11, // Уменьшил с 12 до 11
+                                                    fontSize: 14, // Увеличиваем с 11 до 14
                                                     fontWeight: FontWeight.w600,
                                                     color: AppColors.black100,
-                                                    fontFamily: 'SF Pro Display', // Добавляю fontFamily
                                                   ),
                                                 ),
-                                                SizedBox(height: 1), // Уменьшил с 2 до 1
+                                                SizedBox(height: 2), // Увеличиваем отступ
                                                 Text(
                                                   'Never too late...',
                                                   style: TextStyle(
-                                                    fontSize: 9, // Уменьшил с 10 до 9
+                                                    fontSize: 11, // Увеличиваем с 9 до 11
                                                     color: AppColors.black40,
-                                                    fontFamily: 'SF Pro Display', // Добавляю fontFamily
+                                                    fontFamily: 'SF Pro Display',
                                                   ),
                                                 ),
                                               ],
@@ -303,8 +313,8 @@ class _RootScreenState extends State<RootScreen> {
                                   child: GestureDetector(
                                     onTap: _onNewGoodHabbit,
                                     child: Container(
-                                      height: 70, // Увеличил с 50 до 70 чтобы все помещалось по центру
-                                      padding: EdgeInsets.all(10), // Уменьшил с 16 до 10
+                                      height: 90, // Увеличиваем с 70 до 90 для лучшего вида
+                                      padding: EdgeInsets.all(16), // Увеличиваем паддинг для большего пространства
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(16),
@@ -320,18 +330,18 @@ class _RootScreenState extends State<RootScreen> {
                                                 Text(
                                                   'New Good Habbit',
                                                   style: TextStyle(
-                                                    fontSize: 11, // Уменьшил с 12 до 11
+                                                    fontSize: 14, // Увеличиваем с 11 до 14
                                                     fontWeight: FontWeight.w600,
                                                     color: AppColors.black100,
                                                   ),
                                                 ),
-                                                SizedBox(height: 1), // Уменьшил с 2 до 1
+                                                SizedBox(height: 2), // Увеличиваем отступ
                                                 Text(
                                                   'For a better life',
                                                   style: TextStyle(
-                                                    fontSize: 9, // Уменьшил с 10 до 9
+                                                    fontSize: 11, // Увеличиваем с 9 до 11
                                                     color: AppColors.black40,
-                                                    fontFamily: 'SF Pro Display', // Добавляю fontFamily
+                                                    fontFamily: 'SF Pro Display',
                                                   ),
                                                 ),
                                               ],
@@ -359,62 +369,7 @@ class _RootScreenState extends State<RootScreen> {
                             ),
                           ),
                           
-                          SizedBox(height: 8), // Отступ над широким контейнером
-                          
-                          // Широкий контейнер внизу
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 24),
-                            padding: EdgeInsets.all(12), // Уменьшил внутренний паддинг с 16 до 12
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            height: 70,
-                            child: Row(
-                              children: [
-                                // Текст слева
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Add Mood',
-                                        style: AppFonts.bodyTitleMedium.copyWith(
-                                          color: AppColors.black100,
-                                          fontSize: 14, // Уменьшил с 16 до 14
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      SizedBox(height: 1), // Уменьшил с 2 до 1
-                                      Text(
-                                        'how are you feeling?',
-                                        style: AppFonts.bodyAlternative.copyWith(
-                                          color: AppColors.black40,
-                                          fontSize: 10, // Уменьшил с 12 до 10
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                
-                                SizedBox(width: 12), // Уменьшил с 16 до 12
-                                
-                                // 5 иконок настроения справа
-                                Row(
-                                  children: [
-                                    for (var index = 0; index < 5; index++)
-                                      Padding(
-                                        padding: EdgeInsets.only(left: index > 0 ? 6.0 : 0.0), // Уменьшил с 8 до 6
-                                        child: _buildMoodIcon(index),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                                                  ],
                       ),
                     ),
                   ],
@@ -517,38 +472,6 @@ class _RootScreenState extends State<RootScreen> {
               size: 16,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // Иконка настроения
-  Widget _buildMoodIcon(int index) {
-    // Смайлики для настроений в правильном порядке
-    List<String> moodEmojis = ['😡', '☹', '😐', '🙂', '😍 '];
-    
-    bool isSelected = _selectedMoodIndex == index;
-    
-    return GestureDetector(
-      onTap: () => _selectMood(index),
-      child: Container(
-        width: 32, // Уменьшил с 36 до 32
-        height: 32, // Уменьшил с 36 до 32
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.blue10 : Colors.transparent,
-          borderRadius: BorderRadius.circular(12), // Уменьшил с 18 до 16
-          border: Border.all(
-            color: isSelected ? AppColors.blue100 : AppColors.black10,
-            width: isSelected ? 2.0 : 1.0,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            moodEmojis[index],
-            style: TextStyle(
-              fontSize: 16, // Уменьшил с 18 до 16
-            ),
-          ),
         ),
       ),
     );

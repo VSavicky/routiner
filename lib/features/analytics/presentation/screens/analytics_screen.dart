@@ -25,7 +25,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   
   // Фильтр привычек
   String _selectedHabitFilter = 'All Habits'; // 'All Habits', 'Good Habits', 'Bad Habits', или конкретное имя
-  List<String> _habitFilterOptions = ['All Habits'];
+  List<String> _habitFilterOptions = ['All Habits', 'Good Habits', 'Bad Habits'];
   
   // Данные для статистики
   int _completedCount = 0;
@@ -41,6 +41,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   List<int> _dailyData = [0, 0, 0, 0, 0, 0]; // Данные за 24 часа (6 точек по 4 часа)
   List<int> _monthlyData = [0, 0, 0, 0, 0, 0, 0]; // Данные за месяц (7 периодов)
   
+    
   // Дата для отображения
   DateTime _currentWeekStart = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
 
@@ -50,11 +51,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void initState() {
     super.initState();
-    _setupHabitsStream();
-    // Загружаем данные только если они еще не загружены
-    if (!_dataLoaded) {
-      _loadData();
-    }
+    _loadData();
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Обновляем данные каждый раз когда экран становится активным
+    // Это гарантирует что новые настроения будут отображаться сразу
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadData();
+      }
+    });
   }
   
   void _setupHabitsStream() {
@@ -88,44 +97,51 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
   
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    final userId = _habitRepository.currentUserId;
+    if (userId == null) return;
     
     try {
-      final userId = _habitRepository.currentUserId;
-      if (userId == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
+      setState(() => _isLoading = true);
       
-      // Загружаем привычки и логи ПАРАЛЛЕЛЬНО для скорости
-      final results = await Future.wait([
-        _habitRepository.getUserHabitsFromServer(userId),
-        _getLogsForLastDays(userId, 30),
-      ]);
-      final habits = results[0] as List<HabitModel>;
-      final logs = results[1] as List<HabitLogModel>;
+      // Загружаем привычки и логи последовательно
+      final habitsStream = _habitRepository.getUserHabits(userId);
+      final logs = await _getLogsForLastDays(userId, 30);
       
-      // Формируем список фильтров
-      final filterOptions = ['All Habits', 'Good Habits', 'Bad Habits'];
-      for (var habit in habits) {
-        if (!filterOptions.contains(habit.name)) {
-          filterOptions.add(habit.name);
-        }
-      }
-      
-      setState(() {
-        _habits = habits;
-        _allLogs = logs;
-        _habitFilterOptions = filterOptions;
-        _dataLoaded = true;
+      // Правильно обрабатываем Stream из привычек
+      habitsStream.listen((habits) {
+        setState(() {
+          _habits = habits;
+          _allLogs = logs;
+          _isLoading = false;
+        });
+        
+        // Рассчитываем статистику и данные для графиков
         _calculateStats();
         _calculateChartData();
-        _isLoading = false;
+        
+        // Обновляем опции фильтра с конкретными привычками
+        _updateHabitFilterOptions();
       });
     } catch (e) {
       print('[ANALYTICS ERROR] $e');
       setState(() => _isLoading = false);
     }
+  }
+  
+  void _updateHabitFilterOptions() {
+    // Начинаем с базовых опций
+    final options = ['All Habits', 'Good Habits', 'Bad Habits'];
+    
+    // Добавляем каждую привычку отдельно
+    for (final habit in _habits) {
+      if (!options.contains(habit.name)) {
+        options.add(habit.name);
+      }
+    }
+    
+    setState(() {
+      _habitFilterOptions = options;
+    });
   }
   
   Future<List<HabitLogModel>> _getLogsForLastDays(String userId, int days) async {
@@ -145,6 +161,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
   }
   
+    
   void _calculateStats() {
     final filteredLogs = _getFilteredLogs();
     
@@ -346,6 +363,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final data = <int>[0, 0, 0, 0, 0, 0];
     final selectedDay = _currentWeekStart;
     
+    print('[ANALYTICS HABITS] Calculating daily data for ${selectedDay.month}/${selectedDay.day}');
+    print('[ANALYTICS HABITS] Found ${filteredLogs.length} filtered logs');
+    
     for (var log in filteredLogs.where((l) => l.status == HabitStatus.completed)) {
       // Проверяем что лог относится к выбранному дню
       if (log.date.year == selectedDay.year && 
@@ -355,6 +375,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         final slot = hour ~/ 4;
         if (slot < 6) {
           data[slot]++;
+          print('[ANALYTICS HABITS]   Completed habit at hour $hour -> slot $slot');
         }
       }
     }
@@ -362,12 +383,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     setState(() {
       _dailyData = data;
     });
+    print('[ANALYTICS HABITS] Daily data result: $data');
   }
   
   void _calculateWeeklyData() {
     // Считаем completed habits за каждый день выбранной недели
     final filteredLogs = _getFilteredLogs();
     final data = <int>[];
+    
+    print('[ANALYTICS HABITS] Calculating weekly data for week starting ${_currentWeekStart.month}/${_currentWeekStart.day}');
     
     for (int i = 0; i <= 6; i++) {
       final date = _currentWeekStart.add(Duration(days: i));
@@ -378,11 +402,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         log.status == HabitStatus.completed
       );
       data.add(dayLogs.length);
+      print('[ANALYTICS HABITS] Day $i (${date.month}/${date.day}): ${dayLogs.length} completed habits');
     }
     
     setState(() {
       _weeklyData = data;
     });
+    print('[ANALYTICS HABITS] Weekly data result: $data');
   }
   
   void _calculateMonthlyData() {
@@ -400,20 +426,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     // Разбиваем месяц на 7 периодов (минимум 1 день на слот)
     final daysPerSlot = (lastDayOfMonth / 7).ceil().clamp(1, 31);
     
+    print('[ANALYTICS HABITS] Calculating monthly data for ${_currentWeekStart.month}/${_currentWeekStart.year}');
+    print('[ANALYTICS HABITS] Month has $lastDayOfMonth days, $daysPerSlot days per slot');
+    
     for (var log in filteredLogs.where((l) => l.status == HabitStatus.completed)) {
       if (log.date.year == _currentWeekStart.year && 
           log.date.month == _currentWeekStart.month) {
         final day = log.date.day.clamp(1, lastDayOfMonth);
         final slot = ((day - 1) ~/ daysPerSlot).clamp(0, 6);
         data[slot]++;
+        print('[ANALYTICS HABITS]   Completed habit on day $day -> slot $slot');
       }
     }
     
     setState(() {
       _monthlyData = data;
     });
+    print('[ANALYTICS HABITS] Monthly data result: $data');
   }
   
+    
   // Получить заголовок периода (This week / This month / Today)
   String _getPeriodTitle() {
     final now = DateTime.now();
@@ -524,7 +556,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _calculateChartData();
     });
   }
-
+  
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -532,40 +565,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       body: SafeArea(
         child: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          : RefreshIndicator(
+              onRefresh: () async {
+                // Обновляем все данные включая настроения
+                await _loadData();
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
 
               // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Activity',
-                    style: AppFonts.bodyTitleMedium.copyWith(
-                      color: AppColors.black100,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.black10),
-                    ),
-                    child: const Icon(
-                      Icons.tune,
-                      color: AppColors.black60,
-                      size: 20,
-                    ),
-                  ),
-                ],
+              Text(
+                'Activity',
+                style: AppFonts.bodyTitleMedium.copyWith(
+                  color: AppColors.black100,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -1034,80 +1053,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
-
-              // Mood Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.orange10,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '😊',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Happy',
-                              style: AppFonts.bodyTitleMedium.copyWith(
-                                color: AppColors.black100,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              'Avg. Mood',
-                              style: AppFonts.bodyAlternative.copyWith(
-                                color: AppColors.black40,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Mood Emojis Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildMoodEmoji('😍', true),
-                        _buildMoodEmoji('😊', true),
-                        _buildMoodEmoji('😐', false),
-                        _buildMoodEmoji('😔', false),
-                        _buildMoodEmoji('😫', false),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
+              
               const SizedBox(height: 40),
             ],
           ),
-        ),
+            ),
+          ),
       ),
     );
   }
@@ -1202,6 +1153,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  
   void _showHabitFilterDropdown() {
     showModalBottomSheet(
       context: context,
@@ -1403,3 +1355,4 @@ class LineChartPainter extends CustomPainter {
     return oldDelegate.data != data;
   }
 }
+

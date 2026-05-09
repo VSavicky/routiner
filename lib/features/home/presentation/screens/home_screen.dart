@@ -22,6 +22,7 @@ import 'package:routiner/features/habits/presentation/screens/habit_detail_scree
 import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
 import 'package:routiner/features/clubs/presentation/screens/clubs_list_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routiner/features/achievements/data/services/achievement_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -493,12 +494,42 @@ class _HomePageState extends State<HomePage> {
         // Обновляем челленджи если привычка из челленджа
         _challengesRefreshKey++;
       });
+      
+      // Если привычка выполнена - проверяем достижения
+      if (status == HabitStatus.completed) {
+        // Добавляем небольшую задержку чтобы habitLog успел сохраниться в Firestore
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _checkAchievementsAfterHabitCompletion();
+      }
     } catch (e, stackTrace) {
       print('[STATUS ERROR] $e');
       print('[STATUS ERROR] $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update habit: $e')),
       );
+    }
+  }
+
+  /// Проверить достижения после выполнения привычки
+  Future<void> _checkAchievementsAfterHabitCompletion() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        print('[ACHIEVEMENT] Checking achievements after habit completion for user: ${user.uid}');
+        
+        // Импортируем AchievementService
+        final achievementService = AchievementService();
+        
+        // Проверяем достижение за первую выполненную привычку
+        await achievementService.checkAndAwardFirstHabitAchievement(user.uid);
+        
+        // Проверяем достижения за очки
+        await achievementService.checkAndAwardPointsAchievements(user.uid);
+        
+        print('[ACHIEVEMENT] Achievement check completed after habit completion');
+      }
+    } catch (e) {
+      print('[ACHIEVEMENT ERROR] Failed to check achievements after habit completion: $e');
     }
   }
   

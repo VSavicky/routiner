@@ -3,6 +3,10 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:routiner/features/achievements/data/models/achievement_model.dart';
+import 'package:routiner/features/achievements/data/repositories/achievement_repository.dart';
+import 'package:routiner/features/achievements/data/services/achievement_service.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   int _friendsCount = 0;
   List<Map<String, dynamic>> _activities = [];
   List<Map<String, dynamic>> _friends = [];
-  List<Map<String, dynamic>> _achievements = [];
+  List<AchievementModel> _achievements = [];
   bool _isLoading = true;
   
   // Activity filter: 'month', 'week', 'day'
@@ -30,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
     _loadUserData();
   }
@@ -65,7 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
     
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -85,11 +91,13 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           final lastName = data?['lastName'] ?? '';
           final fullName = '$firstName $lastName'.trim();
           
-          setState(() {
-            _userName = fullName.isNotEmpty ? fullName : (user.displayName ?? 'User');
-            _avatarUrl = data?['avatarUrl'];
-            _points = totalPoints; // Реальные очки из всех выполненных привычек
-          });
+          if (mounted) {
+            setState(() {
+              _userName = fullName.isNotEmpty ? fullName : (user.displayName ?? 'User');
+              _avatarUrl = data?['avatarUrl'];
+              _points = totalPoints; // Реальные очки из всех выполненных привычек
+            });
+          }
           
           // Обновляем поле points в БД для синхронизации
           if ((data?['points'] ?? 0) != totalPoints) {
@@ -99,10 +107,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 .update({'points': totalPoints});
           }
         } else {
-          setState(() {
-            _userName = user.displayName ?? 'User';
-            _points = totalPoints;
-          });
+          if (mounted) {
+            setState(() {
+              _userName = user.displayName ?? 'User';
+              _points = totalPoints;
+            });
+          }
         }
         
         // Load activities (logs from last month)
@@ -113,11 +123,41 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         
         // Load achievements
         await _loadAchievements(user.uid);
+        
+        // Check and award achievements
+        await _checkAndAwardAchievements(user.uid);
       }
     } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
       print('[PROFILE ERROR] Failed to load user data: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _checkAndAwardAchievements(String userId) async {
+    try {
+      final achievementService = AchievementService();
+      
+      // Check points achievements
+      await achievementService.checkAndAwardPointsAchievements(userId);
+      
+      // Check streak achievements
+      await achievementService.checkAndAwardStreakAchievements(userId);
+      
+      // Check first habit achievement
+      await achievementService.checkAndAwardFirstHabitAchievement(userId);
+      
+      // Check any habit achievement (5+ habits)
+      await achievementService.checkAndAwardAnyHabitAchievement(userId);
+      
+      print('[PROFILE] Achievement check completed for user: $userId');
+    } catch (e) {
+      print('[PROFILE ERROR] Failed to check achievements: $e');
     }
   }
   
@@ -248,45 +288,53 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   
   Future<void> _loadAchievements(String userId) async {
     try {
-      final achievementsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
+      print('[PROFILE DEBUG] Loading achievements for user: $userId');
+      
+      // Сначала проверяем все достижения в коллекции для отладки
+      print('[PROFILE DEBUG] Checking ALL achievements in Firestore...');
+      final allAchievementsQuery = await FirebaseFirestore.instance
           .collection('achievements')
-          .orderBy('earnedAt', descending: true)
           .get();
       
-      final achievements = <Map<String, dynamic>>[];
-      
-      for (final doc in achievementsSnapshot.docs) {
+      print('[PROFILE DEBUG] Total achievements in Firestore: ${allAchievementsQuery.docs.length}');
+      for (final doc in allAchievementsQuery.docs) {
         final data = doc.data();
-        achievements.add({
-          'id': doc.id,
-          'title': data['title'] ?? 'Achievement',
-          'description': data['description'] ?? '',
-          'icon': data['icon'] ?? '🏆',
-          'earnedAt': (data['earnedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        });
+        print('[PROFILE DEBUG] ALL Achievement: ${doc.id} - userId: ${data['userId']} - title: ${data['title']}');
       }
       
-      // If no achievements, add default ones
-      if (achievements.isEmpty) {
-        achievements.addAll([
-          {
-            'id': '1',
-            'title': 'Best Runner!',
-            'description': 'Completed running habit 30 days in a row',
-            'icon': '🏃',
-            'earnedAt': DateTime.now().subtract(const Duration(days: 30)),
-          },
-          {
-            'id': '2',
-            'title': 'Best of the month!',
-            'description': 'Top performer this month',
-            'icon': '🥇',
-            'earnedAt': DateTime.now().subtract(const Duration(days: 2)),
-          },
-        ]);
+      // Get achievements directly from Firestore like activities
+      final achievementsQuery = await FirebaseFirestore.instance
+          .collection('achievements')
+          .where('userId', isEqualTo: userId)
+          .get();
+      
+      print('[PROFILE DEBUG] Found ${achievementsQuery.docs.length} achievement documents');
+      
+      final achievements = <AchievementModel>[];
+      
+      for (final doc in achievementsQuery.docs) {
+        final data = doc.data();
+        print('[PROFILE DEBUG] Achievement document: ${doc.id}');
+        print('[PROFILE DEBUG] Achievement data: $data');
+        print('[PROFILE DEBUG] Achievement title: ${data['title']}');
+        print('[PROFILE DEBUG] Achievement userId: ${data['userId']}');
+        
+        try {
+          final achievement = AchievementModel.fromFirestore(data, doc.id);
+          print('[PROFILE DEBUG] Parsed achievement: ${achievement.title} - ${achievement.userId}');
+          print('[PROFILE DEBUG] Achievement earnedAt: ${achievement.earnedAt}');
+          achievements.add(achievement);
+          print('[PROFILE DEBUG] Added achievement: ${achievement.title}');
+        } catch (e) {
+          print('[PROFILE ERROR] Failed to parse achievement ${doc.id}: $e');
+          print('[PROFILE ERROR] Achievement data: $data');
+        }
       }
+      
+      // Сортируем по дате (новые сверху)
+      achievements.sort((a, b) => b.earnedAt.compareTo(a.earnedAt));
+      
+      print('[PROFILE DEBUG] Successfully loaded ${achievements.length} achievements');
       
       setState(() {
         _achievements = achievements;
@@ -339,22 +387,27 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildProfileInfo(),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildActivityTab(),
-                  _buildFriendsTab(),
-                  _buildAchievementsTab(),
-                ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            // Обновляем данные пользователя
+            await _loadUserData();
+          },
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildProfileInfo(),
+              _buildTabBar(),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildActivityTab(),
+                    _buildAchievementsTab(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -385,6 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             child: IconButton(
               onPressed: () {
                 // Navigate to settings
+                context.push('/settings');
               },
               icon: const Icon(
                 Icons.settings_outlined,
@@ -520,7 +574,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         dividerColor: Colors.transparent,
         tabs: const [
           Tab(text: 'Activity'),
-          Tab(text: 'Friends'),
           Tab(text: 'Achievements'),
         ],
       ),
@@ -820,94 +873,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
   
-  Widget _buildFriendsTab() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '$_friendsCount Friends',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE8EDF5)),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        // Add friend
-                      },
-                      icon: const Icon(
-                        Icons.add,
-                        color: Colors.black54,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE8EDF5)),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        // Edit
-                      },
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.black54,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _friends.isEmpty
-                  ? _buildEmptyState('No friends yet', 'Add friends to compete with them!')
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        final user = FirebaseAuth.instance.currentUser;
-                        if (user != null) {
-                          await _loadUserData();
-                        }
-                      },
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _friends.length,
-                        itemBuilder: (context, index) {
-                          return _buildFriendItem(_friends[index]);
-                        },
-                      ),
-                    ),
-        ),
-      ],
-    );
-  }
-  
   Widget _buildFriendItem(Map<String, dynamic> friend) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1022,6 +987,19 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   color: Colors.black,
                 ),
               ),
+              GestureDetector(
+                onTap: () {
+                  context.push('/all_achievements');
+                },
+                child: Text(
+                  'View All',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.purple,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -1029,7 +1007,54 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _achievements.isEmpty
-                  ? _buildEmptyState('No achievements yet', 'Complete habits to unlock achievements!')
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        Container(
+                          width: 200,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppColors.purple, // Фиолетовый цвет из AppColors
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.purple.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                context.push('/all_achievements');
+                              },
+                              child: const Center(
+                                child: Text(
+                                  'Get Started', // Английский язык
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Complete habits and challenges to unlock achievements!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    )
                   : RefreshIndicator(
                       onRefresh: () async {
                         final user = FirebaseAuth.instance.currentUser;
@@ -1044,6 +1069,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                         itemBuilder: (context, index) {
                           return _buildAchievementItem(_achievements[index]);
                         },
+                        shrinkWrap: true,
                       ),
                     ),
         ),
@@ -1051,7 +1077,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
   
-  Widget _buildAchievementItem(Map<String, dynamic> achievement) {
+  Widget _buildAchievementItem(AchievementModel achievement) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -1077,7 +1103,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             ),
             child: Center(
               child: Text(
-                achievement['icon'] as String,
+                achievement.icon,
                 style: const TextStyle(fontSize: 24),
               ),
             ),
@@ -1088,7 +1114,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  achievement['title'] as String,
+                  achievement.title,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -1097,7 +1123,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _formatRelativeTime(achievement['earnedAt'] as DateTime),
+                  _formatRelativeTime(achievement.earnedAt),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Colors.grey,
