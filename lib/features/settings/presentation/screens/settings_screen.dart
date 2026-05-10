@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:routiner/core/constants/app_colors.dart';
+import 'package:routiner/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
+import 'package:routiner/main.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,7 +17,33 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _dailyReminders = true;
   bool _achievementAlerts = true;
-  String _selectedLanguage = 'Русский';
+  String _selectedLanguage = 'English';
+
+  // Маппинг языков на Locale
+  static const Map<String, Locale> languageMap = {
+    'Русский': Locale('ru', 'RU'),
+    'Қазақша': Locale('kk', 'KZ'),
+    'English': Locale('en', 'US'),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSelectedLanguage();
+  }
+
+  Future<void> _loadSelectedLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedLanguage = prefs.getString('selected_language') ?? 'English';
+    setState(() {
+      _selectedLanguage = savedLanguage;
+    });
+  }
+
+  Future<void> _saveSelectedLanguage(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_language', language);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +64,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Профиль
             _buildSection(
-              title: 'Profile',
+              title: context.l10n.translate('profile'),
               icon: Icons.person,
               children: [
                 _buildSettingItem(
                   icon: Icons.edit,
-                  title: 'Edit Profile',
+                  title: context.l10n.translate('editProfile'),
                   onTap: () {
-                    // TODO: Добавить редактирование профиля
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfileScreen(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -51,12 +86,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Уведомления
             _buildSection(
-              title: 'Notifications',
+              title: context.l10n.translate('notifications'),
               icon: Icons.notifications,
               children: [
                 _buildToggleItem(
                   icon: Icons.notifications_active,
-                  title: 'Daily Reminders',
+                  title: context.l10n.translate('dailyReminders'),
                   subtitle: 'Get daily reminders for your habits',
                   value: _dailyReminders,
                   onChanged: (value) {
@@ -68,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _buildToggleItem(
                   icon: Icons.emoji_events,
-                  title: 'Achievement Alerts',
+                  title: context.l10n.translate('achievementAlerts'),
                   subtitle: 'Be notified when you earn achievements',
                   value: _achievementAlerts,
                   onChanged: (value) {
@@ -85,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Язык
             _buildSection(
-              title: 'Language',
+              title: context.l10n.translate('language'),
               icon: Icons.language,
               children: [
                 _buildLanguageSelector(),
@@ -96,19 +131,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Приложение
             _buildSection(
-              title: 'Application',
+              title: context.l10n.translate('application'),
               icon: Icons.settings,
               children: [
                 _buildSettingItem(
                   icon: Icons.info,
-                  title: 'About',
+                  title: context.l10n.translate('about'),
                   onTap: () {
                     _showAboutDialog(context);
                   },
                 ),
                 _buildSettingItem(
                   icon: Icons.privacy_tip,
-                  title: 'Privacy Policy',
+                  title: context.l10n.translate('privacyPolicy'),
                   onTap: () {
                     _showPrivacyDialog(context);
                   },
@@ -120,12 +155,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             // Аккаунт
             _buildSection(
-              title: 'Account',
+              title: context.l10n.translate('account'),
               icon: Icons.logout,
               children: [
                 _buildSettingItem(
                   icon: Icons.logout,
-                  title: 'Sign Out',
+                  title: context.l10n.translate('signOut'),
                   onTap: () async {
                     try {
                       await FirebaseAuth.instance.signOut();
@@ -368,11 +403,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () {
+              onTap: () async {
                 setState(() {
                   _selectedLanguage = language;
                 });
-                // TODO: Сохранить язык в Firebase
+                await _saveSelectedLanguage(language);
+                // Меняем локаль приложения
+                final locale = languageMap[language] ?? const Locale('en', 'US');
+                changeAppLocale(locale);
               },
               child: Container(
                 width: double.infinity,
