@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'challenge_detail_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class ChallengesListScreen extends StatefulWidget {
   const ChallengesListScreen({super.key});
@@ -37,12 +38,40 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
     final hours = duration.inHours.remainder(24);
     final minutes = duration.inMinutes.remainder(60);
     
+    // Временно используем жестко закодированный формат для проверки
     if (days > 0) {
-      return '$days days ${hours}h left';
+      return '$days дней $hoursч осталось';
     } else if (hours > 0) {
-      return '$hours hours ${minutes}m left';
+      return '$hours часа $minutesм осталось';
     } else {
-      return '$minutes minutes left';
+      return '$minutes минут осталось';
+    }
+  }
+
+  String _getLocalizedChallengeTitle(String challengeId) {
+    switch (challengeId) {
+      case '7_day_water':
+        return context.l10n.translate('7DayWaterChallenge');
+      case '21_day_fitness':
+        return context.l10n.translate('21DayFitnessKickstart');
+      case 'morning_routine':
+        return context.l10n.translate('perfectMorningRoutine');
+      case 'read_daily':
+        return context.l10n.translate('dailyReadingHabit');
+      case 'eat_healthy':
+        return context.l10n.translate('healthyEatingWeek');
+      case 'no_phone_before_bed':
+        return context.l10n.translate('betterSleepNoPhoneBeforeBed');
+      case 'no_sugar_week':
+        return context.l10n.translate('noSugarWeek');
+      case 'reduce_caffeine':
+        return context.l10n.translate('reduceCaffeineIntake');
+      case 'no_procrastination':
+        return context.l10n.translate('beatProcrastination');
+      case 'less_tv':
+        return context.l10n.translate('lessScreenTime');
+      default:
+        return challengeId;
     }
   }
 
@@ -245,7 +274,7 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
                           ),
                         ),
                         Text(
-                          'Challenges',
+                          context.l10n.translate('challengesTitle'),
                           style: AppFonts.headlineH5,
                         ),
                         const SizedBox(width: 48), // Для баланса
@@ -290,18 +319,18 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
             style: TextStyle(fontSize: 64),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No challenges yet',
-            style: TextStyle(
+          Text(
+            context.l10n.translate('noChallengesYet'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Join or create a challenge to get started!',
-            style: TextStyle(
+          Text(
+            context.l10n.translate('joinOrCreateChallenge'),
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.grey,
             ),
@@ -316,9 +345,9 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Create Challenge',
-              style: TextStyle(color: Colors.white),
+            child: Text(
+              context.l10n.translate('createChallenge'),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -331,7 +360,7 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
     final habits = challenge['habits'] as List<dynamic>? ?? [];
     final endTime = challenge['endTime'] as DateTime;
     final timeLeft = endTime.difference(DateTime.now());
-    final timeLeftText = timeLeft.isNegative ? 'Ended' : _formatTimeLeft(timeLeft);
+    final timeLeftText = timeLeft.isNegative ? context.l10n.translate('ended') : _formatTimeLeft(timeLeft);
 
     return GestureDetector(
       onTap: () => _onChallengeTap(challenge),
@@ -376,7 +405,7 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          challenge['title'] as String,
+                          _getLocalizedChallengeTitle(challenge['id'] as String),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -416,7 +445,7 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${habits.length} habits',
+                    context.l10n.translate('habitsCount').replaceAll('{count}', habits.length.toString()),
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.white.withOpacity(0.8),

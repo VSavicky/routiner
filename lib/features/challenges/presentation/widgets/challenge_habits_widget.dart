@@ -6,6 +6,7 @@ import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 /// Виджет для отображения привычек челленджа
 /// Загружает привычки напрямую из habits коллекции по challengeId
@@ -14,6 +15,7 @@ class ChallengeHabitsWidget extends StatefulWidget {
   final Color challengeColor;
   final DateTime? selectedDate; // Дата для которой показывать прогресс (null = сегодня)
   final VoidCallback? onProgressChanged; // Callback при изменении прогресса
+  final AppLocalizations l10n;
 
   const ChallengeHabitsWidget({
     super.key,
@@ -21,6 +23,7 @@ class ChallengeHabitsWidget extends StatefulWidget {
     required this.challengeColor,
     this.selectedDate,
     this.onProgressChanged,
+    required this.l10n,
   });
 
   @override
@@ -149,6 +152,101 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
     }
   }
 
+  String _getLocalizedHabitNameFromChallenge(String habitName) {
+    switch (habitName) {
+      case 'Drink water':
+        return widget.l10n.translate('drinkWater');
+      case 'Daily workout':
+        return widget.l10n.translate('dailyWorkout');
+      case 'Take 8K steps':
+        return widget.l10n.translate('take8KSteps');
+      case 'Meditate':
+        return widget.l10n.translate('meditate');
+      case 'Morning stretch':
+        return widget.l10n.translate('morningStretch');
+      case 'Read book':
+        return widget.l10n.translate('readBook');
+      case 'Eat vegetables':
+        return widget.l10n.translate('eatVegetables');
+      case 'Cook at home':
+        return widget.l10n.translate('cookAtHome');
+      case 'No phone 1h before bed':
+        return widget.l10n.translate('noPhone1hBeforeBed');
+      case 'Read instead':
+        return widget.l10n.translate('readInstead');
+      case 'No sugar':
+        return widget.l10n.translate('noSugar');
+      case 'Max 1 coffee':
+        return widget.l10n.translate('max1Coffee');
+      case 'Drink herbal tea':
+        return widget.l10n.translate('drinkHerbalTea');
+      case 'Complete 3 priorities':
+        return widget.l10n.translate('complete3Priorities');
+      case 'No social media at work':
+        return widget.l10n.translate('noSocialMediaAtWork');
+      case 'Max 1h TV/Netflix':
+        return widget.l10n.translate('max1hTvNetflix');
+      case 'Go for a walk':
+        return widget.l10n.translate('goForAWalk');
+      default:
+        return habitName;
+    }
+  }
+
+  String _getLocalizedUnit(String unit) {
+    switch (unit) {
+      case 'glasses':
+        return widget.l10n.translate('glasses');
+      case 'min':
+        return widget.l10n.translate('min');
+      case 'steps':
+        return widget.l10n.translate('steps');
+      case 'servings':
+        return widget.l10n.translate('servings');
+      case 'meal':
+        return widget.l10n.translate('meal');
+      case 'day':
+        return widget.l10n.translate('day');
+      case 'pages':
+        return widget.l10n.translate('pages');
+      case 'cups':
+        return widget.l10n.translate('cups');
+      case 'tasks':
+        return widget.l10n.translate('tasks');
+      case 'hour':
+        return widget.l10n.translate('hour');
+      default:
+        return unit;
+    }
+  }
+
+  String _getLocalizedChallengeName(String challengeId) {
+    switch (challengeId) {
+      case '7_day_water':
+        return widget.l10n.translate('7DayWaterChallenge');
+      case '21_day_fitness':
+        return widget.l10n.translate('21DayFitnessKickstart');
+      case 'morning_routine':
+        return widget.l10n.translate('perfectMorningRoutine');
+      case 'read_daily':
+        return widget.l10n.translate('dailyReadingHabit');
+      case 'eat_healthy':
+        return widget.l10n.translate('healthyEatingWeek');
+      case 'no_phone_before_bed':
+        return widget.l10n.translate('betterSleepNoPhoneBeforeBed');
+      case 'no_sugar_week':
+        return widget.l10n.translate('noSugarWeek');
+      case 'reduce_caffeine':
+        return widget.l10n.translate('reduceCaffeineIntake');
+      case 'no_procrastination':
+        return widget.l10n.translate('beatProcrastination');
+      case 'less_tv':
+        return widget.l10n.translate('lessScreenTime');
+      default:
+        return '';
+    }
+  }
+
   List<Habit> _convertToHabits() {
     return _habits.map((habit) {
       final log = _habitLogs[habit.id];
@@ -157,16 +255,16 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
       
       // Формируем subtitle как на главном экране: текущий/целевой прогресс
       final subtitle = status == HabitStatus.completed 
-          ? '${habit.targetValue}/${habit.targetValue} ${habit.targetUnit}'
-          : '$currentProgress/${habit.targetValue} ${habit.targetUnit}';
+          ? '${habit.targetValue}/${habit.targetValue} ${_getLocalizedUnit(habit.targetUnit)}'
+          : '$currentProgress/${habit.targetValue} ${_getLocalizedUnit(habit.targetUnit)}';
       
       return Habit(
         id: habit.id ?? '',
-        title: habit.name,
+        title: _getLocalizedHabitNameFromChallenge(habit.name),
         subtitle: subtitle,
         isChallenge: true, // Всегда true для привычек челленджа
         challengeId: widget.challengeId,
-        challengeName: null, // TODO: загрузить имя челленджа
+        challengeName: _getLocalizedChallengeName(widget.challengeId), // Локализованное имя челленджа
         friendsCount: 0,
         currentProgress: currentProgress,
         targetProgress: habit.targetValue,
@@ -182,7 +280,7 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
               builder: (context) => HabitDetailScreen(
                 habit: habit,
                 challengeId: widget.challengeId,
-                challengeName: null, // TODO: загрузить имя челленджа
+                challengeName: _getLocalizedChallengeName(widget.challengeId), // Локализованное имя челленджа
               ),
             ),
           );
@@ -191,6 +289,7 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
         onAddPressed: (value) => _onHabitAction(habit, HabitAction.add),
         onSkipPressed: () => _onHabitAction(habit, HabitAction.skip),
         onFallPressed: () => _onHabitAction(habit, HabitAction.fall),
+        l10n: widget.l10n,
       );
     }).toList();
   }
@@ -215,7 +314,7 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No tasks yet',
+              widget.l10n.translate('noTasksYet'),
               style: AppFonts.bodyTitleMedium.copyWith(
                 color: Colors.white.withOpacity(0.7),
                 fontSize: 16,
@@ -229,6 +328,7 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
     return HabitsWidget(
       habits: _convertToHabits(),
       isDarkBackground: true, // Белые цвета для темного фона челленджа
+      l10n: widget.l10n,
     );
   }
 }

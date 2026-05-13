@@ -4,6 +4,7 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import '../../domain/services/challenges_service.dart';
 import '../widgets/challenge_habits_widget.dart';
 import '../widgets/challenge_days_list.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class ChallengeDetailScreen extends StatefulWidget {
   final Map<String, dynamic> challenge;
@@ -286,7 +287,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                       
                       // Title
                       Text(
-                        widget.challenge['title'] as String,
+                        _getLocalizedChallengeTitle(widget.challenge['id'] as String? ?? ''),
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -333,7 +334,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                       
                       // Description
                       Text(
-                        widget.challenge['description'] as String,
+                        _getLocalizedChallengeDescription(widget.challenge['id'] as String? ?? ''),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -359,7 +360,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                             ),
                           ),
                           child: Text(
-                            _isJoined ? 'Leave the Challenge' : 'Join the Challenge',
+                            _isJoined ? context.l10n.translate('leaveTheChallenge') : context.l10n.translate('joinTheChallenge'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -376,7 +377,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Progress by Day',
+                              context.l10n.translate('progressByDay'),
                               style: AppFonts.bodyAlternative.copyWith(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -427,6 +428,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           challengeId: widget.challenge['id'] as String? ?? widget.challenge['title'] as String,
                           challengeColor: AppColors.purple,
                           selectedDate: _selectedDate,
+                          l10n: context.l10n,
                           onProgressChanged: () {
                             // Перезагружаем прогресс по дням при изменении привычки
                             _loadDailyProgress();
@@ -451,14 +453,136 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
 }
 
   String _formatTimeLeft(Duration duration) {
-    if (duration.isNegative) return 'Ended';
+    if (duration.isNegative) return context.l10n.translate('ended');
     final days = duration.inDays;
     final hours = duration.inHours.remainder(24);
     final minutes = duration.inMinutes.remainder(60);
     
-    if (days > 0) return '$days days ${hours}h left';
-    if (hours > 0) return '$hours hours ${minutes}m left';
-    return '$minutes minutes left';
+    if (days > 0) return '$days дней $hoursч осталось';
+    if (hours > 0) return '$hours часа $minutesм осталось';
+    return '$minutes минут осталось';
+  }
+
+  String _getLocalizedChallengeTitle(String challengeId) {
+    switch (challengeId) {
+      case '7_day_water':
+        return context.l10n.translate('7DayWaterChallenge');
+      case '21_day_fitness':
+        return context.l10n.translate('21DayFitnessKickstart');
+      case 'morning_routine':
+        return context.l10n.translate('perfectMorningRoutine');
+      case 'read_daily':
+        return context.l10n.translate('dailyReadingHabit');
+      case 'eat_healthy':
+        return context.l10n.translate('healthyEatingWeek');
+      case 'no_phone_before_bed':
+        return context.l10n.translate('betterSleepNoPhoneBeforeBed');
+      case 'no_sugar_week':
+        return context.l10n.translate('noSugarWeek');
+      case 'reduce_caffeine':
+        return context.l10n.translate('reduceCaffeineIntake');
+      case 'no_procrastination':
+        return context.l10n.translate('beatProcrastination');
+      case 'less_tv':
+        return context.l10n.translate('lessScreenTime');
+      default:
+        return challengeId;
+    }
+  }
+
+  String _getLocalizedChallengeDescription(String challengeId) {
+    switch (challengeId) {
+      case '7_day_water':
+        return context.l10n.translate('7DayWaterChallengeDescription');
+      case '21_day_fitness':
+        return context.l10n.translate('21DayFitnessKickstartDescription');
+      case 'morning_routine':
+        return context.l10n.translate('perfectMorningRoutineDescription');
+      case 'read_daily':
+        return context.l10n.translate('dailyReadingHabitDescription');
+      case 'eat_healthy':
+        return context.l10n.translate('healthyEatingWeekDescription');
+      case 'no_phone_before_bed':
+        return context.l10n.translate('betterSleepNoPhoneBeforeBedDescription');
+      case 'no_sugar_week':
+        return context.l10n.translate('noSugarWeekDescription');
+      case 'reduce_caffeine':
+        return context.l10n.translate('reduceCaffeineIntakeDescription');
+      case 'no_procrastination':
+        return context.l10n.translate('beatProcrastinationDescription');
+      case 'less_tv':
+        return context.l10n.translate('lessScreenTimeDescription');
+      default:
+        return widget.challenge['description'] as String? ?? '';
+    }
+  }
+
+  String _getLocalizedHabitTitle(String habitTitle) {
+    switch (habitTitle) {
+      case 'Drink water':
+        return context.l10n.translate('drinkWater');
+      case 'Daily workout':
+        return context.l10n.translate('dailyWorkout');
+      case 'Take 8K steps':
+        return context.l10n.translate('take8KSteps');
+      case 'Meditate':
+        return context.l10n.translate('meditate');
+      case 'Morning stretch':
+        return context.l10n.translate('morningStretch');
+      case 'Read book':
+        return context.l10n.translate('readBook');
+      case 'Eat vegetables':
+        return context.l10n.translate('eatVegetables');
+      case 'Cook at home':
+        return context.l10n.translate('cookAtHome');
+      case 'No phone 1h before bed':
+        return context.l10n.translate('noPhone1hBeforeBed');
+      case 'Read instead':
+        return context.l10n.translate('readInstead');
+      case 'No sugar':
+        return context.l10n.translate('noSugar');
+      case 'Max 1 coffee':
+        return context.l10n.translate('max1Coffee');
+      case 'Drink herbal tea':
+        return context.l10n.translate('drinkHerbalTea');
+      case 'Complete 3 priorities':
+        return context.l10n.translate('complete3Priorities');
+      case 'No social media at work':
+        return context.l10n.translate('noSocialMediaAtWork');
+      case 'Max 1h TV/Netflix':
+        return context.l10n.translate('max1hTvNetflix');
+      case 'Go for a walk':
+        return context.l10n.translate('goForAWalk');
+      default:
+        return habitTitle;
+    }
+  }
+
+  String _getLocalizedUnit(String unit) {
+    switch (unit) {
+      case 'glasses':
+        return context.l10n.translate('glasses');
+      case 'min':
+        return context.l10n.translate('min');
+      case 'steps':
+        return context.l10n.translate('steps');
+      case 'servings':
+        return context.l10n.translate('servings');
+      case 'meal':
+        return context.l10n.translate('meal');
+      case 'day':
+        return context.l10n.translate('day');
+      case 'pages':
+        return context.l10n.translate('pages');
+      case 'cups':
+        return context.l10n.translate('cups');
+      case 'tasks':
+        return context.l10n.translate('tasks');
+      case 'hour':
+        return context.l10n.translate('hour');
+      default:
+        return unit;
+    }
   }
 
   String _calculateDuration(DateTime endTime) {
@@ -473,13 +597,13 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     // Для простоты выводим примерную продолжительность в днях
     final days = difference.inDays.abs();
     
-    if (days == 7) return '7-Day Challenge';
-    if (days == 14) return '14-Day Challenge';
-    if (days == 21) return '21-Day Challenge';
-    if (days == 30) return '30-Day Challenge';
-    if (days < 7) return '$days-Day Challenge';
-    if (days < 30) return '${(days / 7).round()}-Week Challenge';
-    return '${(days / 30).round()}-Month Challenge';
+    if (days == 7) return context.l10n.translate('7DayChallenge');
+    if (days == 14) return context.l10n.translate('14DayChallenge');
+    if (days == 21) return context.l10n.translate('21DayChallenge');
+    if (days == 30) return context.l10n.translate('30DayChallenge');
+    if (days < 7) return context.l10n.translate('dayChallenge').replaceAll('{days}', days.toString());
+    if (days < 30) return context.l10n.translate('weekChallenge').replaceAll('{weeks}', (days / 7).round().toString());
+    return context.l10n.translate('monthChallenge').replaceAll('{months}', (days / 30).round().toString());
   }
 
   Widget _buildHabitCard(Map<String, dynamic> habit, Color challengeColor) {
@@ -519,7 +643,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  habit['title'] as String? ?? 'Habit',
+                  _getLocalizedHabitTitle(habit['title'] as String? ?? 'Habit'),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -536,7 +660,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        habitType == 'quit' ? 'QUIT' : 'BUILD',
+                        habitType == 'quit' ? context.l10n.translate('quit') : context.l10n.translate('build'),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -546,7 +670,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '$targetValue $targetUnit',
+                      '$targetValue ${_getLocalizedUnit(targetUnit)}',
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,

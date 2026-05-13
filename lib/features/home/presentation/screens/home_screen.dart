@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 import 'package:routiner/core/widgets/week_days_list.dart';
 import 'package:routiner/core/widgets/joined_challenges_widget.dart';
 import 'package:routiner/core/widgets/habits_widget.dart';
@@ -98,6 +99,47 @@ class _HomePageState extends State<HomePage> {
     }
   }
   
+  String _getLocalizedHabitName(String habitName) {
+    switch (habitName) {
+      case 'Drink water':
+        return context.l10n.translate('drinkWater');
+      case 'Daily workout':
+        return context.l10n.translate('dailyWorkout');
+      case 'Take 8K steps':
+        return context.l10n.translate('take8KSteps');
+      case 'Meditate':
+        return context.l10n.translate('meditate');
+      case 'Morning stretch':
+        return context.l10n.translate('morningStretch');
+      case 'Read book':
+        return context.l10n.translate('readBook');
+      case 'Eat vegetables':
+        return context.l10n.translate('eatVegetables');
+      case 'Cook at home':
+        return context.l10n.translate('cookAtHome');
+      case 'No phone 1h before bed':
+        return context.l10n.translate('noPhone1hBeforeBed');
+      case 'Read instead':
+        return context.l10n.translate('readInstead');
+      case 'No sugar':
+        return context.l10n.translate('noSugar');
+      case 'Max 1 coffee':
+        return context.l10n.translate('max1Coffee');
+      case 'Drink herbal tea':
+        return context.l10n.translate('drinkHerbalTea');
+      case 'Complete 3 priorities':
+        return context.l10n.translate('complete3Priorities');
+      case 'No social media at work':
+        return context.l10n.translate('noSocialMediaAtWork');
+      case 'Max 1h TV/Netflix':
+        return context.l10n.translate('max1hTvNetflix');
+      case 'Go for a walk':
+        return context.l10n.translate('goForAWalk');
+      default:
+        return habitName;
+    }
+  }
+
   /// Загрузка привычек пользователя из Firestore
   Future<void> _loadUserHabits() async {
     print('[HABITS] Loading user habits...');
@@ -164,106 +206,106 @@ class _HomePageState extends State<HomePage> {
       final allClubs = [
         {
           'id': 'cat_lovers',
-          'name': 'Cat Lovers',
-          'description': 'Build daily habits while celebrating our feline friends',
+          'name': context.l10n.translate('catLovers'),
+          'description': context.l10n.translate('catLoversDescription'),
           'emoji': '🐱',
           'members': '500+',
           'color': const Color(0xFFFF6B6B),
           'habits': [
-            {'title': 'Morning pet care', 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Cat feeding routine', 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'Play with cat', 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('morningPetCare'), 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('catFeedingRoutine'), 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('playWithCat'), 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
           'id': 'book_worms',
-          'name': 'Book Worms',
-          'description': 'Cultivate reading habits and expand your knowledge daily',
+          'name': context.l10n.translate('bookWorms'),
+          'description': context.l10n.translate('bookWormsDescription'),
           'emoji': '📚',
           'members': '1.2k',
           'color': const Color(0xFF4ECDC4),
           'habits': [
-            {'title': 'Daily reading', 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
-            {'title': 'Book notes', 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'Library visit', 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('dailyReading'), 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+            {'title': context.l10n.translate('bookNotes'), 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('libraryVisit'), 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'runners',
-          'name': 'Runners',
-          'description': 'Build consistent running habits and achieve your fitness goals',
+          'name': context.l10n.translate('runners'),
+          'description': context.l10n.translate('runnersDescription'),
           'emoji': '🏃',
           'members': '800+',
           'color': const Color(0xFF95E1D3),
           'habits': [
-            {'title': 'Morning run', 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'Stretching', 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Hydration', 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('morningRun'), 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('stretching'), 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('hydration'), 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'yoga_life',
-          'name': 'Yoga Life',
-          'description': 'Transform your life through daily yoga and mindfulness practices',
+          'name': context.l10n.translate('yogaLife'),
+          'description': context.l10n.translate('yogaLifeDescription'),
           'emoji': '🧘',
           'members': '2k',
           'color': const Color(0xFFA8E6CF),
           'habits': [
-            {'title': 'Morning yoga', 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Meditation', 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Breathing exercises', 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('morningYoga'), 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('meditation'), 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('breathingExercises'), 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'meditation',
-          'name': 'Meditation',
-          'description': 'Find inner peace and build mental clarity through meditation',
+          'name': context.l10n.translate('meditationClub'),
+          'description': context.l10n.translate('meditationClubDescription'),
           'emoji': '🧠',
           'members': '3k+',
           'color': const Color(0xFFC7CEEA),
           'habits': [
-            {'title': 'Daily meditation', 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Mindful breathing', 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
-            {'title': 'Gratitude journal', 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('dailyMeditation'), 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('mindfulBreathing'), 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
+            {'title': context.l10n.translate('gratitudeJournal'), 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'fitness_gurus',
-          'name': 'Fitness Gurus',
-          'description': 'Build strength and endurance with daily workout routines',
+          'name': context.l10n.translate('fitnessGurus'),
+          'description': context.l10n.translate('fitnessGurusDescription'),
           'emoji': '💪',
           'members': '1.5k',
           'color': const Color(0xFFFFD93D),
           'habits': [
-            {'title': 'Strength training', 'emoji': '💪', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Protein intake', 'emoji': '🥗', 'targetValue': 25, 'targetUnit': 'grams', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Recovery stretching', 'emoji': '🤸', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('strengthTraining'), 'emoji': '💪', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('proteinIntake'), 'emoji': '🥗', 'targetValue': 25, 'targetUnit': 'grams', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('recoveryStretching'), 'emoji': '🤸', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
           'id': 'creative_minds',
-          'name': 'Creative Minds',
-          'description': 'Nurture your creativity with daily artistic practices',
+          'name': context.l10n.translate('creativeMinds'),
+          'description': context.l10n.translate('creativeMindsDescription'),
           'emoji': '🎨',
           'members': '750+',
           'color': const Color(0xFFE8B4F8),
           'habits': [
-            {'title': 'Daily sketch', 'emoji': '✏️', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
-            {'title': 'Creative writing', 'emoji': '✍️', 'targetValue': 200, 'targetUnit': 'words', 'incrementStep': 50, 'habitType': 'build'},
-            {'title': 'Inspiration gathering', 'emoji': '💡', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': context.l10n.translate('dailySketch'), 'emoji': '✏️', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+            {'title': context.l10n.translate('creativeWriting'), 'emoji': '✍️', 'targetValue': 200, 'targetUnit': 'words', 'incrementStep': 50, 'habitType': 'build'},
+            {'title': context.l10n.translate('inspirationGathering'), 'emoji': '💡', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
           'id': 'eco_warriors',
-          'name': 'Eco Warriors',
-          'description': 'Build sustainable habits and protect our planet daily',
+          'name': context.l10n.translate('ecoWarriors'),
+          'description': context.l10n.translate('ecoWarriorsDescription'),
           'emoji': '🌱',
           'members': '900+',
           'color': const Color(0xFF90EE90),
           'habits': [
-            {'title': 'Recycling', 'emoji': '♻️', 'targetValue': 5, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'Water conservation', 'emoji': '💧', 'targetValue': 10, 'targetUnit': 'liters', 'incrementStep': 2, 'habitType': 'build'},
-            {'title': 'Plastic reduction', 'emoji': '🚫', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': context.l10n.translate('recycling'), 'emoji': '♻️', 'targetValue': 5, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': context.l10n.translate('waterConservation'), 'emoji': '💧', 'targetValue': 10, 'targetUnit': 'liters', 'incrementStep': 2, 'habitType': 'build'},
+            {'title': context.l10n.translate('plasticReduction'), 'emoji': '🚫', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'quit'},
           ],
         },
       ];
@@ -505,7 +547,7 @@ class _HomePageState extends State<HomePage> {
       print('[STATUS ERROR] $e');
       print('[STATUS ERROR] $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update habit: $e')),
+        SnackBar(content: Text('${context.l10n.translate('failedToUpdateHabit')}: $e')),
       );
     }
   }
@@ -552,7 +594,7 @@ class _HomePageState extends State<HomePage> {
       print('[INCREMENT ERROR] $e');
       print('[INCREMENT ERROR] $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add progress: $e')),
+        SnackBar(content: Text('${context.l10n.translate('failedToAddProgress')}: $e')),
       );
     }
   }
@@ -622,14 +664,14 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Header(
-            toggleOptions: ['Today', 'Clubs'],
+            toggleOptions: [context.l10n.translate('today'), context.l10n.translate('clubs')],
             selectedToggleIndex: _selectedToggleIndex,
             notificationCount: _joinedClubs.length,
             userName: _user?.firstName,
             greeting: _user != null 
-                ? 'Hi, ${_user!.firstName}👋' 
-                : 'Hi!',
-            subtitle: 'Let\'s make habbits toghether!',
+                ? context.l10n.translate('hiWithName').replaceAll('{name}', _user!.firstName)
+                : context.l10n.translate('hi'),
+            subtitle: context.l10n.translate('letsMakeHabitsTogether'),
             onToggleChanged: (index) {
               setState(() {
                 if (index == 0 && _selectedToggleIndex == 0) {
@@ -686,6 +728,7 @@ class _HomePageState extends State<HomePage> {
                               GoalsProgressWidget(
                                 totalGoals: _habits.length,
                                 completedGoals: _todayLogs.values.where((log) => log?.status == HabitStatus.completed).length,
+                                l10n: context.l10n,
                               ),
                               SizedBox(height: 16),
                               // Виджет челенджей - показывает присоединённые челленджи
@@ -694,6 +737,7 @@ class _HomePageState extends State<HomePage> {
                               JoinedChallengesWidget(
                                 key: ValueKey('challenges_${_challengesRefreshKey}_${_selectedDate?.toIso8601String()}'),
                                 selectedDate: _selectedDate,
+                                l10n: context.l10n,
                                 onViewAllPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -717,7 +761,7 @@ class _HomePageState extends State<HomePage> {
                                             children: [
                                               SizedBox(height: 40),
                                               Text(
-                                                'No habits yet',
+                                                context.l10n.translate('noHabitsYet'),
                                                 style: AppFonts.bodyTitleMedium.copyWith(
                                                   color: AppColors.black100,
                                                 ),
@@ -725,7 +769,7 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                               SizedBox(height: 8),
                                               Text(
-                                                'Create your first habit!',
+                                                context.l10n.translate('createFirstHabit'),
                                                 style: AppFonts.bodyAlternative.copyWith(
                                                   color: AppColors.black60,
                                                 ),
@@ -752,8 +796,7 @@ class _HomePageState extends State<HomePage> {
                                               );
                                               return habitCreatedDate.isAtSameMomentAs(selectedDate) ||
                                                      habitCreatedDate.isBefore(selectedDate);
-                                            })
-                                            .map((habitModel) {
+                                            }).map((habitModel) {
                                             // Получаем лог для выбранной даты (исторический прогресс)
                                             final dayLog = habitModel.id != null
                                                 ? _todayLogs[habitModel.id]
@@ -774,7 +817,7 @@ class _HomePageState extends State<HomePage> {
 
                                             return Habit(
                                               id: habitModel.id ?? '',
-                                              title: habitModel.name,
+                                              title: _getLocalizedHabitName(habitModel.name),
                                               subtitle: '$currentProgress/${habitModel.targetValue} ${habitModel.targetUnit}',
                                               isChallenge: isChallengeHabit,
                                               challengeId: habitModel.challengeId,
@@ -837,8 +880,10 @@ class _HomePageState extends State<HomePage> {
                                                   ),
                                                 );
                                               },
+                                              l10n: context.l10n,
                                             );
                                           }).toList(),
+                                          l10n: context.l10n,
                                           onViewAllPressed: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
@@ -893,15 +938,14 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No clubs yet',
+              context.l10n.translate('noClubsYet'),
               style: AppFonts.headlineH5.copyWith(
                 color: AppColors.black100,
-                fontSize: 24,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Join clubs from Explore to see them here',
+              context.l10n.translate('joinClubsFromExplore'),
               style: AppFonts.bodyAlternative.copyWith(
                 color: AppColors.black60,
                 fontSize: 14,
@@ -930,7 +974,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(
-                'Explore Clubs',
+                context.l10n.translate('exploreClubs'),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -955,7 +999,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                'Your Clubs',
+                context.l10n.translate('yourClubs'),
                 style: AppFonts.headlineH5.copyWith(
                   color: AppColors.black100,
                   fontSize: 24,
@@ -1058,7 +1102,7 @@ class _HomePageState extends State<HomePage> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      '${(club['habits'] as List<dynamic>).length} habits',
+                                      '${(club['habits'] as List<dynamic>).length} ${context.l10n.translate('habits')}',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 11,

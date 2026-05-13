@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class ClubDetailScreen extends StatefulWidget {
   final Map<String, dynamic> club;
@@ -21,6 +22,55 @@ class ClubDetailScreen extends StatefulWidget {
 class _ClubDetailScreenState extends State<ClubDetailScreen> {
   bool _isJoined = false;
   bool _isLoading = false;
+
+  String _getLocalizedHabitName(String habitName) {
+    switch (habitName) {
+      case 'Morning pet care':
+        return context.l10n.translate('morningPetCare');
+      case 'Cat feeding routine':
+        return context.l10n.translate('catFeedingRoutine');
+      case 'Play with cat':
+        return context.l10n.translate('playWithCat');
+      case 'Daily reading':
+        return context.l10n.translate('dailyReading');
+      case 'Book notes':
+        return context.l10n.translate('bookNotes');
+      case 'Library visit':
+        return context.l10n.translate('libraryVisit');
+      case 'Morning run':
+        return context.l10n.translate('morningRun');
+      case 'Stretching':
+        return context.l10n.translate('stretching');
+      case 'Hydration':
+        return context.l10n.translate('hydration');
+      case 'Morning yoga':
+        return context.l10n.translate('morningYoga');
+      case 'Meditation':
+        return context.l10n.translate('meditation');
+      case 'Breathing exercises':
+        return context.l10n.translate('breathingExercises');
+      case 'Strength training':
+        return context.l10n.translate('strengthTraining');
+      case 'Protein intake':
+        return context.l10n.translate('proteinIntake');
+      case 'Recovery stretching':
+        return context.l10n.translate('recoveryStretching');
+      case 'Daily sketch':
+        return context.l10n.translate('dailySketch');
+      case 'Creative writing':
+        return context.l10n.translate('creativeWriting');
+      case 'Inspiration gathering':
+        return context.l10n.translate('inspirationGathering');
+      case 'Recycling':
+        return context.l10n.translate('recycling');
+      case 'Water conservation':
+        return context.l10n.translate('waterConservation');
+      case 'Plastic reduction':
+        return context.l10n.translate('plasticReduction');
+      default:
+        return habitName;
+    }
+  }
 
   @override
   void initState() {
@@ -95,7 +145,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
       final habit = HabitModel(
         id: null, // Firestore сгенерирует ID
         userId: user.uid,
-        name: habitData['title'] as String,
+        name: _getLocalizedHabitName(habitData['title'] as String),
         emoji: habitData['emoji'] as String,
         color: '#${(widget.club['color'] as Color).value.toRadixString(16).substring(2).toUpperCase()}',
         habitType: habitData['habitType'] as String,
@@ -246,7 +296,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
-                                '${(widget.club['habits'] as List<dynamic>?)?.length ?? 0} habits',
+                                '${(widget.club['habits'] as List<dynamic>?)?.length ?? 0} ${context.l10n.translate('habits')}',
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -289,7 +339,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                 children: [
                   // Заголовок контента
                   Text(
-                    'Club Habits',
+                    context.l10n.translate('clubHabits'),
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.black100,
                       fontSize: 18,
@@ -338,7 +388,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  habit['title'] as String,
+                                  _getLocalizedHabitName(habit['title'] as String),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -347,7 +397,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${habit['targetValue']} ${habit['targetUnit']} daily',
+                                  '${habit['targetValue']} ${context.l10n.translate(habit['targetUnit'] as String)} ${context.l10n.translate('daily')}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.black60,
@@ -401,7 +451,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                               ),
                             )
                           : Text(
-                              _isJoined ? 'Joined ✓' : 'Join Club',
+                              _isJoined ? context.l10n.translate('joinedClub') : context.l10n.translate('joinClub'),
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,

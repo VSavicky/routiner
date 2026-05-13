@@ -4,6 +4,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/features/achievements/data/models/achievement_model.dart';
 import 'package:routiner/features/achievements/data/repositories/achievement_repository.dart';
 import 'package:routiner/features/achievements/data/services/achievement_service.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class AllAchievementsScreen extends StatefulWidget {
   const AllAchievementsScreen({super.key});
@@ -22,11 +23,18 @@ class _AllAchievementsScreenState extends State<AllAchievementsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAllAchievements();
     _loadUserAchievements();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadAllAchievements();
+  }
+
   Future<void> _loadAllAchievements() async {
+    if (!mounted) return;
+    
     setState(() => _isLoading = true);
     
     // Get all possible achievements
@@ -34,160 +42,160 @@ class _AllAchievementsScreenState extends State<AllAchievementsScreen> {
       // First habit achievement
       {
         'id': 'first_habit',
-        'title': 'First Habit',
-        'description': 'Complete your first habit',
+        'title': context.l10n.translate('firstHabit'),
+        'description': context.l10n.translate('completeFirstHabit'),
         'icon': '🌟',
         'type': 'habit',
         'color': '#4CAF50',
         'requirements': [
-          'Complete your first habit',
-          'Start your journey',
-          'Build consistency',
+          context.l10n.translate('completeFirstHabit'),
+          context.l10n.translate('startJourney'),
+          context.l10n.translate('buildConsistency'),
         ],
         'isUnlocked': false,
       },
       // Any habit achievement
       {
         'id': 'any_habit',
-        'title': 'Habit Master',
-        'description': 'Complete any habit',
+        'title': context.l10n.translate('habitMaster'),
+        'description': context.l10n.translate('completeAnyHabit'),
         'icon': '✅',
         'type': 'habit',
         'color': '#4CAF50',
         'requirements': [
-          'Complete any habit successfully',
-          'Start your journey',
-          'Build consistency',
+          context.l10n.translate('completeAnyHabitSuccessfully'),
+          context.l10n.translate('startJourney'),
+          context.l10n.translate('buildConsistency'),
         ],
         'isUnlocked': false,
       },
       // Points achievements
       {
         'id': 'points_100',
-        'title': 'First Steps',
-        'description': 'Earn your first 100 points',
+        'title': context.l10n.translate('firstSteps'),
+        'description': context.l10n.translate('earnFirst100Points'),
         'icon': '🌟',
         'type': 'points',
         'color': '#4CAF50',
         'requirements': [
-          'Complete 10 habits',
-          'Collect 100 points',
-          'Reach beginner level',
+          context.l10n.translate('complete10Habits'),
+          context.l10n.translate('collect100Points'),
+          context.l10n.translate('reachBeginnerLevel'),
         ],
         'isUnlocked': false,
       },
       {
         'id': 'points_500',
-        'title': 'Rising Star',
-        'description': 'Earn 500 points',
+        'title': context.l10n.translate('risingStar'),
+        'description': context.l10n.translate('earn500Points'),
         'icon': '⭐',
         'type': 'points',
         'color': '#FF9800',
         'requirements': [
-          'Complete 50 habits',
-          'Collect 500 points',
-          'Reach intermediate level',
+          context.l10n.translate('complete50Habits'),
+          context.l10n.translate('collect500Points'),
+          context.l10n.translate('reachIntermediateLevel'),
         ],
         'isUnlocked': false,
       },
       {
         'id': 'points_1000',
-        'title': 'Point Master',
-        'description': 'Earn 1000 points',
+        'title': context.l10n.translate('pointMaster'),
+        'description': context.l10n.translate('earn1000Points'),
         'icon': '🏆',
         'type': 'points',
         'color': '#FF5722',
         'requirements': [
-          'Complete 100 habits',
-          'Collect 1000 points',
-          'Reach expert level',
+          context.l10n.translate('complete100Habits'),
+          context.l10n.translate('collect1000Points'),
+          context.l10n.translate('reachExpertLevel'),
         ],
         'isUnlocked': false,
       },
       // Streak achievements
       {
         'id': 'streak_7',
-        'title': 'Week Warrior',
-        'description': 'Maintain a 7-day streak',
+        'title': context.l10n.translate('weekWarrior'),
+        'description': context.l10n.translate('maintain7DayStreak'),
         'icon': '🔥',
         'type': 'streak',
         'color': '#FF6B35',
         'requirements': [
-          'Complete habits for 7 consecutive days',
-          'Don\'t skip any day',
-          'Build weekly habits',
+          context.l10n.translate('complete7ConsecutiveDays'),
+          context.l10n.translate('dontSkipAnyDay'),
+          context.l10n.translate('buildWeeklyHabits'),
         ],
         'isUnlocked': false,
       },
       {
         'id': 'streak_30',
-        'title': 'Monthly Champion',
-        'description': 'Maintain a 30-day streak',
+        'title': context.l10n.translate('monthlyChampion'),
+        'description': context.l10n.translate('maintain30DayStreak'),
         'icon': '💪',
         'type': 'streak',
         'color': '#E91E63',
         'requirements': [
-          'Complete habits for 30 consecutive days',
-          'Build monthly habits',
-          'Stay on the path to success',
+          context.l10n.translate('complete30ConsecutiveDays'),
+          context.l10n.translate('buildMonthlyHabits'),
+          context.l10n.translate('stayOnPathToSuccess'),
         ],
         'isUnlocked': false,
       },
       // Club achievements
       {
         'id': 'club_first',
-        'title': 'Club Member',
-        'description': 'Join your first club',
+        'title': context.l10n.translate('clubMember'),
+        'description': context.l10n.translate('joinFirstClub'),
         'icon': '👥',
         'type': 'club',
         'color': '#2196F3',
         'requirements': [
-          'Find an interesting club',
-          'Join a community',
-          'Start communicating with others',
+          context.l10n.translate('findInterestingClub'),
+          context.l10n.translate('joinCommunity'),
+          context.l10n.translate('startCommunicating'),
         ],
         'isUnlocked': false,
       },
       {
         'id': 'club_5',
-        'title': 'Social Butterfly',
-        'description': 'Join 5 clubs',
+        'title': context.l10n.translate('socialButterfly'),
+        'description': context.l10n.translate('join5Clubs'),
         'icon': '🦋',
         'type': 'club',
         'color': '#9C27B0',
         'requirements': [
-          'Explore different clubs',
-          'Find 5 interesting communities',
-          'Become an active participant',
+          context.l10n.translate('exploreDifferentClubs'),
+          context.l10n.translate('find5Communities'),
+          context.l10n.translate('becomeActiveParticipant'),
         ],
         'isUnlocked': false,
       },
       // Challenge achievements
       {
         'id': 'challenge_first',
-        'title': 'Challenge Beginner',
-        'description': 'Complete your first challenge',
+        'title': context.l10n.translate('challengeBeginner'),
+        'description': context.l10n.translate('completeFirstChallenge'),
         'icon': '🏅',
         'type': 'challenge',
         'color': '#00BCD4',
         'requirements': [
-          'Find an interesting challenge',
-          'Follow the instructions',
-          'Complete it to the end',
+          context.l10n.translate('findInterestingChallenge'),
+          context.l10n.translate('followInstructions'),
+          context.l10n.translate('completeToEnd'),
         ],
         'isUnlocked': false,
       },
       {
         'id': 'challenge_5',
-        'title': 'Challenge Expert',
-        'description': 'Complete 5 challenges',
+        'title': context.l10n.translate('challengeExpert'),
+        'description': context.l10n.translate('complete5Challenges'),
         'icon': '🎯',
         'type': 'challenge',
         'color': '#673AB7',
         'requirements': [
-          'Complete 5 different challenges',
-          'Try different types of tasks',
-          'Show your willpower',
+          context.l10n.translate('complete5Challenges'),
+          context.l10n.translate('tryDifferentTasks'),
+          context.l10n.translate('showWillpower'),
         ],
         'isUnlocked': false,
       },
@@ -224,9 +232,9 @@ class _AllAchievementsScreenState extends State<AllAchievementsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8F9FD),
         elevation: 0,
-        title: const Text(
-          'All Achievements',
-          style: TextStyle(
+        title: Text(
+          context.l10n.translate('allAchievements'),
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -328,7 +336,7 @@ class _AllAchievementsScreenState extends State<AllAchievementsScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            isUnlocked ? 'Completed' : 'Locked',
+                            isUnlocked ? context.l10n.translate('completed') : context.l10n.translate('locked'),
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -365,7 +373,7 @@ class _AllAchievementsScreenState extends State<AllAchievementsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Requirements:',
+                  context.l10n.translate('requirements'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

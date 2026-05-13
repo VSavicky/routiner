@@ -5,15 +5,18 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/challenges/domain/services/challenges_service.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class JoinedChallengesWidget extends StatefulWidget {
   final VoidCallback? onViewAllPressed;
   final DateTime? selectedDate; // Дата для которой показывать прогресс (null = сегодня)
+  final AppLocalizations l10n;
 
   const JoinedChallengesWidget({
     super.key,
     this.onViewAllPressed,
     this.selectedDate,
+    required this.l10n,
   });
 
   @override
@@ -74,17 +77,17 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
       
       // Если челлендж уже завершился к выбранной дате
       if (selectedDay.isAfter(endDay)) {
-        return 'Ended';
+        return widget.l10n.translate('ended');
       }
       
       // Показываем сколько дней осталось от выбранной даты до конца
       final daysRemaining = endDay.difference(selectedDay).inDays;
       if (daysRemaining == 0) {
-        return 'Last day';
+        return widget.l10n.translate('lastDay');
       } else if (daysRemaining == 1) {
-        return '1 day left';
+        return widget.l10n.translate('dayLeft');
       } else {
-        return '$daysRemaining days left';
+        return '$daysRemaining ${widget.l10n.translate('daysLeft')}';
       }
     }
     
@@ -92,17 +95,17 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     final now = DateTime.now();
     final difference = endTime.difference(now);
     
-    if (difference.isNegative) return 'Ended';
+    if (difference.isNegative) return widget.l10n.translate('ended');
     
     final days = difference.inDays;
     final hours = difference.inHours.remainder(24);
     
     if (days > 0) {
-      return '$days days ${hours}h left';
+      return '$days ${widget.l10n.translate('daysLeft')} ${hours}h ${widget.l10n.translate('hoursLeft')}';
     } else if (hours > 0) {
-      return '$hours hours left';
+      return '$hours ${widget.l10n.translate('hoursLeft')}';
     } else {
-      return '${difference.inMinutes} min left';
+      return '${difference.inMinutes} ${widget.l10n.translate('minutesLeft')}';
     }
   }
 
@@ -138,7 +141,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Challenges',
+              widget.l10n.translate('challengesTitle'),
               style: AppFonts.bodyTitleMedium.copyWith(
                 color: AppColors.black100,
                 fontSize: 16,
@@ -154,7 +157,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                     );
                   },
                   child: Text(
-                    'VIEW ALL',
+                    widget.l10n.translate('viewAll'),
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.blue100,
                       fontSize: 16,
@@ -179,7 +182,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Challenges',
+              widget.l10n.translate('challengesTitle'),
               style: AppFonts.bodyTitleMedium.copyWith(
                 color: AppColors.black100,
                 fontSize: 16,
@@ -195,7 +198,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                 ).then((_) => _loadJoinedChallenges()); // Обновляем при возврате
               },
               child: Text(
-                'VIEW ALL',
+                widget.l10n.translate('viewAll'),
                 style: AppFonts.bodyTitleMedium.copyWith(
                   color: AppColors.blue100,
                   fontSize: 16,
@@ -247,7 +250,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Join a Challenge!',
+                        widget.l10n.translate('joinChallenge'),
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: AppColors.black100,
                           fontSize: 15,
@@ -255,7 +258,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                         ),
                       ),
                       Text(
-                        'Compete with friends and track your progress',
+                        widget.l10n.translate('challengeDescription'),
                         style: AppFonts.bodyAlternative.copyWith(
                           color: AppColors.black40,
                           fontSize: 12,
@@ -277,9 +280,37 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
     );
   }
 
+  String _getLocalizedChallengeTitle(String challengeId) {
+    switch (challengeId) {
+      case '7_day_water':
+        return widget.l10n.translate('7DayWaterChallenge');
+      case '21_day_fitness':
+        return widget.l10n.translate('21DayFitnessKickstart');
+      case 'morning_routine':
+        return widget.l10n.translate('perfectMorningRoutine');
+      case 'read_daily':
+        return widget.l10n.translate('dailyReadingHabit');
+      case 'eat_healthy':
+        return widget.l10n.translate('healthyEatingWeek');
+      case 'no_phone_before_bed':
+        return widget.l10n.translate('betterSleepNoPhoneBeforeBed');
+      case 'no_sugar_week':
+        return widget.l10n.translate('noSugarWeek');
+      case 'reduce_caffeine':
+        return widget.l10n.translate('reduceCaffeineIntake');
+      case 'no_procrastination':
+        return widget.l10n.translate('beatProcrastination');
+      case 'less_tv':
+        return widget.l10n.translate('lessScreenTime');
+      default:
+        return challengeId;
+    }
+  }
+
   Widget _buildChallengeCard(Map<String, dynamic> challenge) {
     final String title = challenge['title'] as String? ?? 'Challenge';
     final String challengeId = challenge['id'] as String? ?? title;
+    final String localizedTitle = _getLocalizedChallengeTitle(challengeId);
     final DateTime endTime = challenge['endTime'] as DateTime? ?? 
                              DateTime.now().add(const Duration(days: 7));
     final String icon = challenge['icon'] as String? ?? '🏆';
@@ -341,7 +372,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
+                        localizedTitle,
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: AppColors.black100,
                           fontSize: 15,
@@ -459,7 +490,7 @@ class _JoinedChallengesWidgetState extends State<JoinedChallengesWidget> {
                             ),
                             SizedBox(width: 2),
                             Text(
-                              'Done!',
+                              widget.l10n.translate('done'),
                               style: AppFonts.bodyAlternative.copyWith(
                                 color: AppColors.green40,
                                 fontSize: 9,

@@ -3,6 +3,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/notification_icon.dart';
 import 'package:routiner/core/widgets/toggle_button.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class Header extends StatefulWidget {
   final List<String> toggleOptions;
@@ -81,8 +82,8 @@ class _HeaderState extends State<Header> {
                   // Приветствие пользователя
                   Text(
                     widget.greeting ?? (widget.userName != null 
-                        ? 'Hi, ${widget.userName}👋' 
-                        : 'Hi!'),
+                        ? context.l10n.translate('hiWithName').replaceAll('{name}', widget.userName!)
+                        : context.l10n.translate('hi')),
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.black100,
                       fontSize: 24,

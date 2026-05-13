@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 import 'club_detail_screen.dart';
 
 class ClubsListScreen extends StatelessWidget {
   const ClubsListScreen({super.key});
 
+  
   @override
   Widget build(BuildContext context) {
     final clubs = [
       {
         'id': 'cat_lovers',
-        'name': 'Cat Lovers',
-        'description': 'Build daily habits while celebrating our feline friends',
+        'name': context.l10n.translate('catLovers'),
+        'description': context.l10n.translate('catLoversDescription'),
         'emoji': '🐱',
         'members': '500+',
         'color': const Color(0xFFFF6B6B),
@@ -24,8 +26,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'book_worms',
-        'name': 'Book Worms',
-        'description': 'Cultivate reading habits and expand your knowledge daily',
+        'name': context.l10n.translate('bookWorms'),
+        'description': context.l10n.translate('bookWormsDescription'),
         'emoji': '📚',
         'members': '1.2k',
         'color': const Color(0xFF4ECDC4),
@@ -37,8 +39,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'runners',
-        'name': 'Runners',
-        'description': 'Build consistent running habits and achieve your fitness goals',
+        'name': context.l10n.translate('runners'),
+        'description': context.l10n.translate('runnersDescription'),
         'emoji': '🏃',
         'members': '800+',
         'color': const Color(0xFF95E1D3),
@@ -50,8 +52,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'yoga_life',
-        'name': 'Yoga Life',
-        'description': 'Transform your life through daily yoga and mindfulness practices',
+        'name': context.l10n.translate('yogaLife'),
+        'description': context.l10n.translate('yogaLifeDescription'),
         'emoji': '🧘',
         'members': '2k',
         'color': const Color(0xFFA8E6CF),
@@ -63,8 +65,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'meditation',
-        'name': 'Meditation',
-        'description': 'Find inner peace and build mental clarity through meditation',
+        'name': context.l10n.translate('meditationClub'),
+        'description': context.l10n.translate('meditationClubDescription'),
         'emoji': '🧠',
         'members': '3k+',
         'color': const Color(0xFFC7CEEA),
@@ -76,8 +78,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'fitness_gurus',
-        'name': 'Fitness Gurus',
-        'description': 'Build strength and endurance with daily workout routines',
+        'name': context.l10n.translate('fitnessGurus'),
+        'description': context.l10n.translate('fitnessGurusDescription'),
         'emoji': '💪',
         'members': '1.5k',
         'color': const Color(0xFFFFD93D),
@@ -89,8 +91,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'creative_minds',
-        'name': 'Creative Minds',
-        'description': 'Nurture your creativity with daily artistic practices',
+        'name': context.l10n.translate('creativeMinds'),
+        'description': context.l10n.translate('creativeMindsDescription'),
         'emoji': '🎨',
         'members': '750+',
         'color': const Color(0xFFE8B4F8),
@@ -102,8 +104,8 @@ class ClubsListScreen extends StatelessWidget {
       },
       {
         'id': 'eco_warriors',
-        'name': 'Eco Warriors',
-        'description': 'Build sustainable habits and protect our planet daily',
+        'name': context.l10n.translate('ecoWarriors'),
+        'description': context.l10n.translate('ecoWarriorsDescription'),
         'emoji': '🌱',
         'members': '900+',
         'color': const Color(0xFF90EE90),
@@ -151,7 +153,7 @@ class ClubsListScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Habit Clubs',
+                          context.l10n.translate('habitClubs'),
                           style: AppFonts.headlineH5,
                         ),
                         const SizedBox(width: 48),
@@ -248,7 +250,7 @@ class ClubsListScreen extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        '${(club['habits'] as List<dynamic>).length} habits',
+                                        '${(club['habits'] as List<dynamic>).length} ${context.l10n.translate('habits')}',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 11,

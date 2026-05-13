@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 /// Виджет для отображения дней челленджа (Day 1, Day 2, Day 3...)
 /// Вместо календарных дат показывает порядковые номера дней челленджа
@@ -115,7 +116,7 @@ class ChallengeDaysList extends StatelessWidget {
                   const SizedBox(height: 6),
                   // Day label
                   Text(
-                    'Day',
+                    context.l10n.translate('day'),
                     style: AppFonts.bodyAlternative.copyWith(
                       fontSize: 10,
                       color: isSelected 

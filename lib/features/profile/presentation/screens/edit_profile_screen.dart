@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:routiner/core/constants/app_colors.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
@@ -106,7 +107,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Camera not available: ${cameraError.toString()}'),
+                content: Text(context.l10n.translate('failedToPickImage')),
                 backgroundColor: AppColors.red,
                 duration: const Duration(seconds: 3),
               ),
@@ -233,10 +234,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile updated successfully!'),
+            SnackBar(
+              content: Text(context.l10n.translate('profileUpdated')),
               backgroundColor: AppColors.green,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
           
@@ -277,8 +278,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Edit Profile',
+        title: Text(
+          context.l10n.translate('editProfile'),
           style: TextStyle(
             color: Colors.black,
             fontSize: 18,
@@ -357,12 +358,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 32),
               
               // Имя
-              _buildSectionTitle('Personal Information'),
+              _buildSectionTitle(context.l10n.translate('personalInformation')),
               const SizedBox(height: 16),
               
               _buildTextField(
                 controller: _firstNameController,
-                label: 'First Name',
+                label: context.l10n.translate('firstName'),
                 hintText: 'Enter your first name',
                 onChanged: (value) => setState(() {}),
                 validator: (value) {
@@ -377,7 +378,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               
               _buildTextField(
                 controller: _lastNameController,
-                label: 'Last Name',
+                label: context.l10n.translate('lastName'),
                 hintText: 'Enter your last name',
                 onChanged: (value) => setState(() {}),
                 validator: (value) {
@@ -392,7 +393,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               
               _buildTextField(
                 controller: _emailController,
-                label: 'Email',
+                label: context.l10n.translate('email'),
                 hintText: 'Enter your email',
                 enabled: false, // Email нельзя изменить
                 validator: (value) {
@@ -432,7 +433,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         )
                       : Text(
-                          _hasChanges() ? 'Save Changes' : 'No Changes',
+                          _hasChanges() ? context.l10n.translate('saveChanges') : context.l10n.translate('noChanges'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

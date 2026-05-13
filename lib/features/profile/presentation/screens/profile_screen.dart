@@ -7,6 +7,7 @@ import 'package:routiner/features/achievements/data/models/achievement_model.dar
 import 'package:routiner/features/achievements/data/repositories/achievement_repository.dart';
 import 'package:routiner/features/achievements/data/services/achievement_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -220,10 +221,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           }
         }
         
+        final localizedHabitName = _getLocalizedHabitName(habitName);
+        
         if (status == 'completed') {
           activities.add({
             'type': 'completed',
-            'title': 'Completed "$habitName"',
+            'title': '${context.l10n.translate('completed')} "$localizedHabitName"',
             'subtitle': _formatTime(date),
             'date': date,
             'points': 10,
@@ -232,7 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         } else if (status == 'failed') {
           activities.add({
             'type': 'failed',
-            'title': 'Failed "$habitName"',
+            'title': '${context.l10n.translate('failed')} "$localizedHabitName"',
             'subtitle': _formatTime(date),
             'date': date,
             'points': 0,
@@ -241,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         } else if (status == 'skipped') {
           activities.add({
             'type': 'skipped',
-            'title': 'Skipped "$habitName"',
+            'title': '${context.l10n.translate('skipped')} "$localizedHabitName"',
             'subtitle': _formatTime(date),
             'date': date,
             'points': 0,
@@ -327,7 +330,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       print('[PROFILE ERROR] Failed to load achievements: $e');
     }
   }
-  
+
+    
   String _formatTime(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -336,9 +340,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     
     String dayText;
     if (dateDay.isAtSameMomentAs(today)) {
-      dayText = 'Today';
+      dayText = context.l10n.translate('today');
     } else if (dateDay.isAtSameMomentAs(yesterday)) {
-      dayText = 'Yesterday';
+      dayText = context.l10n.translate('yesterday');
     } else {
       dayText = DateFormat('d MMM').format(date);
     }
@@ -348,21 +352,41 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   String _formatRelativeTime(DateTime date) {
+    if (!mounted) {
+      // Fallback для случая когда контекст не готов
+      final now = DateTime.now();
+      final diff = now.difference(date);
+      
+      if (diff.inDays == 0) {
+        return 'Today';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else if (diff.inDays < 7) {
+        return '${diff.inDays} days ago';
+      } else if (diff.inDays < 30) {
+        return '${(diff.inDays / 7).floor()} weeks ago';
+      } else if (diff.inDays < 365) {
+        return '${(diff.inDays / 30).floor()} months ago';
+      } else {
+        return '${(diff.inDays / 365).floor()} years ago';
+      }
+    }
+    
     final now = DateTime.now();
     final diff = now.difference(date);
     
     if (diff.inDays == 0) {
-      return 'Today';
+      return context.l10n.translate('today');
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return context.l10n.translate('yesterday');
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
+      return '${diff.inDays} ${context.l10n.translate('daysAgo')}';
     } else if (diff.inDays < 30) {
-      return '${(diff.inDays / 7).floor()} weeks ago';
+      return '${(diff.inDays / 7).floor()} ${context.l10n.translate('weeksAgo')}';
     } else if (diff.inDays < 365) {
-      return '${(diff.inDays / 30).floor()} months ago';
+      return '${(diff.inDays / 30).floor()} ${context.l10n.translate('monthsAgo')}';
     } else {
-      return '${(diff.inDays / 365).floor()} years ago';
+      return '${(diff.inDays / 365).floor()} ${context.l10n.translate('yearsAgo')}';
     }
   }
   
@@ -403,9 +427,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Your Profile',
-            style: TextStyle(
+          Text(
+            context.l10n.translate('profile'),
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -423,7 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               onPressed: () {
                 context.push('/settings');
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.settings_outlined,
                 color: Colors.grey,
                 size: 20,
@@ -494,7 +518,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '$_points Points',
+                        '$_points ${context.l10n.translate('points')}',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -555,23 +579,36 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           fontSize: 14,
         ),
         dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Activity'),
-          Tab(text: 'Achievements'),
+        tabs: [
+          Tab(text: context.l10n.translate('activity')),
+          Tab(text: context.l10n.translate('achievements')),
         ],
       ),
     );
   }
   
   String _getActivityFilterText() {
+    if (!mounted) {
+      // Fallback для случая когда контекст не готов
+      switch (_activityFilter) {
+        case 'day':
+          return 'Showing today activity';
+        case 'week':
+          return 'Showing last week activity';
+        case 'month':
+        default:
+          return 'Showing last month activity';
+      }
+    }
+    
     switch (_activityFilter) {
       case 'day':
-        return 'Showing today activity';
+        return context.l10n.translate('showing_today_activity');
       case 'week':
-        return 'Showing last week activity';
+        return context.l10n.translate('showing_last_week_activity');
       case 'month':
       default:
-        return 'Showing last month activity';
+        return context.l10n.translate('showing_last_month_activity');
     }
   }
   
@@ -636,7 +673,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Today',
+                            context.l10n.translate('today'),
                             style: TextStyle(
                               fontWeight: _activityFilter == 'day' ? FontWeight.w600 : FontWeight.normal,
                               color: _activityFilter == 'day' ? AppColors.blue100 : Colors.black87,
@@ -656,7 +693,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Last week',
+                            context.l10n.translate('lastWeek'),
                             style: TextStyle(
                               fontWeight: _activityFilter == 'week' ? FontWeight.w600 : FontWeight.normal,
                               color: _activityFilter == 'week' ? AppColors.blue100 : Colors.black87,
@@ -676,7 +713,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Last month',
+                            context.l10n.translate('lastMonth'),
                             style: TextStyle(
                               fontWeight: _activityFilter == 'month' ? FontWeight.w600 : FontWeight.normal,
                               color: _activityFilter == 'month' ? AppColors.blue100 : Colors.black87,
@@ -695,7 +732,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _activities.isEmpty
-                  ? _buildEmptyState('No activity yet', 'Start completing habits to see your activity!')
+                  ? _buildEmptyState(context.l10n.translate('noActivityYet'), context.l10n.translate('startCompletingHabits'))
                   : RefreshIndicator(
                       onRefresh: () async {
                         // Обновляем данные при pull-to-refresh
@@ -906,7 +943,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${friend['points']} Points',
+                  '${friend['points']} ${context.l10n.translate('points')}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Colors.grey,
@@ -963,7 +1000,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${_achievements.length} Achievements',
+                '${_achievements.length} ${context.l10n.translate('achievements')}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -975,7 +1012,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   context.push('/all_achievements');
                 },
                 child: Text(
-                  'View All',
+                  context.l10n.translate('viewAll'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -1015,10 +1052,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                               onTap: () {
                                 context.push('/all_achievements');
                               },
-                              child: const Center(
+                              child: Center(
                                 child: Text(
-                                  'Get Started', // Английский язык
-                                  style: TextStyle(
+                                  context.l10n.translate('getStarted'),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
@@ -1029,9 +1066,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Complete habits and challenges to unlock achievements!',
-                          style: TextStyle(
+                        Text(
+                          context.l10n.translate('keepGoingToUnlock'),
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
                           ),
@@ -1061,6 +1098,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
   
   Widget _buildAchievementItem(AchievementModel achievement) {
+    // Локализуем название достижения при отображении
+    final localizedTitle = _getLocalizedAchievementTitle(achievement.id);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -1097,7 +1137,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  achievement.title,
+                  localizedTitle,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -1118,6 +1158,61 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         ],
       ),
     );
+  }
+
+  String _getLocalizedHabitName(String habitName) {
+    // Маппинг известных названий привычек на локализованные версии
+    switch (habitName.toLowerCase()) {
+      case 'recovery stretching':
+        return context.l10n.translate('recoveryStretching');
+      case 'protein intake':
+        return context.l10n.translate('proteinIntake');
+      case 'strength training':
+        return context.l10n.translate('strengthTraining');
+      case 'walk':
+        return context.l10n.translate('walk');
+      case 'meditate':
+        return context.l10n.translate('meditate');
+      case 'read':
+        return context.l10n.translate('read');
+      case 'drink water':
+        return context.l10n.translate('drinkWater');
+      case 'less sugar':
+        return context.l10n.translate('lessSugar');
+      default:
+        return habitName; // Возвращаем как есть если неизвестная привычка
+    }
+  }
+
+  String _getLocalizedAchievementTitle(String achievementId) {
+    switch (achievementId) {
+      case 'first_habit':
+        return context.l10n.translate('firstHabit');
+      case 'any_habit':
+        return context.l10n.translate('habitMaster');
+      case 'points_100':
+        return context.l10n.translate('firstSteps');
+      case 'points_500':
+        return context.l10n.translate('risingStar');
+      case 'points_1000':
+        return context.l10n.translate('pointMaster');
+      case 'streak_7':
+        return context.l10n.translate('weekWarrior');
+      case 'streak_30':
+        return context.l10n.translate('monthlyChampion');
+      case 'club_first':
+        return context.l10n.translate('clubMember');
+      case 'club_5':
+        return context.l10n.translate('socialButterfly');
+      case 'challenge_first':
+        return context.l10n.translate('challengeBeginner');
+      case 'challenge_5':
+        return context.l10n.translate('challengeExpert');
+      default:
+        return achievementId.replaceAll('_', ' ').split(' ').map((word) => 
+          word[0].toUpperCase() + word.substring(1).toLowerCase()
+        ).join(' ');
+    }
   }
   
   Widget _buildEmptyState(String title, String subtitle) {

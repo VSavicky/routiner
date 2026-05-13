@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class GoalsProgressWidget extends StatelessWidget {
   final int totalGoals;
   final int completedGoals;
   final String? title;
+  final AppLocalizations l10n;
 
   const GoalsProgressWidget({
     Key? key,
     required this.totalGoals,
     required this.completedGoals,
     this.title,
+    required this.l10n,
   }) : super(key: key);
 
   double get _progress {
@@ -25,16 +28,16 @@ class GoalsProgressWidget extends StatelessWidget {
   }
 
   String get _goalsText {
-    return '$completedGoals of $totalGoals goals completed';
+    return '$completedGoals $totalGoals ${l10n.translate('goalsCompleted')}';
   }
 
   String get _defaultTitle {
-    if (totalGoals == 0) return 'No goals set yet!';
-    if (completedGoals == totalGoals) return 'All goals completed!🎉';
-    if (completedGoals > totalGoals * 0.75) return 'Your daily goals almost done!🔥';
-    if (completedGoals > totalGoals * 0.5) return 'You\'re halfway there!💪';
-    if (completedGoals > 0) return 'Keep going!👍';
-    return 'Start your daily goals!🚀';
+    if (totalGoals == 0) return l10n.translate('noGoalsSetYet');
+    if (completedGoals == totalGoals) return l10n.translate('allGoalsCompleted');
+    if (completedGoals > totalGoals * 0.75) return l10n.translate('dailyGoalsAlmostDone');
+    if (completedGoals > totalGoals * 0.5) return l10n.translate('halfwayThere');
+    if (completedGoals > 0) return l10n.translate('keepGoing');
+    return l10n.translate('startDailyGoals');
   }
 
   @override

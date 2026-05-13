@@ -1,3 +1,5 @@
+import 'package:routiner/l10n/app_localizations.dart';
+
 class HabitEntity {
   final String id;
   final String userId;
@@ -12,6 +14,38 @@ class HabitEntity {
     required this.emoji,
     required this.days,
   });
+
+  // Метод для получения локализованного названия
+  String getLocalizedName(AppLocalizations l10n) {
+    switch (name.toLowerCase()) {
+      case 'walk':
+        return l10n.translate('walk');
+      case 'read':
+        return l10n.translate('read');
+      case 'sleep early':
+        return l10n.translate('sleepEarly');
+      case 'workout':
+        return l10n.translate('workout');
+      case 'journal':
+        return l10n.translate('journal');
+      case 'quit smoking':
+        return l10n.translate('quitSmoking');
+      case 'less social media':
+        return l10n.translate('lessSocialMedia');
+      case 'no alcohol':
+        return l10n.translate('noAlcohol');
+      case 'stop procrastinating':
+        return l10n.translate('stopProcrastinating');
+      case 'drink water':
+        return l10n.translate('drinkWater');
+      case 'meditate':
+        return l10n.translate('meditate');
+      case 'run':
+        return l10n.translate('run');
+      default:
+        return name;
+    }
+  }
 
   Map<String, dynamic> toMap() {
     return {

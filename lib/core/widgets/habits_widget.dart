@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class Habit {
   final String id;
@@ -29,6 +30,7 @@ class Habit {
   final VoidCallback? onEditPressed; // Редактировать
   final VoidCallback? onArchivePressed; // В архив
   final void Function(int)? onAddPressed; // Добавить шаг (+) с умным шагом
+  final AppLocalizations l10n;
 
   Habit({
     required this.id,
@@ -56,6 +58,7 @@ class Habit {
     this.onEditPressed,
     this.onArchivePressed,
     this.onAddPressed,
+    required this.l10n,
   });
 
   bool get isCompleted => currentProgress >= targetProgress;
@@ -116,12 +119,14 @@ class HabitsWidget extends StatefulWidget {
   final List<Habit> habits;
   final VoidCallback? onViewAllPressed;
   final bool isDarkBackground; // true = белые цвета для темного фона
+  final AppLocalizations l10n;
 
   const HabitsWidget({
     super.key,
     required this.habits,
     this.onViewAllPressed,
     this.isDarkBackground = false,
+    required this.l10n,
   });
 
   @override
@@ -179,7 +184,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Habits',
+              widget.l10n.translate('habits'),
               style: AppFonts.bodyTitleMedium.copyWith(
                 color: widget.isDarkBackground ? Colors.white : AppColors.black100,
                 fontSize: 16,
@@ -189,7 +194,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
             GestureDetector(
               onTap: widget.onViewAllPressed,
               child: Text(
-                'VIEW ALL',
+                widget.l10n.translate('viewAll'),
                 style: AppFonts.bodyTitleMedium.copyWith(
                   color: AppColors.blue100,
                   fontSize: 16,
@@ -411,7 +416,7 @@ class _HabitContainer extends StatelessWidget {
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Text(
-                                              habit.isClubHabit ? 'CLUBS' : 'CHALLENGE',
+                                              habit.isClubHabit ? 'CLUBS' : habit.l10n.translate('challenge'),
                                               style: AppFonts.bodyAlternative.copyWith(
                                                 color: Colors.white,
                                                 fontSize: 9,

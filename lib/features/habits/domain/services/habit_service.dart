@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/features/habits/domain/entities/habit_entity.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class HabitService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

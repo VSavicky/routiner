@@ -11,6 +11,8 @@ import 'package:routiner/features/habits/presentation/screens/habit_detail_scree
 import 'package:routiner/features/challenges/domain/services/challenges_service.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
 import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
+import 'localized_habits.dart';
 
 /// Экран списка всех привычек с горизонтальными списками как в Explore
 class HabitsListScreen extends StatefulWidget {
@@ -37,6 +39,92 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
   Map<String, Map<String, dynamic>> _challengesData = {}; // challengeId -> full challenge data
   Map<String, Map<String, dynamic>> _clubsData = {}; // clubId -> full club data
   bool _isLoading = true;
+
+  // Функция локализации названий клубов
+  String _getLocalizedClubName(String clubId, BuildContext context) {
+    switch (clubId) {
+      case 'cat_lovers':
+        return context.l10n.translate('catLovers');
+      case 'book_worms':
+        return context.l10n.translate('bookWorms');
+      case 'runners':
+        return context.l10n.translate('runners');
+      case 'yoga_life':
+        return context.l10n.translate('yogaLife');
+      case 'meditation':
+        return context.l10n.translate('meditationClub');
+      case 'fitness_gurus':
+        return context.l10n.translate('fitnessGurus');
+      case 'creative_minds':
+        return context.l10n.translate('creativeMinds');
+      case 'eco_warriors':
+        return context.l10n.translate('ecoWarriors');
+      default:
+        return clubId;
+    }
+  }
+
+  // Функция локализации названий привычек пользователя
+  String _getLocalizedUserHabitName(String habitName, BuildContext context) {
+    switch (habitName.toLowerCase()) {
+      case 'walk':
+        return context.l10n.translate('walk');
+      case 'read':
+        return context.l10n.translate('read');
+      case 'sleep early':
+        return context.l10n.translate('sleepEarly');
+      case 'workout':
+        return context.l10n.translate('workout');
+      case 'journal':
+        return context.l10n.translate('journal');
+      case 'quit smoking':
+        return context.l10n.translate('quitSmoking');
+      case 'less social media':
+        return context.l10n.translate('lessSocialMedia');
+      case 'no alcohol':
+        return context.l10n.translate('noAlcohol');
+      case 'stop procrastinating':
+        return context.l10n.translate('stopProcrastinating');
+      case 'drink water':
+        return context.l10n.translate('drinkWater');
+      case 'meditate':
+        return context.l10n.translate('meditate');
+      case 'run':
+        return context.l10n.translate('run');
+      default:
+        return habitName;
+    }
+  }
+
+  // Функция локализации единиц измерения
+  String _getLocalizedUnit(String unit, BuildContext context) {
+    switch (unit.toLowerCase()) {
+      case 'steps':
+        return context.l10n.translate('steps');
+      case 'pages':
+        return context.l10n.translate('pages');
+      case 'ml':
+        return context.l10n.translate('ml');
+      case 'min':
+        return context.l10n.translate('min');
+      case 'km':
+        return context.l10n.translate('km');
+      case 'hours':
+        return context.l10n.translate('hours');
+      case 'times':
+        return context.l10n.translate('times');
+      case 'cigarettes':
+        return context.l10n.translate('cigarettes');
+      case 'hour':
+        return context.l10n.translate('hour');
+      case 'entry':
+        return context.l10n.translate('entry');
+      case 'completeTask':
+        return context.l10n.translate('completeTask');
+      default:
+        return unit;
+    }
+  }
 
   @override
   void initState() {
@@ -89,64 +177,64 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       final allClubs = [
         {
           'id': 'cat_lovers',
-          'name': 'Cat Lovers',
-          'description': 'Build daily habits while celebrating our feline friends',
+          'name': _getLocalizedClubName('cat_lovers', context),
+          'description': context.l10n.translate('catLoversDescription'),
           'emoji': '🐱',
           'members': '500+',
           'color': const Color(0xFFFF6B6B),
         },
         {
           'id': 'book_worms',
-          'name': 'Book Worms',
-          'description': 'Cultivate reading habits and expand your knowledge daily',
+          'name': _getLocalizedClubName('book_worms', context),
+          'description': context.l10n.translate('bookWormsDescription'),
           'emoji': '📚',
           'members': '1.2k',
           'color': const Color(0xFF4ECDC4),
         },
         {
           'id': 'runners',
-          'name': 'Runners',
-          'description': 'Build consistent running habits and achieve your fitness goals',
+          'name': _getLocalizedClubName('runners', context),
+          'description': context.l10n.translate('runnersDescription'),
           'emoji': '🏃',
           'members': '800+',
           'color': const Color(0xFF95E1D3),
         },
         {
           'id': 'yoga_life',
-          'name': 'Yoga Life',
-          'description': 'Transform your life through daily yoga and mindfulness practices',
+          'name': _getLocalizedClubName('yoga_life', context),
+          'description': context.l10n.translate('yogaLifeDescription'),
           'emoji': '🧘',
           'members': '2k',
           'color': const Color(0xFFA8E6CF),
         },
         {
           'id': 'meditation',
-          'name': 'Meditation',
-          'description': 'Find inner peace and build mental clarity through meditation',
+          'name': _getLocalizedClubName('meditation', context),
+          'description': context.l10n.translate('meditationClubDescription'),
           'emoji': '🧠',
           'members': '3k+',
           'color': const Color(0xFFC7CEEA),
         },
         {
           'id': 'fitness_gurus',
-          'name': 'Fitness Gurus',
-          'description': 'Build strength and endurance with daily workout routines',
+          'name': _getLocalizedClubName('fitness_gurus', context),
+          'description': context.l10n.translate('fitnessGurusDescription'),
           'emoji': '💪',
           'members': '1.5k',
           'color': const Color(0xFFFFD93D),
         },
         {
           'id': 'creative_minds',
-          'name': 'Creative Minds',
-          'description': 'Nurture your creativity with daily artistic practices',
+          'name': _getLocalizedClubName('creative_minds', context),
+          'description': context.l10n.translate('creativeMindsDescription'),
           'emoji': '🎨',
           'members': '750+',
           'color': const Color(0xFFE8B4F8),
         },
         {
           'id': 'eco_warriors',
-          'name': 'Eco Warriors',
-          'description': 'Build sustainable habits and protect our planet daily',
+          'name': _getLocalizedClubName('eco_warriors', context),
+          'description': context.l10n.translate('ecoWarriorsDescription'),
           'emoji': '🌱',
           'members': '900+',
           'color': const Color(0xFF90EE90),
@@ -228,7 +316,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                           ),
                         ),
                         Text(
-                          'Habits',
+                          context.l10n.translate('habits'),
                           style: AppFonts.headlineH5,
                         ),
                         const SizedBox(width: 48),
@@ -257,8 +345,8 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
   Widget _buildContent() {
     // Смешиваем популярные привычки: хорошие + 2 плохих для разнообразия
     final popularHabits = [
-      ...DefaultHabits.goodHabits.take(6),
-      ...DefaultHabits.badHabits.take(2),
+      ...LocalizedDefaultHabits.getGoodHabits(context).take(6),
+      ...LocalizedDefaultHabits.getBadHabits(context).take(2),
     ];
 
     return ListView(
@@ -267,7 +355,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       children: [
         // === МОИ ПРИВЫЧКИ (простой список) ===
         if (_userHabits.isNotEmpty) ...[
-          _buildSectionHeader('Your Habits'),
+          _buildSectionHeader(context.l10n.translate('habits')),
           const SizedBox(height: 12),
           ..._userHabits.map((habit) => _buildUserHabitCard(habit)).toList(),
           const SizedBox(height: 32),
@@ -281,7 +369,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
 
         // === ПОПУЛЯРНЫЕ (горизонтальный список со смешанными привычками) ===
         _buildHorizontalSection(
-          title: 'Popular',
+          title: context.l10n.translate('popular'),
           habits: popularHabits,
           showViewAll: false,
         ),
@@ -340,7 +428,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
 
     final List<Widget> sections = [];
     groupedHabits.forEach((challengeId, habits) {
-      final challengeName = _challengeNames[challengeId] ?? 'Challenge';
+      final challengeName = _challengeNames[challengeId] ?? context.l10n.translate('challenges');
       final challenge = _challengesData[challengeId];
 
       sections.addAll([
@@ -400,7 +488,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
         return;
       }
 
-      final clubName = club['name'] as String? ?? 'Club';
+      final clubName = club['name'] as String? ?? context.l10n.translate('club');
       print('[HABITS LIST] Found club: $clubName with ${habits.length} habits');
 
       sections.addAll([
@@ -485,7 +573,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    habit.name,
+                    _getLocalizedUserHabitName(habit.name, context),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -496,7 +584,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                   Row(
                     children: [
                       Text(
-                        '$currentProgress/$targetValue $targetUnit',
+                        '$currentProgress/$targetValue ${_getLocalizedUnit(targetUnit, context)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withOpacity(0.8),
@@ -509,8 +597,8 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'CLUBS',
+                        child: Text(
+                          context.l10n.translate('clubs'),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -600,7 +688,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    habit.name,
+                    _getLocalizedUserHabitName(habit.name, context),
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.black100,
                       fontSize: 16,
@@ -608,7 +696,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$currentProgress/$targetValue $targetUnit',
+                    '$currentProgress/$targetValue ${_getLocalizedUnit(targetUnit, context)}',
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.black100,
                       fontSize: 14,
@@ -701,7 +789,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    habit.name,
+                    _getLocalizedUserHabitName(habit.name, context),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -710,7 +798,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '$currentProgress/$targetValue $targetUnit',
+                    '$currentProgress/$targetValue ${_getLocalizedUnit(targetUnit, context)}',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 14,
@@ -772,7 +860,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
                     print('VIEW ALL $title pressed');
                   },
                   child: Text(
-                    'VIEW ALL',
+                    context.l10n.translate('viewAll'),
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.blue100,
                       fontWeight: FontWeight.w600,
@@ -883,13 +971,13 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              habit.name,
+              _getLocalizedUserHabitName(habit.name, context),
               style: AppFonts.bodyTitleMedium.copyWith(fontSize: 20),
             ),
             const SizedBox(height: 16),
             _buildActionButton(
               icon: Icons.check_circle,
-              label: 'Mark as Done',
+              label: context.l10n.translate('markAsDone'),
               color: Colors.green,
               onTap: () {
                 Navigator.pop(context);
@@ -898,7 +986,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
             ),
             _buildActionButton(
               icon: Icons.cancel,
-              label: 'Mark as Failed',
+              label: context.l10n.translate('markAsFailed'),
               color: Colors.red,
               onTap: () {
                 Navigator.pop(context);
@@ -907,7 +995,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
             ),
             _buildActionButton(
               icon: Icons.skip_next,
-              label: 'Skip Today',
+              label: context.l10n.translate('skipToday'),
               color: AppColors.black40,
               onTap: () {
                 Navigator.pop(context);
@@ -916,7 +1004,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
             ),
             _buildActionButton(
               icon: Icons.edit,
-              label: 'Edit Habit',
+              label: context.l10n.translate('editHabit'),
               color: AppColors.blue100,
               onTap: () {
                 Navigator.pop(context);
@@ -974,7 +1062,7 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update: $e')),
+        SnackBar(content: Text('${context.l10n.translate('failedToUpdate')}: $e')),
       );
     }
   }
@@ -1004,11 +1092,11 @@ class _HabitsListScreenState extends State<HabitsListScreen> {
       _loadHabits();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${defaultHabit.name} added!')),
+        SnackBar(content: Text('${_getLocalizedUserHabitName(defaultHabit.name, context)} ${context.l10n.translate('added')}')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add: $e')),
+        SnackBar(content: Text('${context.l10n.translate('failedToAdd')}: $e')),
       );
     }
   }

@@ -7,6 +7,7 @@ enum HabitType {
   newGood,
 }
 
+
 class HabitOptionWidget extends StatelessWidget {
   final String title;
   final String subtitle;

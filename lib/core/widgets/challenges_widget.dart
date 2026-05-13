@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class ChallengesWidget extends StatelessWidget {
   final String title;
@@ -11,6 +12,7 @@ class ChallengesWidget extends StatelessWidget {
   final VoidCallback? onContainerPressed;
   final VoidCallback? onFriendsPressed;
   final VoidCallback? onAddFriendPressed;
+  final AppLocalizations l10n;
 
   const ChallengesWidget({
     super.key,
@@ -21,6 +23,7 @@ class ChallengesWidget extends StatelessWidget {
     this.onContainerPressed,
     this.onFriendsPressed,
     this.onAddFriendPressed,
+    required this.l10n,
   });
 
   @override
@@ -33,7 +36,7 @@ class ChallengesWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Challenges',
+              l10n.translate('challengesTitle'),
               style: AppFonts.bodyTitleMedium.copyWith(
                 color: AppColors.black100,
                 fontSize: 16,
@@ -43,7 +46,7 @@ class ChallengesWidget extends StatelessWidget {
             GestureDetector(
               onTap: onViewAllPressed,
               child: Text(
-                'VIEW ALL',
+                l10n.translate('viewAll'),
                 style: AppFonts.bodyTitleMedium.copyWith(
                   color: AppColors.blue100,
                   fontSize: 16,

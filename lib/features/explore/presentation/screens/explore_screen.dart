@@ -3,6 +3,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/constants/default_habits.dart';
 import 'package:routiner/core/widgets/header.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/explore/presentation/widgets/explore_header_widget.dart';
@@ -24,7 +25,181 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   bool _isBadHabit = false;
   String _moodEmoji = '😊';
-  String _moodLabel = 'Good';
+
+  String _getLocalizedHabitName(String habitId, BuildContext context) {
+    switch (habitId) {
+      case 'walk':
+        return context.l10n.translate('walk');
+      case 'read':
+        return context.l10n.translate('read');
+      case 'water':
+        return context.l10n.translate('drinkWater');
+      case 'meditate':
+        return context.l10n.translate('meditate');
+      case 'run':
+        return context.l10n.translate('run');
+      case 'sleep':
+        return context.l10n.translate('sleepEarly');
+      case 'workout':
+        return context.l10n.translate('workout');
+      case 'journal':
+        return context.l10n.translate('journal');
+      case 'smoke':
+        return context.l10n.translate('quitSmoking');
+      case 'sugar':
+        return context.l10n.translate('lessSugar');
+      case 'social':
+        return context.l10n.translate('lessSocialMedia');
+      case 'alcohol':
+        return context.l10n.translate('noAlcohol');
+      case 'procrastinate':
+        return context.l10n.translate('stopProcrastinating');
+      default:
+        return habitId; // Возвращаем ID если нет маппинга
+    }
+  }
+
+  String _getLocalizedHabitSubtitle(String habitId, BuildContext context) {
+    switch (habitId) {
+      case 'walk':
+        return '10,000 ${context.l10n.translate('steps')}';
+      case 'read':
+        return '30 ${context.l10n.translate('pages')}';
+      case 'water':
+        return '2,000 ${context.l10n.translate('ml')}';
+      case 'meditate':
+        return '15 ${context.l10n.translate('min')}';
+      case 'run':
+        return '5 ${context.l10n.translate('km')}';
+      case 'sleep':
+        return '8 ${context.l10n.translate('hours')}';
+      case 'workout':
+        return '45 ${context.l10n.translate('min')}';
+      case 'journal':
+        return '1 ${context.l10n.translate('entry')}';
+      case 'smoke':
+        return '0 ${context.l10n.translate('cigarettes')}';
+      case 'sugar':
+        return 'Max 25${context.l10n.translate('cal')}';
+      case 'social':
+        return 'Max 30 ${context.l10n.translate('min')}';
+      case 'alcohol':
+        return '0 ${context.l10n.translate('drinks')}';
+      case 'procrastinate':
+        return '${context.l10n.translate('completeTasks')}';
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedClubName(String clubId, BuildContext context) {
+    switch (clubId) {
+      case 'cat_lovers':
+        return context.l10n.translate('catLovers');
+      case 'book_worms':
+        return context.l10n.translate('bookWorms');
+      case 'runners':
+        return context.l10n.translate('runners');
+      case 'yoga_life':
+        return context.l10n.translate('yogaLife');
+      case 'meditation':
+        return context.l10n.translate('meditationClub');
+      case 'fitness_gurus':
+        return context.l10n.translate('fitnessGurus');
+      case 'creative_minds':
+        return context.l10n.translate('creativeMinds');
+      case 'eco_warriors':
+        return context.l10n.translate('ecoWarriors');
+      default:
+        return clubId; // Возвращаем ID если нет маппинга
+    }
+  }
+
+  String _getLocalizedClubDescription(String clubId, BuildContext context) {
+    switch (clubId) {
+      case 'cat_lovers':
+        return context.l10n.translate('catLoversDescription');
+      case 'book_worms':
+        return context.l10n.translate('bookWormsDescription');
+      case 'runners':
+        return context.l10n.translate('runnersDescription');
+      case 'yoga_life':
+        return context.l10n.translate('yogaLifeDescription');
+      case 'meditation':
+        return context.l10n.translate('meditationClubDescription');
+      case 'fitness_gurus':
+        return context.l10n.translate('fitnessGurusDescription');
+      case 'creative_minds':
+        return context.l10n.translate('creativeMindsDescription');
+      case 'eco_warriors':
+        return context.l10n.translate('ecoWarriorsDescription');
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedChallengeTitle(String challengeId, BuildContext context) {
+    switch (challengeId) {
+      case '7_day_water':
+        return context.l10n.translate('waterChallenge');
+      case '21_day_fitness':
+        return context.l10n.translate('fitnessChallenge');
+      case 'morning_routine':
+        return context.l10n.translate('morningRoutineChallenge');
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedChallengeDescription(String challengeId, BuildContext context) {
+    switch (challengeId) {
+      case '7_day_water':
+        return context.l10n.translate('waterChallengeDescription');
+      case '21_day_fitness':
+        return context.l10n.translate('fitnessChallengeDescription');
+      case 'morning_routine':
+        return context.l10n.translate('morningRoutineChallengeDescription');
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedLessonTitle(String lessonId, BuildContext context) {
+    switch (lessonId) {
+      case 'water_benefits':
+        return context.l10n.translate('waterBenefitsLesson');
+      case 'walking_benefits':
+        return context.l10n.translate('walkingBenefitsLesson');
+      case 'morning_routine':
+        return context.l10n.translate('morningRoutineLesson');
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedLessonSubtitle(String lessonId, BuildContext context) {
+    switch (lessonId) {
+      case 'water_benefits':
+        return context.l10n.translate('waterBenefitsSubtitle');
+      case 'walking_benefits':
+        return context.l10n.translate('walkingBenefitsSubtitle');
+      case 'morning_routine':
+        return context.l10n.translate('morningRoutineSubtitle');
+      default:
+        return ''; // Возвращаем пустую строку если нет маппинга
+    }
+  }
+
+  String _getLocalizedLessonDifficulty(String difficulty, BuildContext context) {
+    switch (difficulty) {
+      case 'Beginner':
+        return context.l10n.translate('beginner');
+      case 'Intermediate':
+        return context.l10n.translate('intermediate');
+      default:
+        return difficulty; // Возвращаем оригинал если нет маппинга
+    }
+  }
 
   void _refreshHabits() {
     // Callback для обновления привычек
@@ -33,7 +208,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final habits = DefaultHabits.getByType(!_isBadHabit);
+    final habits = DefaultHabits.getByType(!_isBadHabit).map((habit) {
+      // Локализуем название и subtitle привычки
+      return DefaultHabit(
+        id: habit.id,
+        name: _getLocalizedHabitName(habit.id, context),
+        emoji: habit.emoji,
+        subtitle: _getLocalizedHabitSubtitle(habit.id, context),
+        color: habit.color,
+        targetValue: habit.targetValue,
+        targetUnit: habit.targetUnit,
+        unitLabel: habit.unitLabel,
+        frequency: habit.frequency,
+        period: habit.period,
+        isGoodHabit: habit.isGoodHabit,
+        motivation: habit.motivation,
+        reminderTime: habit.reminderTime,
+      );
+    }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -41,7 +233,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ExploreHeaderWidget(header: 'Explore', onPressed: () {}),
+            ExploreHeaderWidget(header: context.l10n.translate('explore'), onPressed: () {}),
 
           // Заголовок секции с кнопкой VIEW ALL
           Padding(
@@ -50,7 +242,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Suggested for You',
+                  context.l10n.translate('suggestedForYou'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                   ),
@@ -64,7 +256,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     );
                   },
                   child: Text(
-                    'VIEW ALL',
+                    context.l10n.translate('viewAll'),
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.blue100,
                       fontWeight: FontWeight.w600,
@@ -91,7 +283,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         builder: (context) => CustomHabitScreen(
                           isBadHabit: _isBadHabit,
                           moodEmoji: _moodEmoji,
-                          moodLabel: _moodLabel,
+                          moodLabel: context.l10n.translate('good'),
                           selectedHabitName: habit.name,
                           selectedHabitSubtitle: habit.subtitle,
                           selectedHabitEmoji: habit.emoji,
@@ -185,7 +377,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Habit Clubs',
+                  context.l10n.translate('habitClubs'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                   ),
@@ -199,7 +391,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     );
                   },
                   child: Text(
-                    'VIEW ALL',
+                    context.l10n.translate('viewAll'),
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.blue100,
                       fontWeight: FontWeight.w600,
@@ -322,7 +514,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         ),
                         const Spacer(),
                         Text(
-                          club['name'] as String,
+                          _getLocalizedClubName(club['id'] as String, context),
                           style: AppFonts.bodyAlternative.copyWith(
                             color: AppColors.black100,
                             fontWeight: FontWeight.w600,
@@ -333,7 +525,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${club['members']} members',
+                          '${club['members']} ${context.l10n.translate('members')}',
                           style: AppFonts.bodyAlternative.copyWith(
                             color: AppColors.black60,
                             fontSize: 11,
@@ -356,7 +548,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Challenges',
+                  context.l10n.translate('challenges'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                   ),
@@ -370,7 +562,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     );
                   },
                   child: Text(
-                    'VIEW ALL',
+                    context.l10n.translate('viewAll'),
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.blue100,
                       fontWeight: FontWeight.w600,
@@ -393,40 +585,40 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 final challenges = [
                   {
                     'id': '7_day_water',
-                    'title': '7-Day Water Challenge',
-                    'endTime': now.add(const Duration(days: 7)),
-                    'description': 'Start your wellness journey with proper hydration. Drink 8 glasses of water daily for one week.',
+                    'title': _getLocalizedChallengeTitle('7_day_water', context),
+                    'endTime': now.add(const Duration(days:7)),
+                    'description': _getLocalizedChallengeDescription('7_day_water', context),
                     'icon': '💧',
                     'color': const Color(0xFF29B6F6),
                     'participants': 128,
                     'habits': [
-                      {'title': 'Drink water', 'icon': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('drinkWater'), 'icon': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': '21_day_fitness',
-                    'title': '21-Day Fitness Kickstart',
+                    'title': _getLocalizedChallengeTitle('21_day_fitness', context),
                     'endTime': now.add(const Duration(days: 21)),
-                    'description': 'Build a consistent workout habit in just 3 weeks.',
+                    'description': _getLocalizedChallengeDescription('21_day_fitness', context),
                     'icon': '🏃',
                     'color': const Color(0xFF5B6EFC),
                     'participants': 256,
                     'habits': [
-                      {'title': 'Daily workout', 'icon': '💪', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Take 8K steps', 'icon': '🚶', 'targetValue': 8000, 'targetUnit': 'steps', 'incrementStep': 1000, 'habitType': 'build'},
+                      {'title': context.l10n.translate('workout'), 'icon': '💪', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': '${context.l10n.translate('take')} 8K ${context.l10n.translate('steps')}', 'icon': '🚶', 'targetValue': 8000, 'targetUnit': 'steps', 'incrementStep': 1000, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': 'morning_routine',
-                    'title': 'Perfect Morning Routine',
+                    'title': _getLocalizedChallengeTitle('morning_routine', context),
                     'endTime': now.add(const Duration(days: 14)),
-                    'description': 'Transform your mornings and set the tone for productive days.',
+                    'description': _getLocalizedChallengeDescription('morning_routine', context),
                     'icon': '🌅',
                     'color': const Color(0xFFFFA726),
                     'participants': 89,
                     'habits': [
-                      {'title': 'Meditate', 'icon': '🧘', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Morning stretch', 'icon': '🤸', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('meditate'), 'icon': '🧘', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('morningStretch'), 'icon': '🤸', 'targetValue':5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                 ];
@@ -435,7 +627,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 final timeLeft = endTime.difference(DateTime.now());
                 final days = timeLeft.inDays;
                 final hours = timeLeft.inHours.remainder(24);
-                final timeLeftText = days > 0 ? '$days days ${hours}h left' : '$hours hours left';
+                final timeLeftText = days > 0 
+    ? '${days} ${context.l10n.translate('daysLeft')} ${hours}${context.l10n.translate('hoursLeft')}' 
+    : '${hours} ${context.l10n.translate('hoursLeft')}';
                 
                 return GestureDetector(
                   onTap: () {
@@ -504,7 +698,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        // Осталось времени
+                        // ${context.l10n.translate('timeLeft')}
                         Text(
                           timeLeftText,
                           style: AppFonts.bodyAlternative.copyWith(
@@ -513,7 +707,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Количество привычек
+                        // ${context.l10n.translate('habitsCount')}
                         Row(
                           children: [
                             Container(
@@ -531,7 +725,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${(challenge['habits'] as List<dynamic>?)?.length ?? 1} habits',
+                              '${(challenge['habits'] as List<dynamic>?)?.length ?? 1} ${context.l10n.translate('habitsCount')}',
                               style: AppFonts.bodyAlternative.copyWith(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 12,
@@ -556,7 +750,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Learning',
+                  context.l10n.translate('learning'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                   ),
@@ -570,7 +764,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     );
                   },
                   child: Text(
-                    'VIEW ALL',
+                    context.l10n.translate('viewAll'),
                     style: AppFonts.bodyAlternative.copyWith(
                       color: AppColors.blue100,
                       fontWeight: FontWeight.w600,
@@ -592,31 +786,31 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 final lessons = [
                   {
                     'id': 'water_benefits',
-                    'title': 'Hydration Science',
-                    'subtitle': 'Why water is essential',
+                    'title': _getLocalizedLessonTitle('water_benefits', context),
+                    'subtitle': _getLocalizedLessonSubtitle('water_benefits', context),
                     'emoji': '💧',
-                    'duration': '5 min read',
-                    'difficulty': 'Beginner',
+                    'duration': '5 ${context.l10n.translate('minRead')}',
+                    'difficulty': _getLocalizedLessonDifficulty('Beginner', context),
                     'color': const Color(0xFF29B6F6),
                     'readTime': 5,
                   },
                   {
                     'id': 'walking_benefits',
-                    'title': 'Walking for Wellness',
-                    'subtitle': 'Transform your health with daily walks',
+                    'title': _getLocalizedLessonTitle('walking_benefits', context),
+                    'subtitle': _getLocalizedLessonSubtitle('walking_benefits', context),
                     'emoji': '🚶',
-                    'duration': '8 min read',
-                    'difficulty': 'Beginner',
+                    'duration': '8 ${context.l10n.translate('minRead')}',
+                    'difficulty': _getLocalizedLessonDifficulty('Beginner', context),
                     'color': const Color(0xFF66BB6A),
                     'readTime': 8,
                   },
                   {
                     'id': 'morning_routine',
-                    'title': 'Perfect Morning',
-                    'subtitle': 'Build a routine for success',
+                    'title': _getLocalizedLessonTitle('morning_routine', context),
+                    'subtitle': _getLocalizedLessonSubtitle('morning_routine', context),
                     'emoji': '🌅',
-                    'duration': '12 min read',
-                    'difficulty': 'Intermediate',
+                    'duration': '12 ${context.l10n.translate('minRead')}',
+                    'difficulty': _getLocalizedLessonDifficulty('Intermediate', context),
                     'color': const Color(0xFFFFA726),
                     'readTime': 12,
                   },

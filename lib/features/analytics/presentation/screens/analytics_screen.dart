@@ -6,6 +6,8 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
+import 'package:routiner/features/habits/domain/entities/habit_entity.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -17,6 +19,45 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   int _selectedTabIndex = 1; // 0 = Daily, 1 = Weekly, 2 = Monthly
   final HabitRepository _habitRepository = HabitRepository();
+
+  // Функция локализации фильтров привычек
+  String _getLocalizedFilter(String filter, BuildContext context) {
+    switch (filter) {
+      case 'All Habits':
+        return context.l10n.translate('allHabits');
+      case 'Good Habits':
+        return context.l10n.translate('goodHabits');
+      case 'Bad Habits':
+        return context.l10n.translate('badHabits');
+      default:
+        return filter;
+    }
+  }
+
+  // Функция для получения локализованного текста сравнения в зависимости от таба
+  String _getLocalizedComparisonText(BuildContext context) {
+    switch (_selectedTabIndex) {
+      case 0: // Daily
+        return context.l10n.translate('comparisonByDay');
+      case 1: // Weekly
+        return context.l10n.translate('comparisonByWeek');
+      case 2: // Monthly
+        return context.l10n.translate('comparisonByMonth');
+      default:
+        return context.l10n.translate('comparisonByWeek');
+    }
+  }
+
+  // Функция для правильного склонения слова "привычки" в зависимости от числа
+  String _getLocalizedHabitText(int count, BuildContext context) {
+    if (count == 1) {
+      return context.l10n.translate('habit');
+    } else if (count >= 2 && count <= 4) {
+      return context.l10n.translate('habits2');
+    } else {
+      return context.l10n.translate('habits5');
+    }
+  }
   
   // Данные из Firebase
   List<HabitModel> _habits = [];
@@ -75,11 +116,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       if (mounted) {
         setState(() {
           _habits = habits;
-          // Обновляем фильтры
+          // Обновляем фильтры с локализованными названиями
           final filterOptions = ['All Habits', 'Good Habits', 'Bad Habits'];
           for (var habit in habits) {
-            if (!filterOptions.contains(habit.name)) {
-              filterOptions.add(habit.name);
+            // Создаем HabitEntity для получения локализованного названия
+            final habitEntity = HabitEntity(
+              id: habit.id ?? '',
+              userId: habit.userId ?? '',
+              name: habit.name,
+              emoji: habit.emoji,
+              days: [],
+            );
+            
+            final localizedName = habitEntity.getLocalizedName(context.l10n);
+            if (!filterOptions.contains(localizedName)) {
+              filterOptions.add(localizedName);
             }
           }
           _habitFilterOptions = filterOptions;
@@ -132,10 +183,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     // Начинаем с базовых опций
     final options = ['All Habits', 'Good Habits', 'Bad Habits'];
     
-    // Добавляем каждую привычку отдельно
+    // Добавляем каждую привычку отдельно с локализованными названиями
     for (final habit in _habits) {
-      if (!options.contains(habit.name)) {
-        options.add(habit.name);
+      // Создаем HabitEntity для получения локализованного названия
+      final habitEntity = HabitEntity(
+        id: habit.id ?? '',
+        userId: habit.userId ?? '',
+        name: habit.name,
+        emoji: habit.emoji,
+        days: [],
+      );
+      
+      final localizedName = habitEntity.getLocalizedName(context.l10n);
+      if (!options.contains(localizedName)) {
+        options.add(localizedName);
       }
     }
     
@@ -455,32 +516,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (_selectedTabIndex == 0) {
       // Daily
       if (current.isAtSameMomentAs(today)) {
-        return 'Today';
+        return context.l10n.translate('today');
       } else if (current.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
-        return 'Yesterday';
+        return context.l10n.translate('yesterday');
       } else {
-        return 'This day';
+        return context.l10n.translate('thisDay');
       }
-    } else if (_selectedTabIndex == 2) {
-      // Monthly
-      if (_currentWeekStart.month == now.month && _currentWeekStart.year == now.year) {
-        return 'This month';
-      } else {
-        return 'This month';
-      }
-    } else {
+    } else if (_selectedTabIndex == 1) {
       // Weekly
       if (_currentWeekStart.isAtSameMomentAs(today.subtract(Duration(days: today.weekday - 1)))) {
-        return 'This week';
+        return context.l10n.translate('thisWeek');
       } else {
-        return 'This week';
+        return context.l10n.translate('thisWeek');
+      }
+    } else {
+      // Monthly
+      if (_currentWeekStart.month == now.month && _currentWeekStart.year == now.year) {
+        return context.l10n.translate('thisMonth');
+      } else {
+        return context.l10n.translate('thisMonth');
       }
     }
   }
   
   String _getWeekRangeText() {
     final endOfWeek = _currentWeekStart.add(const Duration(days: 6));
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Локализованные месяцы
+    final months = [
+      context.l10n.translate('january'),
+      context.l10n.translate('february'),
+      context.l10n.translate('march'),
+      context.l10n.translate('april'),
+      context.l10n.translate('may'),
+      context.l10n.translate('june'),
+      context.l10n.translate('july'),
+      context.l10n.translate('august'),
+      context.l10n.translate('september'),
+      context.l10n.translate('october'),
+      context.l10n.translate('november'),
+      context.l10n.translate('december'),
+    ];
     
     final startMonth = months[_currentWeekStart.month - 1];
     final endMonth = months[endOfWeek.month - 1];
@@ -579,7 +655,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
               // Header
               Text(
-                'Activity',
+                context.l10n.translate('activity'),
                 style: AppFonts.bodyTitleMedium.copyWith(
                   color: AppColors.black100,
                   fontSize: 24,
@@ -598,9 +674,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
                 child: Row(
                   children: [
-                    _buildTab(0, 'Daily'),
-                    _buildTab(1, 'Weekly'),
-                    _buildTab(2, 'Monthly'),
+                    _buildTab(0, context.l10n.translate('daily')),
+                    _buildTab(1, context.l10n.translate('weekly')),
+                    _buildTab(2, context.l10n.translate('monthly')),
                   ],
                 ),
               ),
@@ -712,7 +788,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _selectedHabitFilter,
+                                  _getLocalizedFilter(_selectedHabitFilter, context),
                                   style: AppFonts.bodyTitleMedium.copyWith(
                                     color: AppColors.black100,
                                     fontSize: 15,
@@ -720,7 +796,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Summary',
+                                  context.l10n.translate('summary'),
                                   style: AppFonts.bodyAlternative.copyWith(
                                     color: AppColors.black40,
                                     fontSize: 12,
@@ -759,7 +835,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'SUCCESS RATE',
+                                context.l10n.translate('successRate').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -784,7 +860,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'COMPLETED',
+                                context.l10n.translate('completed').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -816,7 +892,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'POINTS EARNED',
+                                context.l10n.translate('pointsEarned').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -861,7 +937,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'BEST STREAK DAY',
+                                context.l10n.translate('bestStreakDay').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -893,7 +969,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'SKIPPED',
+                                context.l10n.translate('skipped').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -918,7 +994,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'FAILED',
+                                context.l10n.translate('failed').toUpperCase(),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black40,
                                   fontSize: 10,
@@ -980,7 +1056,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Habits',
+                                  context.l10n.translate('habits'),
                                   style: AppFonts.bodyTitleMedium.copyWith(
                                     color: AppColors.black100,
                                     fontSize: 15,
@@ -988,7 +1064,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Comparison by week',
+                                  _getLocalizedComparisonText(context),
                                   style: AppFonts.bodyAlternative.copyWith(
                                     color: AppColors.black40,
                                     fontSize: 12,
@@ -1010,13 +1086,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Text(
-                                '🔥 Burn!',
+                              Text(
+                                '🔥 ${context.l10n.translate('burn')}',
                                 style: TextStyle(fontSize: 12),
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '$_completedHabitsCount habits',
+                                '$_completedHabitsCount ${_getLocalizedHabitText(_completedHabitsCount, context)}',
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: AppColors.black60,
                                   fontSize: 11,
@@ -1179,7 +1255,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Select Habit',
+                  context.l10n.translate('selectHabit'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                     fontSize: 18,
@@ -1199,7 +1275,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ? const Icon(Icons.check, color: AppColors.blue100)
                             : const SizedBox(width: 24),
                         title: Text(
-                          option,
+                          _getLocalizedFilter(option, context),
                           style: AppFonts.bodyAlternative.copyWith(
                             color: isSelected ? AppColors.blue100 : AppColors.black100,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
