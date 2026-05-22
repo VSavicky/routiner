@@ -9,6 +9,7 @@ import 'package:routiner/features/auth/presentation/widgets/primary_button.dart'
 import 'package:routiner/features/auth/domain/services/auth_service.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -222,7 +223,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fontSize: 16,
           height: 1.35,
         ),
-        title: const Text('Error'),
+        title: Text(context.l10n.translate('error')),
         content: Text(message),
         actions: [
           TextButton(

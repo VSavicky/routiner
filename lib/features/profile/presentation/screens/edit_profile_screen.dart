@@ -131,8 +131,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Selected file does not exist'),
+              SnackBar(
+                content: Text(context.l10n.translate('selectedFileDoesNotExist')),
                 backgroundColor: AppColors.red,
               ),
             );
@@ -254,7 +254,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: $e'),
+            content: Text('${context.l10n.translate('failedToUpdateProfile')}: $e'),
             backgroundColor: AppColors.red,
             duration: Duration(seconds: 3),
           ),

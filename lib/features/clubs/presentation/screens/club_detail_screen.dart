@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/l10n/app_localizations.dart';
 
+
 class ClubDetailScreen extends StatefulWidget {
   final Map<String, dynamic> club;
 
@@ -107,7 +108,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
       await _removeClubHabits();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('You left the club'),
+          content: Text(context.l10n.translate('youLeftTheClub')),
           backgroundColor: Colors.grey,
           duration: const Duration(seconds: 2),
         ),
@@ -118,7 +119,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
       await _addClubHabits();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Welcome to ${widget.club['name']}! 🎉'),
+          content: Text(context.trArgs('welcomeToClub', {'name': widget.club['name']})),
           backgroundColor: AppColors.blue100,
           duration: const Duration(seconds: 2),
         ),

@@ -143,7 +143,10 @@
   "dailyReading": "Ежедневное чтение",
   "bookNotes": "Заметки о книгах",
   "libraryVisit": "Посещение библиотеки",
+  "library": "Библиотека",
   "morningRun": "Утренняя пробежка",
+  "createCustomHabit": "Создать пользовательскую привычку",
+  "popularHabits": "Популярные привычки",
   "stretching": "Растяжка",
   "hydration": "Гидратация",
   "morningYoga": "Утренняя йога",
@@ -400,4 +403,37 @@
   "hoursLeft": "часов осталось",
   "minutesLeft": "минут осталось",
   "done": "Готово!"
+  ,"completeTask": "Выполнить задачу",
+  "lastMonth": "Прошлый месяц",
+    "add": "Добавить",
+    "customHabit": "Пользовательская привычка",
+    "createYourOwnRoutine": "Создайте свою рутину",
+    "quitBadHabit": "Бросить плохую привычку",
+    "neverTooLate": "Никогда не поздно...",
+    "newGoodHabit": "Новая хорошая привычка",
+    "forABetterLife": "Для лучшей жизни",
+  "showing_last_week_activity": "Показана активность за последнюю неделю",
+  "showing_today_activity": "Показана активность за сегодня",
+  "timeLeft": "Осталось времени",
+  "times": "раз"
+  ,"customHabitScreenComingSoon": "Экран создания привычки — скоро"
+  ,"failedToSignOut": "Не удалось выйти"
+  ,"ok": "ОК"
+  ,"iUnderstand": "Понятно"
+  ,"pleaseEnterHabitName": "Пожалуйста, введите название привычки"
+  ,"pleaseSignInToSaveHabits": "Пожалуйста, войдите, чтобы сохранить привычку"
+  ,"habitCreatedSuccessfully": "Привычка успешно создана!"
+  ,"failedToCreateHabit": "Не удалось создать привычку"
+  ,"addedToYourHabits": "{name} добавлена в ваши привычки!"
+  ,"failedToAddHabit": "Не удалось добавить привычку"
+  ,"failedToDeleteHabit": "Не удалось удалить привычку"
+  ,"cancel": "Отмена"
+  ,"delete": "Удалить"
+  ,"cannotCompleteFutureDates": "Невозможно отметить привычки на будущие даты."
+  ,"youLeftTheClub": "Вы покинули клуб"
+  ,"welcomeToClub": "Добро пожаловать в {name}! 🎉"
+  ,"selectedFileDoesNotExist": "Выбранный файл не существует"
+  ,"lessonMarkedIncomplete": "Урок помечен как неполный"
+  ,"lessonCompleted": "Урок завершен! 🎉"
+  ,"error": "Ошибка"
 }

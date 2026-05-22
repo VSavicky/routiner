@@ -8,6 +8,7 @@ import 'package:routiner/core/widgets/habit_bottom_sheet.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key, required this.navigationShell});
@@ -47,8 +48,8 @@ class _RootScreenState extends State<RootScreen> {
     print('Quit Bad Habbit pressed');
     _closeAddModal();
     _showHabitBottomSheet(
-      title: 'Quit Bad Habbit',
-      subtitle: 'Never too late...',
+      title: context.l10n.translate('quitBadHabit'),
+      subtitle: context.l10n.translate('neverTooLate'),
       iconPath: 'assets/icons/ShieldDone.svg',
       isBadHabbit: true,
     );
@@ -58,8 +59,8 @@ class _RootScreenState extends State<RootScreen> {
     print('New Good Habbit pressed');
     _closeAddModal();
     _showHabitBottomSheet(
-      title: 'New Good Habbit',
-      subtitle: 'For a better life',
+      title: context.l10n.translate('newGoodHabit'),
+      subtitle: context.l10n.translate('forABetterLife'),
       iconPath: 'assets/icons/ShieldFail.svg',
       isBadHabbit: false,
     );
@@ -75,7 +76,7 @@ class _RootScreenState extends State<RootScreen> {
         builder: (context) => CustomHabitScreen(
           isBadHabit: false, // Для кастомной привычки считаем ее хорошей
           moodEmoji: '😊',
-          moodLabel: 'Happy',
+          moodLabel: context.l10n.translate('good'),
         ),
       ),
     );
@@ -98,12 +99,12 @@ class _RootScreenState extends State<RootScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => HabitBottomSheet(
-        title: title,
-        subtitle: subtitle,
+      title: title,
+      subtitle: subtitle,
         iconPath: iconPath,
         isBadHabbit: isBadHabbit,
-        moodEmoji: '😊',
-        moodLabel: 'Happy',
+      moodEmoji: '😊',
+      moodLabel: context.l10n.translate('good'),
         onClose: () => Navigator.of(context).pop(),
         onHabitCreated: () {
           // Привычка создана - можно добавить здесь логику уведомления
@@ -180,7 +181,7 @@ class _RootScreenState extends State<RootScreen> {
                           // Кнопка Добавить/Закрыть (активная)
                           _buildAddNavItem(
                             icon: _isAddModalVisible ? Icons.close : Icons.add,
-                            label: 'Добавить',
+                            label: context.l10n.translate('add'),
                             isActive: widget.navigationShell.currentIndex == 2,
                             onTap: _toggleAddModal,
                             size: 30.0,
@@ -217,7 +218,7 @@ class _RootScreenState extends State<RootScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
                                       Text(
-                                        'Custom Habbit',
+                                        context.l10n.translate('customHabit'),
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -226,7 +227,7 @@ class _RootScreenState extends State<RootScreen> {
                                       ),
                                       SizedBox(height: 2),
                                       Text(
-                                        'Create your own routine',
+                                        context.l10n.translate('createYourOwnRoutine'),
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: AppColors.black40,
@@ -268,7 +269,7 @@ class _RootScreenState extends State<RootScreen> {
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'Quit Bad Habbit',
+                                                    context.l10n.translate('quitBadHabit'),
                                                   style: TextStyle(
                                                     fontSize: 14, // Увеличиваем с 11 до 14
                                                     fontWeight: FontWeight.w600,
@@ -277,7 +278,7 @@ class _RootScreenState extends State<RootScreen> {
                                                 ),
                                                 SizedBox(height: 2), // Увеличиваем отступ
                                                 Text(
-                                                  'Never too late...',
+                                                    context.l10n.translate('neverTooLate'),
                                                   style: TextStyle(
                                                     fontSize: 11, // Увеличиваем с 9 до 11
                                                     color: AppColors.black40,
@@ -328,7 +329,7 @@ class _RootScreenState extends State<RootScreen> {
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'New Good Habbit',
+                                                    context.l10n.translate('newGoodHabit'),
                                                   style: TextStyle(
                                                     fontSize: 14, // Увеличиваем с 11 до 14
                                                     fontWeight: FontWeight.w600,
@@ -337,7 +338,7 @@ class _RootScreenState extends State<RootScreen> {
                                                 ),
                                                 SizedBox(height: 2), // Увеличиваем отступ
                                                 Text(
-                                                  'For a better life',
+                                                    context.l10n.translate('forABetterLife'),
                                                   style: TextStyle(
                                                     fontSize: 11, // Увеличиваем с 9 до 11
                                                     color: AppColors.black40,
@@ -483,21 +484,21 @@ class _RootScreenState extends State<RootScreen> {
       // Главная
       _buildNavItem(
         icon: Icons.home,
-        label: 'Главная',
+        label: context.l10n.translate('home'),
         isActive: widget.navigationShell.currentIndex == 0,
         onTap: () => _navigateToIndex(0),
       ),
       // Статистика
       _buildNavItem(
         icon: Icons.bar_chart,
-        label: 'Статистика',
+        label: context.l10n.translate('analytics'),
         isActive: widget.navigationShell.currentIndex == 1,
         onTap: () => _navigateToIndex(1),
       ),
       // Добавить (увеличенная иконка с градиентом)
       _buildAddNavItem(
         icon: _isAddModalVisible ? Icons.close : Icons.add,
-        label: 'Добавить',
+        label: context.l10n.translate('add'),
         isActive: widget.navigationShell.currentIndex == 2,
         onTap: _toggleAddModal,
         size: 30.0, // Обычный размер как у других кнопок
@@ -505,14 +506,14 @@ class _RootScreenState extends State<RootScreen> {
       // Библиотека
       _buildNavItem(
         icon: Icons.library_books,
-        label: 'Библиотека',
+        label: context.l10n.translate('library'),
         isActive: widget.navigationShell.currentIndex == 3,
         onTap: () => _navigateToIndex(3),
       ),
       // Профиль
       _buildNavItem(
         icon: Icons.person,
-        label: 'Профиль',
+        label: context.l10n.translate('profile'),
         isActive: widget.navigationShell.currentIndex == 4,
         onTap: () => _navigateToIndex(4),
       ),

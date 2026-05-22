@@ -8,6 +8,7 @@ import 'package:routiner/features/auth/presentation/widgets/password_input_field
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
 import 'package:routiner/features/auth/domain/services/auth_service.dart';
 import 'package:routiner/features/auth/domain/services/google_sign_in_service.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -120,7 +121,7 @@ class _AuthScreenState extends State<AuthScreen> {
           fontSize: 16,
           height: 1.35,
         ),
-        title: const Text('Error'),
+        title: Text(context.l10n.translate('error')),
         content: Text(message),
         actions: [
           TextButton(

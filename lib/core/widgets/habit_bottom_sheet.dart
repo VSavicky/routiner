@@ -3,6 +3,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/constants/default_habits.dart';
 import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class HabitBottomSheet extends StatelessWidget {
   final String title;
@@ -59,7 +60,7 @@ class HabitBottomSheet extends StatelessWidget {
                 
                 // Заголовок
                 Text(
-                  isBadHabbit ? 'Quit Bad Habbit' : 'New Good Habbit',
+                  title,
                   style: AppFonts.bodyAlternative.copyWith(
                     fontSize: 10,
                     color: AppColors.black40,
@@ -104,7 +105,7 @@ class HabitBottomSheet extends StatelessWidget {
                       // Текст слева
                       Expanded(
                         child: Text(
-                          'Create Custom Habbit',
+                          context.l10n.translate('createCustomHabit'),
                           style: AppFonts.bodyTitleMedium.copyWith(
                             color: AppColors.black100,
                           ),
@@ -136,7 +137,7 @@ class HabitBottomSheet extends StatelessWidget {
                 
                 SizedBox(height: 16),
                 Text(
-              'POPULAR HABITS',
+              context.l10n.translate('popularHabits'),
               style: AppFonts.bodyAlternative.copyWith(
                 fontSize: 10,
                 color: AppColors.black40,

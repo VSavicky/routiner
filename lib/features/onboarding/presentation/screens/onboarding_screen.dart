@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/domain/services/google_sign_in_service.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -106,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           fontSize: 16,
           height: 1.35,
         ),
-        title: const Text('Error'),
+        title: Text(context.l10n.translate('error')),
         content: Text(message),
         actions: [
           TextButton(

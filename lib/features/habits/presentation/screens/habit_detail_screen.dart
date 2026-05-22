@@ -6,6 +6,7 @@ import 'package:routiner/core/constants/default_habits.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 /// Экран деталей привычки
 class HabitDetailScreen extends StatefulWidget {
@@ -191,8 +192,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       if (mounted) {
         setState(() => _isAdded = true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$_name added to your habits!'),
+            SnackBar(
+              content: Text(context.trArgs('addedToYourHabits', {'name': _name})),
             backgroundColor: AppColors.green,
           ),
         );
@@ -200,12 +201,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     } catch (e) {
       print('[ADD HABIT ERROR] $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to add habit'),
-            backgroundColor: Colors.red,
-          ),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.translate('failedToAddHabit')),
+              backgroundColor: Colors.red,
+            ),
+          );
       }
     }
   }
@@ -274,13 +275,13 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: Text(
-                        'Cancel',
-                        style: AppFonts.bodyTitleMedium.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                        child: Text(
+                          context.l10n.translate('cancel'),
+                          style: AppFonts.bodyTitleMedium.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -296,13 +297,13 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: Text(
-                        'Delete',
-                        style: AppFonts.bodyTitleMedium.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                        child: Text(
+                          context.l10n.translate('delete'),
+                          style: AppFonts.bodyTitleMedium.copyWith(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                     ),
                   ),
                 ],
@@ -324,12 +325,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     } catch (e) {
       print('[DELETE HABIT ERROR] $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete habit'),
-            backgroundColor: Colors.red,
-          ),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.translate('failedToDeleteHabit')),
+              backgroundColor: Colors.red,
+            ),
+          );
       }
     }
   }

@@ -4,6 +4,7 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class CustomHabitScreen extends StatefulWidget {
   final String? moodEmoji;
@@ -198,16 +199,16 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   /// Сохранение привычки в Firebase
   Future<void> _saveHabit() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter habit name')),
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.translate('pleaseEnterHabitName'))),
       );
       return;
     }
 
     // Проверка авторизации
     if (!_habitRepository.isAuthenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please sign in to save habits')),
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.translate('pleaseSignInToSaveHabits'))),
       );
       return;
     }
@@ -273,8 +274,8 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       setState(() => _isSaving = false);
 
       // Показываем успех и возвращаемся
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Habit created successfully!')),
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.translate('habitCreatedSuccessfully'))),
       );
 
       // Вызываем callback для обновления главного экрана
@@ -284,8 +285,8 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       Navigator.of(context).pop(createdHabit);
     } catch (e) {
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create habit: $e')),
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${context.l10n.translate('failedToCreateHabit')}: $e')),
       );
     }
   }

@@ -167,7 +167,10 @@
   "dailyReading": "Күнделікті оқу",
   "bookNotes": "Кітап туралы жазбалар",
   "libraryVisit": "Кітапханаларға бару",
+  "library": "Library",
   "morningRun": "Таңғырлық жүгіру",
+  "createCustomHabit": "Create custom habit",
+  "popularHabits": "Popular habits",
   "stretching": "Созу",
   "hydration": "Су ішу",
   "morningYoga": "Таңғырлық йога",
@@ -367,4 +370,79 @@
   "hoursLeft": "сағат қалды",
   "minutesLeft": "минут қалды",
   "done": "Дайын!"
+  ,"add": "Add",
+  "customHabit": "Custom Habit",
+  "createYourOwnRoutine": "Create your own routine",
+  "quitBadHabit": "Quit bad habit",
+  "neverTooLate": "Never too late...",
+  "newGoodHabit": "New good habit",
+  "forABetterLife": "For a better life",
+  "becomeActiveParticipant": "Become an active participant",
+  "buildConsistency": "Build consistency",
+  "buildMonthlyHabits": "Build monthly habits",
+  "buildWeeklyHabits": "Build weekly habits",
+  "collect1000Points": "Collect 1000 points",
+  "collect100Points": "Collect 100 points",
+  "collect500Points": "Collect 500 points",
+  "complete100Habits": "Complete 100 habits",
+  "complete10Habits": "Complete 10 habits",
+  "complete30ConsecutiveDays": "Complete 30 consecutive days",
+  "complete50Habits": "Complete 50 habits",
+  "complete5Challenges": "Complete 5 challenges",
+  "complete7ConsecutiveDays": "Complete 7 consecutive days",
+  "completeAnyHabit": "Complete any habit",
+  "completeAnyHabitSuccessfully": "Complete any habit successfully",
+  "completeFirstChallenge": "Complete your first challenge",
+  "completeFirstHabit": "Complete your first habit",
+  "completeTask": "Complete task",
+  "completeToEnd": "Complete to the end",
+  "dontSkipAnyDay": "Don't skip any day",
+  "earn1000Points": "Earn 1000 points",
+  "earn500Points": "Earn 500 points",
+  "earnFirst100Points": "Earn first 100 points",
+  "exploreDifferentClubs": "Explore different clubs",
+  "find5Communities": "Find 5 communities",
+  "findInterestingChallenge": "Find an interesting challenge",
+  "findInterestingClub": "Find an interesting club",
+  "followInstructions": "Follow instructions",
+  "join5Clubs": "Join 5 clubs",
+  "joinCommunity": "Join the community",
+  "joinFirstClub": "Join your first club",
+  "locked": "Locked",
+  "maintain30DayStreak": "Maintain 30-day streak",
+  "maintain7DayStreak": "Maintain 7-day streak",
+  "reachBeginnerLevel": "Reach beginner level",
+  "reachExpertLevel": "Reach expert level",
+  "reachIntermediateLevel": "Reach intermediate level",
+  "requirements": "Requirements",
+  "showWillpower": "Show willpower",
+  "showing_last_month_activity": "Showing last month activity",
+  "showing_last_week_activity": "Showing last week activity",
+  "showing_today_activity": "Showing today activity",
+  "startCommunicating": "Start communicating",
+  "startJourney": "Start your journey",
+  "stayOnPathToSuccess": "Stay on the path to success",
+  "timeLeft": "Time left",
+  "times": "times",
+  "tryDifferentTasks": "Try different tasks"
+  ,"customHabitScreenComingSoon": "Custom Habit Screen - Coming Soon"
+  ,"failedToSignOut": "Failed to sign out"
+  ,"ok": "OK"
+  ,"iUnderstand": "I Understand"
+  ,"pleaseEnterHabitName": "Please enter habit name"
+  ,"pleaseSignInToSaveHabits": "Please sign in to save habits"
+  ,"habitCreatedSuccessfully": "Habit created successfully!"
+  ,"failedToCreateHabit": "Failed to create habit"
+  ,"addedToYourHabits": "{name} added to your habits!"
+  ,"failedToAddHabit": "Failed to add habit"
+  ,"failedToDeleteHabit": "Failed to delete habit"
+  ,"cancel": "Cancel"
+  ,"delete": "Delete"
+  ,"cannotCompleteFutureDates": "You cannot complete habits for future dates."
+  ,"youLeftTheClub": "You left the club"
+  ,"welcomeToClub": "Welcome to {name}! 🎉"
+  ,"selectedFileDoesNotExist": "Selected file does not exist"
+  ,"lessonMarkedIncomplete": "Lesson marked as incomplete"
+  ,"lessonCompleted": "Lesson completed! 🎉"
+  ,"error": "Error"
 }

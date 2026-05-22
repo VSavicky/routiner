@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 import 'package:routiner/features/analytics/presentation/screens/analytics_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/auth_screen.dart';
 import 'package:routiner/features/auth/presentation/screens/register_screen.dart';
@@ -69,8 +70,8 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: '/add',
-              builder: (context, state) => const Center(
-                child: Text('Custom Habit Screen - Coming Soon'),
+              builder: (context, state) => Center(
+                child: Text(context.l10n.translate('customHabitScreenComingSoon')),
               ),
             ),
           ],

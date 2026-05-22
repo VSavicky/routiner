@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class LearningDetailScreen extends StatefulWidget {
   final Map<String, dynamic> lesson;
@@ -45,7 +46,7 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
       completedLessons.remove(widget.lesson['id'] as String);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lesson marked as incomplete'),
+          content: Text(context.l10n.translate('lessonMarkedIncomplete')),
           backgroundColor: Colors.grey,
           duration: const Duration(seconds: 2),
         ),
@@ -54,7 +55,7 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
       completedLessons.add(widget.lesson['id'] as String);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lesson completed! 🎉'),
+          content: Text(context.l10n.translate('lessonCompleted')),
           backgroundColor: AppColors.blue100,
           duration: const Duration(seconds: 2),
         ),

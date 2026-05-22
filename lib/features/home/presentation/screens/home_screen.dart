@@ -495,8 +495,8 @@ class _HomePageState extends State<HomePage> {
 
   void _showFutureDateActionMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('You cannot complete habits for future dates.'),
+      SnackBar(
+        content: Text(context.l10n.translate('cannotCompleteFutureDates')),
       ),
     );
   }

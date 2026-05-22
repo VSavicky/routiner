@@ -9,11 +9,9 @@ class HabitRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  HabitRepository({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  HabitRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   /// Получить текущего пользователя
   User? get currentUser => _auth.currentUser;
@@ -39,7 +37,9 @@ class HabitRepository {
   /// Создать новую привычку
   Future<HabitModel> createHabit(HabitModel habit) async {
     try {
-      final docRef = await _firestore.collection('habits').add(habit.toFirestore());
+      final docRef = await _firestore
+          .collection('habits')
+          .add(habit.toFirestore());
       return habit.copyWith(id: docRef.id);
     } catch (e) {
       throw Exception('Failed to create habit: $e');
@@ -66,16 +66,16 @@ class HabitRepository {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-      final habits = snapshot.docs
-          .map((doc) => HabitModel.fromFirestore(doc))
-          .where((h) => !h.isArchived) // Фильтруем на клиенте
-          .toList();
-      // Сортируем на клиенте по createdAt (новые сначала)
-      habits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return habits;
-    });
+          final habits = snapshot.docs
+              .map((doc) => HabitModel.fromFirestore(doc))
+              .where((h) => !h.isArchived) // Фильтруем на клиенте
+              .toList();
+          // Сортируем на клиенте по createdAt (новые сначала)
+          habits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return habits;
+        });
   }
-  
+
   /// Получить все привычки пользователя принудительно с сервера (без кэша)
   Future<List<HabitModel>> getUserHabitsFromServer(String userId) async {
     final snapshot = await _firestore
@@ -100,8 +100,10 @@ class HabitRepository {
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => HabitModel.fromFirestore(doc)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => HabitModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   /// Обновить привычку
@@ -110,9 +112,10 @@ class HabitRepository {
       if (habit.id == null) {
         throw Exception('Habit ID is required for update');
       }
-      await _firestore.collection('habits').doc(habit.id).update(
-        habit.copyWith(updatedAt: DateTime.now()).toFirestore(),
-      );
+      await _firestore
+          .collection('habits')
+          .doc(habit.id)
+          .update(habit.copyWith(updatedAt: DateTime.now()).toFirestore());
     } catch (e) {
       throw Exception('Failed to update habit: $e');
     }
@@ -135,13 +138,13 @@ class HabitRepository {
     try {
       // Удаляем привычку
       await _firestore.collection('habits').doc(habitId).delete();
-      
+
       // Удаляем все логи этой привычки
       final logsQuery = await _firestore
           .collection('habitLogs')
           .where('habitId', isEqualTo: habitId)
           .get();
-      
+
       final batch = _firestore.batch();
       for (var doc in logsQuery.docs) {
         batch.delete(doc.reference);
@@ -181,7 +184,7 @@ class HabitRepository {
         // Обновляем существующий лог
         final existingLog = HabitLogModel.fromFirestore(doc);
         final wasCompletedBefore = existingLog.status == HabitStatus.completed;
-        
+
         final updatedLog = existingLog.copyWith(
           status: status,
           isCompleted: isCompleted,
@@ -190,12 +193,12 @@ class HabitRepository {
           note: note ?? existingLog.note,
         );
         await logRef.update(updatedLog.toFirestore());
-        
+
         // Начисляем очки только если статус изменился на completed
         if (isCompleted && !wasCompletedBefore) {
           await addPoints(userId, 10);
         }
-        
+
         return updatedLog;
       } else {
         // Создаем новый лог
@@ -211,12 +214,12 @@ class HabitRepository {
           note: note,
         );
         await logRef.set(newLog.toFirestore());
-        
+
         // Начисляем очки если статус completed
         if (isCompleted) {
           await addPoints(userId, 10);
         }
-        
+
         return newLog;
       }
     } catch (e) {
@@ -245,8 +248,8 @@ class HabitRepository {
 
       // Получаем привычку для проверки targetValue
       final habitDoc = await _firestore.collection('habits').doc(habitId).get();
-      final targetValue = habitDoc.exists 
-          ? (habitDoc.data() as Map<String, dynamic>)['targetValue'] ?? 1 
+      final targetValue = habitDoc.exists
+          ? (habitDoc.data() as Map<String, dynamic>)['targetValue'] ?? 1
           : 1;
 
       if (doc.exists) {
@@ -254,25 +257,25 @@ class HabitRepository {
         final existingLog = HabitLogModel.fromFirestore(doc);
         final newValue = (existingLog.value ?? 0) + increment;
         final isCompleted = newValue >= targetValue;
-        
+
         final wasCompletedBefore = existingLog.isCompleted;
-        
+
         final updatedLog = existingLog.copyWith(
           value: newValue,
           status: isCompleted ? HabitStatus.completed : existingLog.status,
           isCompleted: isCompleted,
-          completedAt: isCompleted && !wasCompletedBefore 
-              ? DateTime.now() 
+          completedAt: isCompleted && !wasCompletedBefore
+              ? DateTime.now()
               : existingLog.completedAt,
           note: note ?? existingLog.note,
         );
         await logRef.update(updatedLog.toFirestore());
-        
+
         // Начисляем очки если привычка только что стала completed
         if (isCompleted && !wasCompletedBefore) {
           await addPoints(userId, 10);
         }
-        
+
         return updatedLog;
       } else {
         // Создаем новый лог
@@ -289,12 +292,12 @@ class HabitRepository {
           note: note,
         );
         await logRef.set(newLog.toFirestore());
-        
+
         // Начисляем очки если привычка сразу выполнена
         if (isCompleted) {
           await addPoints(userId, 10);
         }
-        
+
         return newLog;
       }
     } catch (e) {
@@ -365,19 +368,24 @@ class HabitRepository {
         .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => HabitLogModel.fromFirestore(doc)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => HabitLogModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   /// Получить лог за конкретную дату
-  Future<HabitLogModel?> getHabitLogForDate(String habitId, DateTime date) async {
+  Future<HabitLogModel?> getHabitLogForDate(
+    String habitId,
+    DateTime date,
+  ) async {
     try {
       final userId = currentUserId;
       if (userId == null) return null;
 
       final logId = HabitLogModel.createId(userId, habitId, date);
       final doc = await _firestore.collection('habitLogs').doc(logId).get();
-      
+
       if (doc.exists) {
         return HabitLogModel.fromFirestore(doc);
       }
@@ -388,7 +396,10 @@ class HabitRepository {
   }
 
   /// Получить логи привычек за дату (фильтруем на клиенте для избежания индексов)
-  Future<List<HabitLogModel>> getHabitLogsForDate(String userId, DateTime date) async {
+  Future<List<HabitLogModel>> getHabitLogsForDate(
+    String userId,
+    DateTime date,
+  ) async {
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);
       final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -399,14 +410,15 @@ class HabitRepository {
           .where('userId', isEqualTo: userId)
           .get();
 
-      return snapshot.docs
-          .map((doc) => HabitLogModel.fromFirestore(doc))
-          .where((log) {
-            final logDate = log.date;
-            return logDate.isAfter(startOfDay.subtract(const Duration(seconds: 1))) &&
-                   logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
-          })
-          .toList();
+      return snapshot.docs.map((doc) => HabitLogModel.fromFirestore(doc)).where(
+        (log) {
+          final logDate = log.date;
+          return logDate.isAfter(
+                startOfDay.subtract(const Duration(seconds: 1)),
+              ) &&
+              logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
+        },
+      ).toList();
     } catch (e) {
       print('Error getting habit logs: $e');
       return [];
@@ -414,7 +426,10 @@ class HabitRepository {
   }
 
   /// Получить логи привычек за дату принудительно с сервера (без кэша)
-  Future<List<HabitLogModel>> getHabitLogsForDateFromServer(String userId, DateTime date) async {
+  Future<List<HabitLogModel>> getHabitLogsForDateFromServer(
+    String userId,
+    DateTime date,
+  ) async {
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);
       final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -425,22 +440,48 @@ class HabitRepository {
           .where('userId', isEqualTo: userId)
           .get(GetOptions(source: Source.server));
 
-      return snapshot.docs
-          .map((doc) => HabitLogModel.fromFirestore(doc))
-          .where((log) {
-            final logDate = log.date;
-            return logDate.isAfter(startOfDay.subtract(const Duration(seconds: 1))) &&
-                   logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
-          })
-          .toList();
+      return snapshot.docs.map((doc) => HabitLogModel.fromFirestore(doc)).where(
+        (log) {
+          final logDate = log.date;
+          return logDate.isAfter(
+                startOfDay.subtract(const Duration(seconds: 1)),
+              ) &&
+              logDate.isBefore(endOfDay.add(const Duration(seconds: 1)));
+        },
+      ).toList();
     } catch (e) {
       print('Error getting habit logs from server: $e');
       return [];
     }
   }
 
+  /// Stream всех логов пользователя (опционально с фильтром по дате)
+  Stream<List<HabitLogModel>> getUserHabitLogsStream(
+    String userId, {
+    DateTime? fromDate,
+  }) {
+    Query query = _firestore
+        .collection('habitLogs')
+        .where('userId', isEqualTo: userId);
+    if (fromDate != null) {
+      query = query.where(
+        'date',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(fromDate),
+      );
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => HabitLogModel.fromFirestore(doc))
+          .toList();
+    });
+  }
+
   /// Получить статистику по привычке
-  Future<Map<String, dynamic>> getHabitStats(String habitId, DateTime fromDate) async {
+  Future<Map<String, dynamic>> getHabitStats(
+    String habitId,
+    DateTime fromDate,
+  ) async {
     try {
       final logs = await _firestore
           .collection('habitLogs')
@@ -456,7 +497,7 @@ class HabitRepository {
       // Вычисляем streak (подряд выполненных дней)
       int currentStreak = 0;
       DateTime checkDate = DateTime.now();
-      
+
       while (true) {
         final logId = HabitLogModel.createId(
           currentUserId ?? '',
@@ -464,8 +505,9 @@ class HabitRepository {
           checkDate,
         );
         final doc = await _firestore.collection('habitLogs').doc(logId).get();
-        
-        if (doc.exists && (doc.data() as Map<String, dynamic>)['isCompleted'] == true) {
+
+        if (doc.exists &&
+            (doc.data() as Map<String, dynamic>)['isCompleted'] == true) {
           currentStreak++;
           checkDate = checkDate.subtract(Duration(days: 1));
         } else {
@@ -517,7 +559,7 @@ class HabitRepository {
     try {
       // Проверяем, есть ли уже настроение за эту дату
       final existingMood = await getMoodForDate(userId, date);
-      
+
       final mood = MoodModel(
         id: existingMood?.id,
         userId: userId,
@@ -576,8 +618,10 @@ class HabitRepository {
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => MoodModel.fromFirestore(doc)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => MoodModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   /// Удалить настроение
@@ -594,7 +638,7 @@ class HabitRepository {
     try {
       final userRef = _firestore.collection('users').doc(userId);
       final userDoc = await userRef.get();
-      
+
       if (userDoc.exists) {
         // Обновляем существующие очки
         final currentPoints = (userDoc.data()?['points'] ?? 0) as int;

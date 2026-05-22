@@ -58,16 +58,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return context.l10n.translate('habits5');
     }
   }
-  
+
   // Данные из Firebase
   List<HabitModel> _habits = [];
   List<HabitLogModel> _allLogs = [];
   bool _isLoading = true;
-  
+
   // Фильтр привычек
-  String _selectedHabitFilter = 'All Habits'; // 'All Habits', 'Good Habits', 'Bad Habits', или конкретное имя
-  List<String> _habitFilterOptions = ['All Habits', 'Good Habits', 'Bad Habits'];
-  
+  String _selectedHabitFilter =
+      'All Habits'; // 'All Habits', 'Good Habits', 'Bad Habits', или конкретное имя
+  List<String> _habitFilterOptions = [
+    'All Habits',
+    'Good Habits',
+    'Bad Habits',
+  ];
+
   // Данные для статистики
   int _completedCount = 0;
   int _skippedCount = 0;
@@ -75,26 +80,45 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   int _pointsEarned = 0;
   int _bestStreak = 0;
   double _successRate = 0.0;
-  int _completedHabitsCount = 0; // Количество выполненных привычек для отображения
-  
+  int _completedHabitsCount =
+      0; // Количество выполненных привычек для отображения
+
   // Данные для графика (последние 7 дней)
   List<int> _weeklyData = [0, 0, 0, 0, 0, 0, 0];
-  List<int> _dailyData = [0, 0, 0, 0, 0, 0]; // Данные за 24 часа (6 точек по 4 часа)
-  List<int> _monthlyData = [0, 0, 0, 0, 0, 0, 0]; // Данные за месяц (7 периодов)
-  
-    
+  List<int> _dailyData = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ]; // Данные за 24 часа (6 точек по 4 часа)
+  List<int> _monthlyData = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ]; // Данные за месяц (7 периодов)
+
   // Дата для отображения
-  DateTime _currentWeekStart = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+  DateTime _currentWeekStart = DateTime.now().subtract(
+    Duration(days: DateTime.now().weekday - 1),
+  );
 
   StreamSubscription<List<HabitModel>>? _habitsSubscription;
+  StreamSubscription<List<HabitLogModel>>? _logsSubscription;
   bool _dataLoaded = false;
-  
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _setupLogsStream();
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -106,13 +130,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       }
     });
   }
-  
+
   void _setupHabitsStream() {
     final userId = _habitRepository.currentUserId;
     if (userId == null) return;
-    
+
     // Подписываемся на поток привычек для real-time обновлений
-    _habitsSubscription = _habitRepository.getUserHabits(userId).listen((habits) {
+    _habitsSubscription = _habitRepository.getUserHabits(userId).listen((
+      habits,
+    ) {
       if (mounted) {
         setState(() {
           _habits = habits;
@@ -127,7 +153,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               emoji: habit.emoji,
               days: [],
             );
-            
+
             final localizedName = habitEntity.getLocalizedName(context.l10n);
             if (!filterOptions.contains(localizedName)) {
               filterOptions.add(localizedName);
@@ -140,24 +166,43 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     _habitsSubscription?.cancel();
+    _logsSubscription?.cancel();
     super.dispose();
   }
-  
+
+  void _setupLogsStream() {
+    final userId = _habitRepository.currentUserId;
+    if (userId == null) return;
+
+    // Подписываемся на логи за последние 30 дней — обновляет данные в реальном времени
+    final fromDate = DateTime.now().subtract(const Duration(days: 29));
+    _logsSubscription = _habitRepository
+        .getUserHabitLogsStream(userId, fromDate: fromDate)
+        .listen((logs) {
+          if (!mounted) return;
+          setState(() {
+            _allLogs = logs;
+          });
+          _calculateStats();
+          _calculateChartData();
+        });
+  }
+
   Future<void> _loadData() async {
     final userId = _habitRepository.currentUserId;
     if (userId == null) return;
-    
+
     try {
       setState(() => _isLoading = true);
-      
+
       // Загружаем привычки и логи последовательно
       final habitsStream = _habitRepository.getUserHabits(userId);
       final logs = await _getLogsForLastDays(userId, 30);
-      
+
       // Правильно обрабатываем Stream из привычек
       habitsStream.listen((habits) {
         setState(() {
@@ -165,11 +210,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           _allLogs = logs;
           _isLoading = false;
         });
-        
+
         // Рассчитываем статистику и данные для графиков
         _calculateStats();
         _calculateChartData();
-        
+
         // Обновляем опции фильтра с конкретными привычками
         _updateHabitFilterOptions();
       });
@@ -178,11 +223,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       setState(() => _isLoading = false);
     }
   }
-  
+
   void _updateHabitFilterOptions() {
     // Начинаем с базовых опций
     final options = ['All Habits', 'Good Habits', 'Bad Habits'];
-    
+
     // Добавляем каждую привычку отдельно с локализованными названиями
     for (final habit in _habits) {
       // Создаем HabitEntity для получения локализованного названия
@@ -193,19 +238,22 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         emoji: habit.emoji,
         days: [],
       );
-      
+
       final localizedName = habitEntity.getLocalizedName(context.l10n);
       if (!options.contains(localizedName)) {
         options.add(localizedName);
       }
     }
-    
+
     setState(() {
       _habitFilterOptions = options;
     });
   }
-  
-  Future<List<HabitLogModel>> _getLogsForLastDays(String userId, int days) async {
+
+  Future<List<HabitLogModel>> _getLogsForLastDays(
+    String userId,
+    int days,
+  ) async {
     try {
       // Получаем логи за все дни периода ПАРАЛЛЕЛЬНО для скорости
       final futures = <Future<List<HabitLogModel>>>[];
@@ -213,7 +261,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         final date = DateTime.now().subtract(Duration(days: i));
         futures.add(_habitRepository.getHabitLogsForDate(userId, date));
       }
-      
+
       final results = await Future.wait(futures);
       return results.expand((logs) => logs).toList();
     } catch (e) {
@@ -221,11 +269,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return [];
     }
   }
-  
-    
+
   void _calculateStats() {
     final filteredLogs = _getFilteredLogs();
-    
+
     if (_habits.isEmpty || filteredLogs.isEmpty) {
       setState(() {
         _successRate = 0.0;
@@ -238,13 +285,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       });
       return;
     }
-    
+
     // Подсчитываем статусы
     int completed = 0;
     int skipped = 0;
     int failed = 0;
     int points = 0;
-    
+
     for (var log in filteredLogs) {
       switch (log.status) {
         case HabitStatus.completed:
@@ -261,14 +308,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           break;
       }
     }
-    
+
     // Считаем success rate (completed / total logs)
     final totalLogs = filteredLogs.length;
     final successRate = totalLogs > 0 ? (completed / totalLogs) * 100 : 0.0;
-    
+
     // Считаем best streak
     int bestStreak = _calculateBestStreak();
-    
+
     setState(() {
       _completedCount = completed;
       _skippedCount = skipped;
@@ -279,7 +326,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _completedHabitsCount = completed;
     });
   }
-  
+
   int _calculateBestStreak() {
     // Получаем отфильтрованные привычки
     List<HabitModel> filteredHabits;
@@ -291,27 +338,30 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       filteredHabits = _habits.where((h) => h.habitType == 'quit').toList();
     } else {
       // Конкретная привычка
-      filteredHabits = _habits.where((h) => h.name == _selectedHabitFilter).toList();
+      filteredHabits = _habits
+          .where((h) => h.name == _selectedHabitFilter)
+          .toList();
     }
-    
+
     if (filteredHabits.isEmpty) return 0;
-    
+
     final filteredLogIds = _getFilteredLogs().map((l) => l.habitId).toSet();
     int bestStreak = 0;
-    
+
     for (var habit in filteredHabits) {
       if (habit.id == null) continue;
       if (!filteredLogIds.contains(habit.id)) continue;
-      
+
       int streak = 0;
       DateTime checkDate = DateTime.now();
-      
+
       while (true) {
         final log = _allLogs.firstWhere(
-          (l) => l.habitId == habit.id && 
-                 l.date.year == checkDate.year && 
-                 l.date.month == checkDate.month && 
-                 l.date.day == checkDate.day,
+          (l) =>
+              l.habitId == habit.id &&
+              l.date.year == checkDate.year &&
+              l.date.month == checkDate.month &&
+              l.date.day == checkDate.day,
           orElse: () => HabitLogModel(
             userId: '',
             habitId: '',
@@ -319,7 +369,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             status: HabitStatus.pending,
           ),
         );
-        
+
         if (log.status == HabitStatus.completed) {
           streak++;
           checkDate = checkDate.subtract(const Duration(days: 1));
@@ -327,20 +377,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           break;
         }
       }
-      
+
       if (streak > bestStreak) {
         bestStreak = streak;
       }
     }
-    
+
     return bestStreak;
   }
-  
+
   // Получить отфильтрованные логи по выбранной привычке и текущему периоду
   List<HabitLogModel> _getFilteredLogs() {
     // Сначала фильтруем по периоду
     final periodLogs = _getLogsForCurrentPeriod();
-    
+
     // Затем фильтруем по привычке
     if (_selectedHabitFilter == 'All Habits') {
       return periodLogs;
@@ -351,7 +401,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           .where((id) => id != null)
           .cast<String>()
           .toSet();
-      return periodLogs.where((log) => goodHabitIds.contains(log.habitId)).toList();
+      return periodLogs
+          .where((log) => goodHabitIds.contains(log.habitId))
+          .toList();
     } else if (_selectedHabitFilter == 'Bad Habits') {
       final badHabitIds = _habits
           .where((h) => h.habitType == 'quit')
@@ -359,7 +411,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           .where((id) => id != null)
           .cast<String>()
           .toSet();
-      return periodLogs.where((log) => badHabitIds.contains(log.habitId)).toList();
+      return periodLogs
+          .where((log) => badHabitIds.contains(log.habitId))
+          .toList();
     } else {
       // Конкретная привычка по имени
       final habit = _habits.firstWhere(
@@ -376,34 +430,44 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       return periodLogs.where((log) => log.habitId == habit.id).toList();
     }
   }
-  
+
   // Получить логи только за текущий выбранный период
   List<HabitLogModel> _getLogsForCurrentPeriod() {
     if (_selectedTabIndex == 0) {
       // Daily - только за выбранный день
-      return _allLogs.where((log) => 
-        log.date.year == _currentWeekStart.year && 
-        log.date.month == _currentWeekStart.month && 
-        log.date.day == _currentWeekStart.day
-      ).toList();
+      return _allLogs
+          .where(
+            (log) =>
+                log.date.year == _currentWeekStart.year &&
+                log.date.month == _currentWeekStart.month &&
+                log.date.day == _currentWeekStart.day,
+          )
+          .toList();
     } else if (_selectedTabIndex == 1) {
       // Weekly - за выбранную неделю (7 дней)
       final weekEnd = _currentWeekStart.add(const Duration(days: 6));
       return _allLogs.where((log) {
         final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-        final start = DateTime(_currentWeekStart.year, _currentWeekStart.month, _currentWeekStart.day);
+        final start = DateTime(
+          _currentWeekStart.year,
+          _currentWeekStart.month,
+          _currentWeekStart.day,
+        );
         final end = DateTime(weekEnd.year, weekEnd.month, weekEnd.day);
         return !logDate.isBefore(start) && !logDate.isAfter(end);
       }).toList();
     } else {
       // Monthly - за выбранный месяц
-      return _allLogs.where((log) => 
-        log.date.year == _currentWeekStart.year && 
-        log.date.month == _currentWeekStart.month
-      ).toList();
+      return _allLogs
+          .where(
+            (log) =>
+                log.date.year == _currentWeekStart.year &&
+                log.date.month == _currentWeekStart.month,
+          )
+          .toList();
     }
   }
-  
+
   void _calculateChartData() {
     switch (_selectedTabIndex) {
       case 0: // Daily
@@ -417,81 +481,100 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         break;
     }
   }
-  
+
   void _calculateDailyData() {
     // Считаем completed habits по часам за выбранный день (6 точек по 4 часа)
     final filteredLogs = _getFilteredLogs();
     final data = <int>[0, 0, 0, 0, 0, 0];
     final selectedDay = _currentWeekStart;
-    
-    print('[ANALYTICS HABITS] Calculating daily data for ${selectedDay.month}/${selectedDay.day}');
+
+    print(
+      '[ANALYTICS HABITS] Calculating daily data for ${selectedDay.month}/${selectedDay.day}',
+    );
     print('[ANALYTICS HABITS] Found ${filteredLogs.length} filtered logs');
-    
-    for (var log in filteredLogs.where((l) => l.status == HabitStatus.completed)) {
+
+    for (var log in filteredLogs.where(
+      (l) => l.status == HabitStatus.completed,
+    )) {
       // Проверяем что лог относится к выбранному дню
-      if (log.date.year == selectedDay.year && 
-          log.date.month == selectedDay.month && 
+      if (log.date.year == selectedDay.year &&
+          log.date.month == selectedDay.month &&
           log.date.day == selectedDay.day) {
         final hour = log.date.hour;
         final slot = hour ~/ 4;
         if (slot < 6) {
           data[slot]++;
-          print('[ANALYTICS HABITS]   Completed habit at hour $hour -> slot $slot');
+          print(
+            '[ANALYTICS HABITS]   Completed habit at hour $hour -> slot $slot',
+          );
         }
       }
     }
-    
+
     setState(() {
       _dailyData = data;
     });
     print('[ANALYTICS HABITS] Daily data result: $data');
   }
-  
+
   void _calculateWeeklyData() {
     // Считаем completed habits за каждый день выбранной недели
     final filteredLogs = _getFilteredLogs();
     final data = <int>[];
-    
-    print('[ANALYTICS HABITS] Calculating weekly data for week starting ${_currentWeekStart.month}/${_currentWeekStart.day}');
-    
+
+    print(
+      '[ANALYTICS HABITS] Calculating weekly data for week starting ${_currentWeekStart.month}/${_currentWeekStart.day}',
+    );
+
     for (int i = 0; i <= 6; i++) {
       final date = _currentWeekStart.add(Duration(days: i));
-      final dayLogs = filteredLogs.where((log) => 
-        log.date.year == date.year && 
-        log.date.month == date.month && 
-        log.date.day == date.day &&
-        log.status == HabitStatus.completed
+      final dayLogs = filteredLogs.where(
+        (log) =>
+            log.date.year == date.year &&
+            log.date.month == date.month &&
+            log.date.day == date.day &&
+            log.status == HabitStatus.completed,
       );
       data.add(dayLogs.length);
-      print('[ANALYTICS HABITS] Day $i (${date.month}/${date.day}): ${dayLogs.length} completed habits');
+      print(
+        '[ANALYTICS HABITS] Day $i (${date.month}/${date.day}): ${dayLogs.length} completed habits',
+      );
     }
-    
+
     setState(() {
       _weeklyData = data;
     });
     print('[ANALYTICS HABITS] Weekly data result: $data');
   }
-  
+
   void _calculateMonthlyData() {
     // Считаем completed habits за недели выбранного месяца (7 точек по ~4 дня)
     final filteredLogs = _getFilteredLogs();
     final data = <int>[0, 0, 0, 0, 0, 0, 0];
-    
+
     // Определяем последний день месяца
     final lastDayOfMonth = DateTime(
-      _currentWeekStart.month == 12 ? _currentWeekStart.year + 1 : _currentWeekStart.year,
+      _currentWeekStart.month == 12
+          ? _currentWeekStart.year + 1
+          : _currentWeekStart.year,
       _currentWeekStart.month == 12 ? 1 : _currentWeekStart.month + 1,
       0,
     ).day;
-    
+
     // Разбиваем месяц на 7 периодов (минимум 1 день на слот)
     final daysPerSlot = (lastDayOfMonth / 7).ceil().clamp(1, 31);
-    
-    print('[ANALYTICS HABITS] Calculating monthly data for ${_currentWeekStart.month}/${_currentWeekStart.year}');
-    print('[ANALYTICS HABITS] Month has $lastDayOfMonth days, $daysPerSlot days per slot');
-    
-    for (var log in filteredLogs.where((l) => l.status == HabitStatus.completed)) {
-      if (log.date.year == _currentWeekStart.year && 
+
+    print(
+      '[ANALYTICS HABITS] Calculating monthly data for ${_currentWeekStart.month}/${_currentWeekStart.year}',
+    );
+    print(
+      '[ANALYTICS HABITS] Month has $lastDayOfMonth days, $daysPerSlot days per slot',
+    );
+
+    for (var log in filteredLogs.where(
+      (l) => l.status == HabitStatus.completed,
+    )) {
+      if (log.date.year == _currentWeekStart.year &&
           log.date.month == _currentWeekStart.month) {
         final day = log.date.day.clamp(1, lastDayOfMonth);
         final slot = ((day - 1) ~/ daysPerSlot).clamp(0, 6);
@@ -499,49 +582,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         print('[ANALYTICS HABITS]   Completed habit on day $day -> slot $slot');
       }
     }
-    
+
     setState(() {
       _monthlyData = data;
     });
     print('[ANALYTICS HABITS] Monthly data result: $data');
   }
-  
-    
+
   // Получить заголовок периода (This week / This month / Today)
   String _getPeriodTitle() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final current = DateTime(_currentWeekStart.year, _currentWeekStart.month, _currentWeekStart.day);
-    
+    final current = DateTime(
+      _currentWeekStart.year,
+      _currentWeekStart.month,
+      _currentWeekStart.day,
+    );
+
     if (_selectedTabIndex == 0) {
       // Daily
       if (current.isAtSameMomentAs(today)) {
         return context.l10n.translate('today');
-      } else if (current.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
+      } else if (current.isAtSameMomentAs(
+        today.subtract(const Duration(days: 1)),
+      )) {
         return context.l10n.translate('yesterday');
       } else {
         return context.l10n.translate('thisDay');
       }
     } else if (_selectedTabIndex == 1) {
       // Weekly
-      if (_currentWeekStart.isAtSameMomentAs(today.subtract(Duration(days: today.weekday - 1)))) {
+      if (_currentWeekStart.isAtSameMomentAs(
+        today.subtract(Duration(days: today.weekday - 1)),
+      )) {
         return context.l10n.translate('thisWeek');
       } else {
         return context.l10n.translate('thisWeek');
       }
     } else {
       // Monthly
-      if (_currentWeekStart.month == now.month && _currentWeekStart.year == now.year) {
+      if (_currentWeekStart.month == now.month &&
+          _currentWeekStart.year == now.year) {
         return context.l10n.translate('thisMonth');
       } else {
         return context.l10n.translate('thisMonth');
       }
     }
   }
-  
+
   String _getWeekRangeText() {
     final endOfWeek = _currentWeekStart.add(const Duration(days: 6));
-    
+
     // Локализованные месяцы
     final months = [
       context.l10n.translate('january'),
@@ -557,10 +648,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       context.l10n.translate('november'),
       context.l10n.translate('december'),
     ];
-    
+
     final startMonth = months[_currentWeekStart.month - 1];
     final endMonth = months[endOfWeek.month - 1];
-    
+
     if (_selectedTabIndex == 0) {
       // Daily view - show current date
       return '${months[_currentWeekStart.month - 1]} ${_currentWeekStart.day}';
@@ -568,14 +659,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       // Monthly view
       return '${months[_currentWeekStart.month - 1]} ${_currentWeekStart.year}';
     }
-    
+
     if (_currentWeekStart.month == endOfWeek.month) {
       return '$startMonth ${_currentWeekStart.day} - ${endOfWeek.day}';
     } else {
       return '$startMonth ${_currentWeekStart.day} - $endMonth ${endOfWeek.day}';
     }
   }
-  
+
   void _goToPreviousPeriod() {
     setState(() {
       if (_selectedTabIndex == 0) {
@@ -584,7 +675,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       } else if (_selectedTabIndex == 2) {
         // Monthly - go to previous month
         _currentWeekStart = DateTime(
-          _currentWeekStart.month == 1 ? _currentWeekStart.year - 1 : _currentWeekStart.year,
+          _currentWeekStart.month == 1
+              ? _currentWeekStart.year - 1
+              : _currentWeekStart.year,
           _currentWeekStart.month == 1 ? 12 : _currentWeekStart.month - 1,
           1,
         );
@@ -595,36 +688,38 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
     _updateDataForCurrentPeriod();
   }
-  
+
   void _goToNextPeriod() {
     // Don't allow navigating to future dates beyond today
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     DateTime nextPeriodStart;
     if (_selectedTabIndex == 0) {
       nextPeriodStart = _currentWeekStart.add(const Duration(days: 1));
     } else if (_selectedTabIndex == 2) {
       nextPeriodStart = DateTime(
-        _currentWeekStart.month == 12 ? _currentWeekStart.year + 1 : _currentWeekStart.year,
+        _currentWeekStart.month == 12
+            ? _currentWeekStart.year + 1
+            : _currentWeekStart.year,
         _currentWeekStart.month == 12 ? 1 : _currentWeekStart.month + 1,
         1,
       );
     } else {
       nextPeriodStart = _currentWeekStart.add(const Duration(days: 7));
     }
-    
+
     // Don't go beyond today
     if (nextPeriodStart.isAfter(today)) {
       return;
     }
-    
+
     setState(() {
       _currentWeekStart = nextPeriodStart;
     });
     _updateDataForCurrentPeriod();
   }
-  
+
   // Быстрое обновление данных без перезагрузки из Firebase (используем кэш)
   void _updateDataForCurrentPeriod() {
     setState(() {
@@ -632,509 +727,556 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _calculateChartData();
     });
   }
-  
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () async {
-                // Обновляем все данные включая настроения
-                await _loadData();
-              },
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-
-              // Header
-              Text(
-                context.l10n.translate('activity'),
-                style: AppFonts.bodyTitleMedium.copyWith(
-                  color: AppColors.black100,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Tab Bar (Daily / Weekly / Monthly)
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.black10,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Row(
-                  children: [
-                    _buildTab(0, context.l10n.translate('daily')),
-                    _buildTab(1, context.l10n.translate('weekly')),
-                    _buildTab(2, context.l10n.translate('monthly')),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Date Navigation
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: () async {
+                  // Обновляем все данные включая настроения
+                  await _loadData();
+                },
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 16),
+
+                      // Header
                       Text(
-                        _getPeriodTitle(),
+                        context.l10n.translate('activity'),
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: AppColors.black100,
-                          fontSize: 16,
+                          fontSize: 24,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _getWeekRangeText(),
-                        style: AppFonts.bodyAlternative.copyWith(
-                          color: AppColors.black40,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: _goToPreviousPeriod,
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.black10),
-                          ),
-                          child: const Icon(
-                            Icons.chevron_left,
-                            color: AppColors.black60,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: _goToNextPeriod,
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.black10),
-                          ),
-                          child: const Icon(
-                            Icons.chevron_right,
-                            color: AppColors.black60,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-              // All Habits Summary Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with dropdown
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
+                      // Tab Bar (Daily / Weekly / Monthly)
+                      Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.black10,
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        child: Row(
                           children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.black10,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '👀',
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getLocalizedFilter(_selectedHabitFilter, context),
-                                  style: AppFonts.bodyTitleMedium.copyWith(
-                                    color: AppColors.black100,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  context.l10n.translate('summary'),
-                                  style: AppFonts.bodyAlternative.copyWith(
-                                    color: AppColors.black40,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            _buildTab(0, context.l10n.translate('daily')),
+                            _buildTab(1, context.l10n.translate('weekly')),
+                            _buildTab(2, context.l10n.translate('monthly')),
                           ],
                         ),
-                        GestureDetector(
-                          onTap: _showHabitFilterDropdown,
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: AppColors.black10,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: AppColors.black60,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-                    // Stats Grid
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
+                      // Date Navigation
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                context.l10n.translate('successRate').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_successRate.toInt()}%',
-                                style: AppFonts.bodyTitleMedium.copyWith(
-                                  color: AppColors.green,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.l10n.translate('completed').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$_completedCount',
+                                _getPeriodTitle(),
                                 style: AppFonts.bodyTitleMedium.copyWith(
                                   color: AppColors.black100,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _getWeekRangeText(),
+                                style: AppFonts.bodyAlternative.copyWith(
+                                  color: AppColors.black40,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
                             children: [
-                              Text(
-                                context.l10n.translate('pointsEarned').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
+                              GestureDetector(
+                                onTap: _goToPreviousPeriod,
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.black10,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: AppColors.black10,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.chevron_left,
+                                    color: AppColors.black60,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.orange,
-                                      shape: BoxShape.circle,
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: _goToNextPeriod,
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.black10,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: AppColors.black10,
                                     ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.star,
-                                        color: Colors.white,
-                                        size: 10,
+                                  ),
+                                  child: const Icon(
+                                    Icons.chevron_right,
+                                    color: AppColors.black60,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // All Habits Summary Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.blue10Primary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header with dropdown
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.black10,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          '👀',
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '$_pointsEarned',
-                                    style: AppFonts.bodyTitleMedium.copyWith(
-                                      color: AppColors.orange,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _getLocalizedFilter(
+                                            _selectedHabitFilter,
+                                            context,
+                                          ),
+                                          style: AppFonts.bodyTitleMedium
+                                              .copyWith(
+                                                color: AppColors.black100,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        Text(
+                                          context.l10n.translate('summary'),
+                                          style: AppFonts.bodyAlternative
+                                              .copyWith(
+                                                color: AppColors.black40,
+                                                fontSize: 12,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                GestureDetector(
+                                  onTap: _showHabitFilterDropdown,
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.black10,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: AppColors.black60,
+                                      size: 18,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.l10n.translate('bestStreakDay').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$_bestStreak',
-                                style: AppFonts.bodyTitleMedium.copyWith(
-                                  color: AppColors.black100,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.l10n.translate('skipped').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$_skippedCount',
-                                style: AppFonts.bodyTitleMedium.copyWith(
-                                  color: AppColors.black100,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.l10n.translate('failed').toUpperCase(),
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black40,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$_failedCount',
-                                style: AppFonts.bodyTitleMedium.copyWith(
-                                  color: AppColors.red,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Habits Chart Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.black10,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.show_chart,
-                                color: AppColors.blue100,
-                                size: 20,
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                            const SizedBox(height: 20),
+
+                            // Stats Grid
+                            Row(
                               children: [
-                                Text(
-                                  context.l10n.translate('habits'),
-                                  style: AppFonts.bodyTitleMedium.copyWith(
-                                    color: AppColors.black100,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('successRate')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_successRate.toInt()}%',
+                                        style: AppFonts.bodyTitleMedium
+                                            .copyWith(
+                                              color: AppColors.green,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Text(
-                                  _getLocalizedComparisonText(context),
-                                  style: AppFonts.bodyAlternative.copyWith(
-                                    color: AppColors.black40,
-                                    fontSize: 12,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('completed')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$_completedCount',
+                                        style: AppFonts.bodyTitleMedium
+                                            .copyWith(
+                                              color: AppColors.black100,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('pointsEarned')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 16,
+                                            height: 16,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.orange,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Center(
+                                              child: Icon(
+                                                Icons.star,
+                                                color: Colors.white,
+                                                size: 10,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '$_pointsEarned',
+                                            style: AppFonts.bodyTitleMedium
+                                                .copyWith(
+                                                  color: AppColors.orange,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('bestStreakDay')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$_bestStreak',
+                                        style: AppFonts.bodyTitleMedium
+                                            .copyWith(
+                                              color: AppColors.black100,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('skipped')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$_skippedCount',
+                                        style: AppFonts.bodyTitleMedium
+                                            .copyWith(
+                                              color: AppColors.black100,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .translate('failed')
+                                            .toUpperCase(),
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black40,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$_failedCount',
+                                        style: AppFonts.bodyTitleMedium
+                                            .copyWith(
+                                              color: AppColors.red,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        // Burn badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.orange10,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                '🔥 ${context.l10n.translate('burn')}',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$_completedHabitsCount ${_getLocalizedHabitText(_completedHabitsCount, context)}',
-                                style: AppFonts.bodyAlternative.copyWith(
-                                  color: AppColors.black60,
-                                  fontSize: 11,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Habits Chart Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.blue10Primary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.black10,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.show_chart,
+                                        color: AppColors.blue100,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          context.l10n.translate('habits'),
+                                          style: AppFonts.bodyTitleMedium
+                                              .copyWith(
+                                                color: AppColors.black100,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                        Text(
+                                          _getLocalizedComparisonText(context),
+                                          style: AppFonts.bodyAlternative
+                                              .copyWith(
+                                                color: AppColors.black40,
+                                                fontSize: 12,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                // Burn badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.orange10,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '🔥 ${context.l10n.translate('burn')}',
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black100,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '$_completedHabitsCount ${_getLocalizedHabitText(_completedHabitsCount, context)}',
+                                        style: AppFonts.bodyAlternative
+                                            .copyWith(
+                                              color: AppColors.black60,
+                                              fontSize: 11,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Line Chart
+                            SizedBox(
+                              height: 100,
+                              child: CustomPaint(
+                                size: const Size(double.infinity, 100),
+                                painter: LineChartPainter(
+                                  data: _selectedTabIndex == 0
+                                      ? _dailyData
+                                      : _selectedTabIndex == 1
+                                      ? _weeklyData
+                                      : _monthlyData,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                            ),
 
-                    const SizedBox(height: 24),
+                            const SizedBox(height: 12),
 
-                    // Line Chart
-                    SizedBox(
-                      height: 100,
-                      child: CustomPaint(
-                        size: const Size(double.infinity, 100),
-                        painter: LineChartPainter(
-                          data: _selectedTabIndex == 0
-                              ? _dailyData
-                              : _selectedTabIndex == 1
-                                  ? _weeklyData
-                                  : _monthlyData,
+                            // X-axis labels
+                            _buildChartLabels(),
+                          ],
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 12),
-
-                    // X-axis labels
-                    _buildChartLabels(),
-                  ],
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
-
-              
-              const SizedBox(height: 40),
-            ],
-          ),
-            ),
-          ),
       ),
     );
   }
@@ -1192,7 +1334,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildChartLabels() {
     List<String> labels;
-    
+
     switch (_selectedTabIndex) {
       case 0: // Daily - 24 часа выбранного дня (6 точек по 4 часа)
         labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
@@ -1205,7 +1347,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         break;
       case 2: // Monthly - недели выбранного месяца (7 периодов)
         final lastDayOfMonth = DateTime(
-          _currentWeekStart.month == 12 ? _currentWeekStart.year + 1 : _currentWeekStart.year,
+          _currentWeekStart.month == 12
+              ? _currentWeekStart.year + 1
+              : _currentWeekStart.year,
           _currentWeekStart.month == 12 ? 1 : _currentWeekStart.month + 1,
           0,
         ).day;
@@ -1222,14 +1366,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       default:
         labels = ['1', '2', '3', '4', '5', '6', '7'];
     }
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: labels.map((label) => Text(label, style: _chartLabelStyle())).toList(),
+      children: labels
+          .map((label) => Text(label, style: _chartLabelStyle()))
+          .toList(),
     );
   }
 
-  
   void _showHabitFilterDropdown() {
     showModalBottomSheet(
       context: context,
@@ -1277,8 +1422,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         title: Text(
                           _getLocalizedFilter(option, context),
                           style: AppFonts.bodyAlternative.copyWith(
-                            color: isSelected ? AppColors.blue100 : AppColors.black100,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.blue100
+                                : AppColors.black100,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                           ),
                         ),
                         onTap: () {
@@ -1310,12 +1459,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         color: isActive ? AppColors.orange10 : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Center(
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 24),
-        ),
-      ),
+      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
     );
   }
 }
@@ -1323,9 +1467,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 // Simple Line Chart Painter
 class LineChartPainter extends CustomPainter {
   final List<int> data;
-  
+
   LineChartPainter({required this.data});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -1344,7 +1488,7 @@ class LineChartPainter extends CustomPainter {
     // Generate points from data
     final maxValue = data.isEmpty ? 1 : data.reduce((a, b) => a > b ? a : b);
     final safeMax = maxValue > 0 ? maxValue : 1;
-    
+
     final points = <Offset>[];
     for (int i = 0; i < data.length; i++) {
       final x = i / (data.length - 1);
@@ -1381,7 +1525,7 @@ class LineChartPainter extends CustomPainter {
 
     // Draw line
     canvas.drawPath(path, paint);
-    
+
     // Draw last point highlight if data exists
     if (scaledPoints.isNotEmpty) {
       final lastPoint = scaledPoints.last;
@@ -1392,7 +1536,7 @@ class LineChartPainter extends CustomPainter {
         ..color = AppColors.blue100
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke;
-      
+
       canvas.drawCircle(lastPoint, 6, dotPaint);
       canvas.drawCircle(lastPoint, 6, dotBorderPaint);
     }
@@ -1431,4 +1575,3 @@ class LineChartPainter extends CustomPainter {
     return oldDelegate.data != data;
   }
 }
-

@@ -200,7 +200,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to sign out: $e')),
+                          SnackBar(content: Text('${context.l10n.translate('failedToSignOut')}: $e')),
                         );
                       }
                     }
@@ -506,8 +506,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'About Routiner',
+            Text(
+              context.l10n.translate('aboutRoutiner'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -515,28 +515,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Routiner is a habit tracking app that helps you build and maintain good habits.',
+              context.l10n.translate('aboutRoutiner'),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.black87,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Version: 1.0.0',
+            Text(
+              '${context.l10n.translate('version')}: 1.0.0',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '© 2026 Routiner Team',
+            Text(
+              context.l10n.translate('copyright'),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
@@ -556,7 +556,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(context.l10n.translate('ok')),
             ),
           ),
         ],
@@ -588,8 +588,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Privacy Policy',
+            Text(
+              context.l10n.translate('privacyPolicy'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -681,7 +681,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('I Understand'),
+              child: Text(context.l10n.translate('iUnderstand')),
             ),
           ),
         ],
