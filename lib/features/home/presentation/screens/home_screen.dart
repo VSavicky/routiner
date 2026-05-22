@@ -485,6 +485,22 @@ class _HomePageState extends State<HomePage> {
     return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}-${normalized.day.toString().padLeft(2, '0')}';
   }
 
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  bool _isFutureDate(DateTime date) {
+    return _dateOnly(date).isAfter(_dateOnly(DateTime.now()));
+  }
+
+  void _showFutureDateActionMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('You cannot complete habits for future dates.'),
+      ),
+    );
+  }
+
   /// Загрузка прогресса для списка дат (ленивая загрузка при скролле)
   Future<void> _loadProgressForDates(List<DateTime> dates) async {
     final user = _auth.currentUser;
@@ -526,6 +542,11 @@ class _HomePageState extends State<HomePage> {
     try {
       // Используем выбранную дату, а не всегда сегодня
       final effectiveDate = _selectedDate ?? DateTime.now();
+      if (_isFutureDate(effectiveDate)) {
+        _showFutureDateActionMessage();
+        return;
+      }
+
       final log = await _habitRepository.updateHabitStatus(habitId, effectiveDate, status);
       print('[STATUS] Updated: progress=${log.currentProgress}/${log.targetProgress}, status=${log.status}');
       
@@ -581,6 +602,11 @@ class _HomePageState extends State<HomePage> {
     try {
       // Используем выбранную дату, а не всегда сегодня
       final effectiveDate = _selectedDate ?? DateTime.now();
+      if (_isFutureDate(effectiveDate)) {
+        _showFutureDateActionMessage();
+        return;
+      }
+
       final log = await _habitRepository.incrementHabitProgress(habitId, effectiveDate, increment);
       print('[INCREMENT] Result: progress=${log.currentProgress}/${log.targetProgress}');
       setState(() {

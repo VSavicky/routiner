@@ -12,7 +12,20 @@
           "package_name": "com.example.routiner"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "337123515747-k09h6ebagqo7rnkc5ujdhieb8609iln9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.routiner",
+            "certificate_hash": "15dd07b3cb63f54103473448bed0e727b78a1872"
+          }
+        },
+        {
+          "client_id": "337123515747-evupvg6kr58mt6497jvldv07rtd50l8r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB8h-0wDsDjuhRwmP9dPtBhjjAzRIfWeqw"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "337123515747-evupvg6kr58mt6497jvldv07rtd50l8r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "337123515747-0fiko31i9f5l68b8btpa3lvb0qmc07i0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.routiner"
+              }
+            }
+          ]
         }
       }
     }

@@ -103,7 +103,9 @@ class _AuthInputFieldState extends State<AuthInputField> {
               widget.controller.text.contains('@') 
                   ? 'Please enter a valid email address'
                   : 'Please enter a valid ${widget.title.toLowerCase()}',
-              style: AppFonts.bodyTitleMediumEmpty,
+              style: AppFonts.bodyAlternative.copyWith(
+                color: AppColors.red,
+              ),
             ),
           ),
       ],

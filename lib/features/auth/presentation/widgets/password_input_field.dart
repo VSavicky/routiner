@@ -107,7 +107,9 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               'Password must be at least 8 characters',
-              style: AppFonts.bodyTitleMediumEmpty,
+              style: AppFonts.bodyAlternative.copyWith(
+                color: AppColors.red,
+              ),
             ),
           ),
       ],

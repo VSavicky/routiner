@@ -108,12 +108,27 @@ class _AuthScreenState extends State<AuthScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          color: AppColors.black100,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+        contentTextStyle: const TextStyle(
+          color: AppColors.black100,
+          fontSize: 16,
+          height: 1.35,
+        ),
         title: const Text('Error'),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: AppColors.blue100),
+            ),
           ),
         ],
       ),

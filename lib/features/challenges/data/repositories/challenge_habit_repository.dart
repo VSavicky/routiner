@@ -22,6 +22,14 @@ class ChallengeHabitRepository {
   /// Проверка авторизации
   bool get isAuthenticated => currentUser != null;
 
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  bool _isFutureDate(DateTime date) {
+    return _dateOnly(date).isAfter(_dateOnly(DateTime.now()));
+  }
+
   // ==================== CHALLENGE HABITS ====================
 
   /// Создать привычку челленджа
@@ -190,10 +198,9 @@ class ChallengeHabitRepository {
         final isDayCompleted = totalHabits > 0 && completedCount >= totalHabits;
         
         // Если все привычки выполнены - отмечаем день как завершенный
-        if (isDayCompleted) {
+        if (isDayCompleted && !_isFutureDate(targetDate)) {
           try {
-            final today = DateTime.now();
-            final dateStr = today.toIso8601String().split('T')[0];
+            final dateStr = targetDate.toIso8601String().split('T')[0];
             final docId = '${userId}_${challengeId}_$dateStr';
             
             // Проверяем не отмечен ли уже
@@ -241,6 +248,10 @@ class ChallengeHabitRepository {
     DateTime date,
   ) async {
     try {
+      if (_isFutureDate(date)) {
+        throw Exception('Cannot mark challenge day completed for future dates');
+      }
+
       final dateStr = date.toIso8601String().split('T')[0];
       final docId = '${userId}_${challengeId}_$dateStr';
       

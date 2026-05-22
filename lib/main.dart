@@ -1,15 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:routiner/core/routing/app_routing.dart';
+import 'package:routiner/firebase_options.dart';
 import 'package:routiner/utils/firebase_test.dart';
 import 'package:routiner/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String _localeLanguageCodeKey = 'locale_language_code';
+const String _localeCountryCodeKey = 'locale_country_code';
+
+Future<Locale> _loadSavedLocale() async {
+  final prefs = await SharedPreferences.getInstance();
+  final languageCode = prefs.getString(_localeLanguageCodeKey);
+  final countryCode = prefs.getString(_localeCountryCodeKey);
+
+  if (languageCode != null && languageCode.isNotEmpty) {
+    return Locale(languageCode, countryCode);
+  }
+
+  final selectedLanguage = prefs.getString('selected_language');
+  switch (selectedLanguage) {
+    case 'Русский':
+      return const Locale('ru', 'RU');
+    case 'Қазақша':
+      return const Locale('kk', 'KZ');
+    case 'English':
+    default:
+      return const Locale('en', 'US');
+  }
+}
+
+Future<void> _saveLocale(Locale locale) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_localeLanguageCodeKey, locale.languageCode);
+  final countryCode = locale.countryCode;
+  if (countryCode == null || countryCode.isEmpty) {
+    await prefs.remove(_localeCountryCodeKey);
+  } else {
+    await prefs.setString(_localeCountryCodeKey, countryCode);
+  }
+}
 
 final GlobalKey<_MyAppState> myAppKey = GlobalKey<_MyAppState>();
 
-void changeAppLocale(Locale locale) {
+Future<void> changeAppLocale(Locale locale) async {
+  await _saveLocale(locale);
   final currentState = myAppKey.currentState;
   if (currentState != null) {
     currentState.setLocale(locale);
@@ -20,7 +57,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     print('✅ Firebase initialized successfully');
     
     // Тестируем подключение
@@ -42,18 +81,27 @@ void main() async {
     print('📋 Check OAuth configuration in Firebase Console');
   }
   
-  runApp(MyApp(key: myAppKey));
+  final savedLocale = await _loadSavedLocale();
+  runApp(MyApp(key: myAppKey, initialLocale: savedLocale));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key, required this.initialLocale}) : super(key: key);
+
+  final Locale initialLocale;
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale _locale = const Locale('en', 'US');
+  late Locale _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _locale = widget.initialLocale;
+  }
 
   @override
   Widget build(BuildContext context) {

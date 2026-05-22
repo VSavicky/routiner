@@ -22,7 +22,7 @@ class AppFonts {
   
   //Body Paragraph
   static const TextStyle body = TextStyle(
-    color: AppColors.blue20,
+    color: Colors.white,
     fontSize: 14,
     fontWeight: FontWeight.normal,
     height: 20 / 14, 

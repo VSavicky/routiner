@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,70 +9,115 @@ class GoogleSignInService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Вход через Google
+  static const String _webClientId =
+      '337123515747-evupvg6kr58mt6497jvldv07rtd50l8r.apps.googleusercontent.com';
+  static const String _iosClientId =
+      '337123515747-0fiko31i9f5l68b8btpa3lvb0qmc07i0.apps.googleusercontent.com';
+
+  static Future<void>? _initializeFuture;
+
+  Future<void> _ensureInitialized() {
+    return _initializeFuture ??= GoogleSignIn.instance.initialize(
+      clientId: _clientId,
+      serverClientId: _webClientId,
+    );
+  }
+
+  String? get _clientId {
+    if (kIsWeb) return _webClientId;
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return _iosClientId;
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        return null;
+    }
+  }
+
   Future<UserEntity?> signInWithGoogle() async {
     try {
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance.authenticate();
+      await _ensureInitialized();
 
-      if (googleUser == null) {
-        return null;
+      if (!GoogleSignIn.instance.supportsAuthenticate()) {
+        throw UnsupportedError(
+          'Google Sign-In interactive authentication is not supported on this platform.',
+        );
       }
 
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleUser.authentication;
 
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+      if (googleAuth.idToken == null) {
+        throw FirebaseAuthException(
+          code: 'missing-google-id-token',
+          message: 'Google Sign-In did not return an ID token.',
+        );
+      }
 
-      // Once signed in, return the UserCredential
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-      final User? user = userCredential.user;
-      
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
+      final user = userCredential.user;
+
       if (user == null) {
         return null;
       }
 
-      // Сохраняем сессию
       await _saveSession(user.uid);
 
-      // Проверяем/создаем запись в Firestore
-      final docSnapshot = await _firestore.collection('users').doc(user.uid).get();
-      
+      final userRef = _firestore.collection('users').doc(user.uid);
+      final docSnapshot = await userRef.get();
+
       if (docSnapshot.exists) {
         return UserEntity.fromMap(docSnapshot.data() as Map<String, dynamic>);
-      } else {
-        final displayName = user.displayName ?? '';
-        final nameParts = displayName.split(' ');
-        
-        final userEntity = UserEntity(
-          id: user.uid,
-          email: user.email ?? '',
-          firstName: nameParts.isNotEmpty ? nameParts.first : '',
-          lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
-          birthDate: '',
-          gender: '',
-          habits: [],
-          createdAt: DateTime.now(),
-        );
-
-        await _firestore.collection('users').doc(user.uid).set(userEntity.toMap());
-        return userEntity;
       }
+
+      final displayName = user.displayName ?? googleUser.displayName ?? '';
+      final nameParts = displayName.trim().split(RegExp(r'\s+'));
+      final userEntity = UserEntity(
+        id: user.uid,
+        email: user.email ?? googleUser.email,
+        firstName: nameParts.isNotEmpty && nameParts.first.isNotEmpty
+            ? nameParts.first
+            : '',
+        lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
+        birthDate: '',
+        gender: '',
+        habits: const [],
+        createdAt: DateTime.now(),
+      );
+
+      await userRef.set(userEntity.toMap());
+      return userEntity;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.code == GoogleSignInExceptionCode.interrupted) {
+        return null;
+      }
+
+      debugPrint('Google sign in error: ${e.code.name} ${e.description ?? ''}');
+      rethrow;
     } catch (e) {
-      print('❌ Error during Google sign in: $e');
-      return null;
+      debugPrint('Error during Google sign in: $e');
+      rethrow;
     }
   }
 
-  // Выход из Google
   Future<void> signOutGoogle() async {
     try {
+      await _ensureInitialized();
       await GoogleSignIn.instance.signOut();
       await _firebaseAuth.signOut();
       await _clearSession();
     } catch (e) {
-      print('❌ Error during sign out: $e');
+      debugPrint('Error during sign out: $e');
     }
   }
 

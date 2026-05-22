@@ -24,6 +24,16 @@ class HabitRepository {
   /// Проверка авторизации
   bool get isAuthenticated => currentUser != null;
 
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  void _throwIfFutureDate(DateTime date) {
+    if (_dateOnly(date).isAfter(_dateOnly(DateTime.now()))) {
+      throw Exception('Cannot update habit progress for future dates');
+    }
+  }
+
   // ==================== HABITS ====================
 
   /// Создать новую привычку
@@ -153,6 +163,8 @@ class HabitRepository {
     String? note,
   }) async {
     try {
+      _throwIfFutureDate(date);
+
       final userId = currentUserId;
       if (userId == null) {
         throw Exception('User not authenticated');
@@ -220,6 +232,8 @@ class HabitRepository {
     String? note,
   }) async {
     try {
+      _throwIfFutureDate(date);
+
       final userId = currentUserId;
       if (userId == null) {
         throw Exception('User not authenticated');
@@ -296,6 +310,8 @@ class HabitRepository {
     String? note,
   }) async {
     try {
+      _throwIfFutureDate(date);
+
       final userId = currentUserId;
       if (userId == null) {
         throw Exception('User not authenticated');

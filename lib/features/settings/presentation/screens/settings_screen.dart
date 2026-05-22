@@ -15,6 +15,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const String _dailyRemindersKey = 'settings_daily_reminders';
+  static const String _achievementAlertsKey = 'settings_achievement_alerts';
+
   bool _dailyReminders = true;
   bool _achievementAlerts = true;
   String _selectedLanguage = 'English';
@@ -29,20 +32,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSelectedLanguage();
+    _loadSettings();
   }
 
-  Future<void> _loadSelectedLanguage() async {
+  Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final savedLanguage = prefs.getString('selected_language') ?? 'English';
+    final dailyReminders = prefs.getBool(_dailyRemindersKey) ?? true;
+    final achievementAlerts = prefs.getBool(_achievementAlertsKey) ?? true;
+
+    if (!mounted) return;
     setState(() {
       _selectedLanguage = savedLanguage;
+      _dailyReminders = dailyReminders;
+      _achievementAlerts = achievementAlerts;
     });
   }
 
   Future<void> _saveSelectedLanguage(String language) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_language', language);
+  }
+
+  Future<void> _saveDailyReminders(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_dailyRemindersKey, value);
+  }
+
+  Future<void> _saveAchievementAlerts(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_achievementAlertsKey, value);
+  }
+
+  Future<void> _changeLanguage(String language) async {
+    final locale = languageMap[language] ?? const Locale('en', 'US');
+
+    setState(() {
+      _selectedLanguage = language;
+    });
+
+    await _saveSelectedLanguage(language);
+    await changeAppLocale(locale);
   }
 
   @override
@@ -94,11 +124,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.l10n.translate('dailyReminders'),
                   subtitle: 'Get daily reminders for your habits',
                   value: _dailyReminders,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _dailyReminders = value;
                     });
-                    // TODO: Сохранить настройки в Firebase
+                    await _saveDailyReminders(value);
                   },
                 ),
                 _buildToggleItem(
@@ -106,11 +136,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.l10n.translate('achievementAlerts'),
                   subtitle: 'Be notified when you earn achievements',
                   value: _achievementAlerts,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _achievementAlerts = value;
                     });
-                    // TODO: Сохранить настройки в Firebase
+                    await _saveAchievementAlerts(value);
                   },
                 ),
               ],
@@ -404,13 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () async {
-                setState(() {
-                  _selectedLanguage = language;
-                });
-                await _saveSelectedLanguage(language);
-                // Меняем локаль приложения
-                final locale = languageMap[language] ?? const Locale('en', 'US');
-                changeAppLocale(locale);
+                await _changeLanguage(language);
               },
               child: Container(
                 width: double.infinity,
