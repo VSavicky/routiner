@@ -567,12 +567,49 @@ class _HomePageState extends State<HomePage> {
     } catch (e, stackTrace) {
       print('[STATUS ERROR] $e');
       print('[STATUS ERROR] $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${context.l10n.translate('failedToUpdateHabit')}: $e')),
-      );
+      
+      // Проверяем, является ли ошибка временной проблемой сети
+      final errorMessage = e.toString().toLowerCase();
+      final isTemporaryError = errorMessage.contains('unavailable') || 
+                               errorMessage.contains('network') || 
+                               errorMessage.contains('timeout');
+      
+      if (isTemporaryError) {
+        // Для временных ошибок показываем кнопку повтора
+        final snackBar = SnackBar(
+          content: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.translate('temporaryErrorTryAgain'),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Закрываем snackbar
+                  _updateHabitStatus(habitId, status); // Пробуем снова
+                },
+                child: Text(
+                  context.l10n.translate('retry') ?? 'Повторить',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 6),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${context.l10n.translate('failedToUpdateHabit')}: $e'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
-
+    
   /// Проверить достижения после выполнения привычки
   Future<void> _checkAchievementsAfterHabitCompletion() async {
     try {
@@ -619,9 +656,42 @@ class _HomePageState extends State<HomePage> {
     } catch (e, stackTrace) {
       print('[INCREMENT ERROR] $e');
       print('[INCREMENT ERROR] $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${context.l10n.translate('failedToAddProgress')}: $e')),
-      );
+      
+      final errorMessage = e.toString().toLowerCase();
+      final isTemporaryError = errorMessage.contains('unavailable') || 
+                               errorMessage.contains('network') || 
+                               errorMessage.contains('timeout');
+      
+      if (isTemporaryError) {
+        final snackBar = SnackBar(
+          content: Row(
+            children: [
+              Expanded(
+                child: Text(context.l10n.translate('temporaryErrorTryAgain')),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _incrementHabitProgress(habitId, increment);
+                },
+                child: Text(
+                  context.l10n.translate('retry') ?? 'Повторить',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 6),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${context.l10n.translate('failedToAddProgress')}: $e'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 

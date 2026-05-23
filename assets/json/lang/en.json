@@ -183,6 +183,8 @@
   "tasks": "tasks",
   "hour": "hour",
   "failedToUpdateHabit": "Failed to update habit",
+  "temporaryErrorTryAgain": "Temporary network error. Please try again later.",
+  "retry": "Retry",
   "failedToAddProgress": "Failed to add progress",
   "explore": "Explore",
   "suggestedForYou": "Suggested for You",

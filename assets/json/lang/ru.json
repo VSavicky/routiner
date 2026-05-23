@@ -176,6 +176,8 @@
   "tasks": "задачи",
   "hour": "час",
   "failedToUpdateHabit": "Не удалось обновить привычку",
+  "temporaryErrorTryAgain": "Временная ошибка сети. Пожалуйста, попробуйте позже.",
+  "retry": "Повторить",
   "failedToAddProgress": "Не удалось добавить прогресс",
   "explore": "Исследовать",
   "suggestedForYou": "Рекомендуем для вас",

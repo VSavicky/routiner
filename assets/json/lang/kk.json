@@ -200,6 +200,8 @@
   "tasks": "тапсырма",
   "hour": "сағат",
   "failedToUpdateHabit": "Әдетті жаңарту мүмкін болмады",
+  "temporaryErrorTryAgain": "Уақытша желілік қате. Кейінірек қайта көріңіз.",
+  "retry": "Қайталау",
   "failedToAddProgress": "Прогресті қосу мүмкін болмады",
   "explore": "Зерттеу",
   "suggestedForYou": "Сізге ұсыныс",

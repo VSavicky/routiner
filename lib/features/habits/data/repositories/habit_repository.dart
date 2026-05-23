@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/utils/retry_utils.dart';
 import '../models/habit_model.dart';
 import '../models/habit_log_model.dart';
 import '../models/mood_model.dart';
@@ -165,66 +166,70 @@ class HabitRepository {
     int? value,
     String? note,
   }) async {
-    try {
-      _throwIfFutureDate(date);
+    return RetryUtils.withRetry(
+      operation: () async {
+        try {
+          _throwIfFutureDate(date);
 
-      final userId = currentUserId;
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
+          final userId = currentUserId;
+          if (userId == null) {
+            throw Exception('User not authenticated');
+          }
 
-      final logId = HabitLogModel.createId(userId, habitId, date);
-      final logRef = _firestore.collection('habitLogs').doc(logId);
-      final doc = await logRef.get();
+          final logId = HabitLogModel.createId(userId, habitId, date);
+          final logRef = _firestore.collection('habitLogs').doc(logId);
+          final doc = await logRef.get();
 
-      final isCompleted = status == HabitStatus.completed;
-      final completedAt = isCompleted ? DateTime.now() : null;
+          final isCompleted = status == HabitStatus.completed;
+          final completedAt = isCompleted ? DateTime.now() : null;
 
-      if (doc.exists) {
-        // Обновляем существующий лог
-        final existingLog = HabitLogModel.fromFirestore(doc);
-        final wasCompletedBefore = existingLog.status == HabitStatus.completed;
+          if (doc.exists) {
+            // Обновляем существующий лог
+            final existingLog = HabitLogModel.fromFirestore(doc);
+            final wasCompletedBefore = existingLog.status == HabitStatus.completed;
 
-        final updatedLog = existingLog.copyWith(
-          status: status,
-          isCompleted: isCompleted,
-          completedAt: completedAt,
-          value: value ?? existingLog.value,
-          note: note ?? existingLog.note,
-        );
-        await logRef.update(updatedLog.toFirestore());
+            final updatedLog = existingLog.copyWith(
+              status: status,
+              isCompleted: isCompleted,
+              completedAt: completedAt,
+              value: value ?? existingLog.value,
+              note: note ?? existingLog.note,
+            );
+            await logRef.update(updatedLog.toFirestore());
 
-        // Начисляем очки только если статус изменился на completed
-        if (isCompleted && !wasCompletedBefore) {
-          await addPoints(userId, 10);
+            // Начисляем очки только если статус изменился на completed
+            if (isCompleted && !wasCompletedBefore) {
+              await addPoints(userId, 10);
+            }
+
+            return updatedLog;
+          } else {
+            // Создаем новый лог
+            final newLog = HabitLogModel(
+              id: logId,
+              userId: userId,
+              habitId: habitId,
+              date: date,
+              status: status,
+              isCompleted: isCompleted,
+              completedAt: completedAt,
+              value: value,
+              note: note,
+            );
+            await logRef.set(newLog.toFirestore());
+
+            // Начисляем очки если статус completed
+            if (isCompleted) {
+              await addPoints(userId, 10);
+            }
+
+            return newLog;
+          }
+        } catch (e) {
+          throw Exception('Failed to update habit status: $e');
         }
-
-        return updatedLog;
-      } else {
-        // Создаем новый лог
-        final newLog = HabitLogModel(
-          id: logId,
-          userId: userId,
-          habitId: habitId,
-          date: date,
-          status: status,
-          isCompleted: isCompleted,
-          completedAt: completedAt,
-          value: value,
-          note: note,
-        );
-        await logRef.set(newLog.toFirestore());
-
-        // Начисляем очки если статус completed
-        if (isCompleted) {
-          await addPoints(userId, 10);
-        }
-
-        return newLog;
-      }
-    } catch (e) {
-      throw Exception('Failed to update habit status: $e');
-    }
+      },
+    );
   }
 
   /// Добавить шаг выполнения привычки (инкремент value)
@@ -234,75 +239,79 @@ class HabitRepository {
     int increment, {
     String? note,
   }) async {
-    try {
-      _throwIfFutureDate(date);
+    return RetryUtils.withRetry(
+      operation: () async {
+        try {
+          _throwIfFutureDate(date);
 
-      final userId = currentUserId;
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
+          final userId = currentUserId;
+          if (userId == null) {
+            throw Exception('User not authenticated');
+          }
 
-      final logId = HabitLogModel.createId(userId, habitId, date);
-      final logRef = _firestore.collection('habitLogs').doc(logId);
-      final doc = await logRef.get();
+          final logId = HabitLogModel.createId(userId, habitId, date);
+          final logRef = _firestore.collection('habitLogs').doc(logId);
+          final doc = await logRef.get();
 
-      // Получаем привычку для проверки targetValue
-      final habitDoc = await _firestore.collection('habits').doc(habitId).get();
-      final targetValue = habitDoc.exists
-          ? (habitDoc.data() as Map<String, dynamic>)['targetValue'] ?? 1
-          : 1;
+          // Получаем привычку для проверки targetValue
+          final habitDoc = await _firestore.collection('habits').doc(habitId).get();
+          final targetValue = habitDoc.exists
+              ? (habitDoc.data() as Map<String, dynamic>)['targetValue'] ?? 1
+              : 1;
 
-      if (doc.exists) {
-        // Обновляем существующий лог
-        final existingLog = HabitLogModel.fromFirestore(doc);
-        final newValue = (existingLog.value ?? 0) + increment;
-        final isCompleted = newValue >= targetValue;
+          if (doc.exists) {
+            // Обновляем существующий лог
+            final existingLog = HabitLogModel.fromFirestore(doc);
+            final newValue = (existingLog.value ?? 0) + increment;
+            final isCompleted = newValue >= targetValue;
 
-        final wasCompletedBefore = existingLog.isCompleted;
+            final wasCompletedBefore = existingLog.isCompleted;
 
-        final updatedLog = existingLog.copyWith(
-          value: newValue,
-          status: isCompleted ? HabitStatus.completed : existingLog.status,
-          isCompleted: isCompleted,
-          completedAt: isCompleted && !wasCompletedBefore
-              ? DateTime.now()
-              : existingLog.completedAt,
-          note: note ?? existingLog.note,
-        );
-        await logRef.update(updatedLog.toFirestore());
+            final updatedLog = existingLog.copyWith(
+              value: newValue,
+              status: isCompleted ? HabitStatus.completed : existingLog.status,
+              isCompleted: isCompleted,
+              completedAt: isCompleted && !wasCompletedBefore
+                  ? DateTime.now()
+                  : existingLog.completedAt,
+              note: note ?? existingLog.note,
+            );
+            await logRef.update(updatedLog.toFirestore());
 
-        // Начисляем очки если привычка только что стала completed
-        if (isCompleted && !wasCompletedBefore) {
-          await addPoints(userId, 10);
+            // Начисляем очки если привычка только что стала completed
+            if (isCompleted && !wasCompletedBefore) {
+              await addPoints(userId, 10);
+            }
+
+            return updatedLog;
+          } else {
+            // Создаем новый лог
+            final isCompleted = increment >= targetValue;
+            final newLog = HabitLogModel(
+              id: logId,
+              userId: userId,
+              habitId: habitId,
+              date: date,
+              value: increment,
+              status: isCompleted ? HabitStatus.completed : HabitStatus.pending,
+              isCompleted: isCompleted,
+              completedAt: isCompleted ? DateTime.now() : null,
+              note: note,
+            );
+            await logRef.set(newLog.toFirestore());
+
+            // Начисляем очки если привычка сразу выполнена
+            if (isCompleted) {
+              await addPoints(userId, 10);
+            }
+
+            return newLog;
+          }
+        } catch (e) {
+          throw Exception('Failed to increment habit progress: $e');
         }
-
-        return updatedLog;
-      } else {
-        // Создаем новый лог
-        final isCompleted = increment >= targetValue;
-        final newLog = HabitLogModel(
-          id: logId,
-          userId: userId,
-          habitId: habitId,
-          date: date,
-          value: increment,
-          status: isCompleted ? HabitStatus.completed : HabitStatus.pending,
-          isCompleted: isCompleted,
-          completedAt: isCompleted ? DateTime.now() : null,
-          note: note,
-        );
-        await logRef.set(newLog.toFirestore());
-
-        // Начисляем очки если привычка сразу выполнена
-        if (isCompleted) {
-          await addPoints(userId, 10);
-        }
-
-        return newLog;
-      }
-    } catch (e) {
-      throw Exception('Failed to increment habit progress: $e');
-    }
+      },
+    );
   }
 
   /// Отметить привычку как выполненную/невыполненную (legacy)

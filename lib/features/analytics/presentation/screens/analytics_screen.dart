@@ -7,6 +7,7 @@ import 'package:routiner/features/habits/data/repositories/habit_repository.dart
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/domain/entities/habit_entity.dart';
+import 'package:routiner/features/analytics/presentation/screens/leaderboard_screen.dart';
 import 'package:routiner/l10n/app_localizations.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -748,13 +749,41 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       const SizedBox(height: 16),
 
                       // Header
-                      Text(
-                        context.l10n.translate('activity'),
-                        style: AppFonts.bodyTitleMedium.copyWith(
-                          color: AppColors.black100,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            context.l10n.translate('activity'),
+                            style: AppFonts.bodyTitleMedium.copyWith(
+                              color: AppColors.black100,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LeaderboardScreen(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.blue10,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.people,
+                                color: AppColors.blue100,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 24),
