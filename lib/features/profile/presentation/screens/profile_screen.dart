@@ -8,6 +8,7 @@ import 'package:routiner/features/achievements/data/repositories/achievement_rep
 import 'package:routiner/features/achievements/data/services/achievement_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:routiner/l10n/app_localizations.dart';
+import 'dart:convert';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -37,6 +38,16 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
+    _loadUserData();
+    
+    // Слушаем возвращение с других экранов
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Обновляем данные когда экран становится активным снова
     _loadUserData();
   }
   
@@ -263,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       print('[PROFILE ERROR] Failed to load activities: $e');
     }
   }
-  
+    
   Future<void> _loadFriends(String userId) async {
     try {
       // For now, mock friends data
@@ -420,7 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -479,14 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               ],
             ),
             child: ClipOval(
-              child: _avatarUrl != null
-                  ? Image.network(
-                      _avatarUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildDefaultAvatar(),
-                    )
-                  : _buildDefaultAvatar(),
+              child: _buildAvatar(_avatarUrl),
             ),
           ),
           const SizedBox(width: 16),
@@ -547,6 +551,41 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
   
+  /// Вспомогательный метод для отображения аватара (поддерживает base64 и network URL)
+  Widget _buildAvatar(String? avatarUrl, {double size = 30}) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return _buildDefaultAvatar();
+    }
+    
+    // Проверяем если это base64 data URL
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        // Извлекаем base64 часть из data URL
+        final commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64String = avatarUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64String);
+          
+          return Image.memory(
+            bytes,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+          );
+        }
+      } catch (e) {
+        print('[PROFILE ERROR] Failed to decode base64 avatar: $e');
+      }
+      return _buildDefaultAvatar();
+    }
+    
+    // Иначе используем network URL
+    return Image.network(
+      avatarUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+    );
+  }
+  
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -586,7 +625,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
+
   String _getActivityFilterText() {
     if (!mounted) {
       // Fallback для случая когда контекст не готов
@@ -611,7 +650,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         return context.l10n.translate('showing_last_month_activity');
     }
   }
-  
+
   void _onFilterChanged(String newFilter) {
     setState(() {
       _activityFilter = newFilter;
@@ -918,14 +957,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               border: Border.all(color: const Color(0xFFE8EDF5)),
             ),
             child: ClipOval(
-              child: friend['avatarUrl'] != null
-                  ? Image.network(
-                      friend['avatarUrl'],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildDefaultFriendAvatar(friend['name']),
-                    )
-                  : _buildDefaultFriendAvatar(friend['name']),
+              child: _buildAvatar(friend['avatarUrl']),
             ),
           ),
           const SizedBox(width: 12),

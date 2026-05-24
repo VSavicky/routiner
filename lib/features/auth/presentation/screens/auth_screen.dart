@@ -9,6 +9,7 @@ import 'package:routiner/features/auth/presentation/widgets/primary_button.dart'
 import 'package:routiner/features/auth/domain/services/auth_service.dart';
 import 'package:routiner/features/auth/domain/services/google_sign_in_service.dart';
 import 'package:routiner/l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -56,26 +57,54 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
+      print('[AUTH] Signing in with email: ${_emailController.text}');
+      
       final userEntity = await _authService.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      if (userEntity != null) {
-        if (mounted) {
-          context.go('/home');
-        }
+      print('[AUTH] Sign in result: ${userEntity != null ? "success" : "failed"}');
+
+      if (userEntity != null && mounted) {
+        print('[AUTH] Navigation to /home');
+        context.go('/home');
       } else {
-        _showErrorDialog('Sign in failed. Please check your credentials.');
+        print('[AUTH] User entity is null');
+        _showErrorDialog(context.l10n.translate('signInFailed'));
       }
-    } catch (e) {
-      _showErrorDialog('Error: ${e.toString()}');
+    } on FirebaseAuthException catch (e) {
+      print('[AUTH] FirebaseAuthException: ${e.code} - ${e.message}');
+      String errorMessage = _getLocalizedAuthErrorMessage(e.code);
+      _showErrorDialog(errorMessage);
+    } catch (e, stackTrace) {
+      print('[AUTH] Error: $e');
+      print('[AUTH] Stack trace: $stackTrace');
+      _showErrorDialog('${context.l10n.translate('signInFailed')}: $e');
     } finally {
       if (mounted) {
+        print('[AUTH] Setting isLoading to false');
         setState(() {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  String _getLocalizedAuthErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'wrong-password':
+        return context.l10n.translate('wrongPassword');
+      case 'user-not-found':
+        return context.l10n.translate('userNotFound');
+      case 'invalid-email':
+        return context.l10n.translate('invalidEmail');
+      case 'user-disabled':
+        return context.l10n.translate('userDisabled');
+      case 'too-many-requests':
+        return context.l10n.translate('tooManyRequests');
+      default:
+        return context.l10n.translate('signInFailed');
     }
   }
 

@@ -28,7 +28,7 @@ class GoalsProgressWidget extends StatelessWidget {
   }
 
   String get _goalsText {
-    return '$completedGoals $totalGoals ${l10n.translate('goalsCompleted')}';
+    return '$completedGoals/$totalGoals ${l10n.translate('goalsCompleted')}';
   }
 
   String get _defaultTitle {

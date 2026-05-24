@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:io';
+import 'dart:convert';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/l10n/app_localizations.dart';
-import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -28,6 +26,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _originalFirstName = '';
   String _originalLastName = '';
   String _originalAvatarUrl = '';
+  String _originalEmail = '';
 
   @override
   void initState() {
@@ -57,6 +56,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _originalFirstName = firstName;
             _originalLastName = lastName;
             _originalAvatarUrl = data['avatarUrl'] ?? '';
+            _originalEmail = user.email ?? '';
           });
         }
       } catch (e) {
@@ -68,9 +68,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _hasChanges() {
     final currentFirstName = _firstNameController.text.trim();
     final currentLastName = _lastNameController.text.trim();
+    final currentEmail = _emailController.text.trim();
     
     return currentFirstName != _originalFirstName || 
            currentLastName != _originalLastName ||
+           currentEmail != _originalEmail ||
            _avatarFile != null || // Новое изображение выбрано
            (_avatarUrl != _originalAvatarUrl && _avatarUrl != null); // URL изменился
   }
@@ -173,20 +175,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<String?> _uploadAvatarToStorage(File imageFile, String userId) async {
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('avatars')
-          .child(userId)
-          .child('avatar_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      print('[EDIT PROFILE] Starting avatar conversion for user: $userId');
       
-      final uploadTask = await storageRef.putFile(imageFile);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      // Проверяем что файл существует и читаем его
+      if (!await imageFile.exists()) {
+        print('[EDIT PROFILE ERROR] Image file does not exist: ${imageFile.path}');
+        throw Exception('Image file does not exist');
+      }
       
-      print('[EDIT PROFILE] Avatar uploaded to: $downloadUrl');
-      return downloadUrl;
-    } catch (e) {
-      print('[EDIT PROFILE ERROR] Failed to upload avatar: $e');
-      return null;
+      // Читаем файл как bytes
+      final fileBytes = await imageFile.readAsBytes();
+      print('[EDIT PROFILE] Image file size: ${fileBytes.length} bytes');
+      
+      // Ограничиваем размер до 500KB для Firestore (максимум 1MB на документ)
+      // base64 увеличивает размер примерно на 33%, поэтому 500KB * 1.33 = ~665KB
+      if (fileBytes.length > 500 * 1024) {
+        print('[EDIT PROFILE] Image too large: ${fileBytes.length} bytes. Max 500KB');
+        throw Exception('Image too large. Please select an image smaller than 500KB');
+      }
+      
+      // Конвертируем в base64
+      final base64Image = base64Encode(fileBytes);
+      print('[EDIT PROFILE] Base64 image length: ${base64Image.length} characters');
+      
+      // Создаём data URL для изображения
+      final mimeType = 'image/jpeg';
+      final dataUrl = 'data:$mimeType;base64,$base64Image';
+      
+      print('[EDIT PROFILE] Avatar converted to base64 successfully');
+      return dataUrl;
+    } catch (e, stackTrace) {
+      print('[EDIT PROFILE ERROR] Failed to convert avatar: $e');
+      print('[EDIT PROFILE ERROR] Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
@@ -197,72 +218,131 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Сначала загружаем аватар если он выбран
-        String? newAvatarUrl = _avatarUrl;
-        if (_avatarFile != null) {
-          print('[EDIT PROFILE] Uploading new avatar...');
+      if (user == null) {
+        print('[EDIT PROFILE ERROR] No user logged in');
+        throw Exception('No user logged in');
+      }
+
+      print('[EDIT PROFILE] Saving profile for user: ${user.uid}');
+      print('[EDIT PROFILE] Has avatar file: ${_avatarFile != null}');
+      print('[EDIT PROFILE] Original avatar URL: $_originalAvatarUrl');
+      print('[EDIT PROFILE] New avatar URL: $_avatarUrl');
+
+      // Сначала загружаем аватар если он выбран
+      String? newAvatarUrl = _avatarUrl;
+      if (_avatarFile != null) {
+        print('[EDIT PROFILE] Uploading new avatar...');
+        try {
           newAvatarUrl = await _uploadAvatarToStorage(_avatarFile!, user.uid);
           if (newAvatarUrl == null) {
-            throw Exception('Failed to upload avatar');
+            throw Exception('Failed to upload avatar - returned null URL');
           }
-        }
-
-        // Подготавливаем данные для обновления
-        final updateData = <String, dynamic>{
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'displayName': '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-
-        // Добавляем avatarUrl только если он изменился
-        if (newAvatarUrl != _originalAvatarUrl) {
-          updateData['avatarUrl'] = newAvatarUrl;
-        }
-
-        print('[EDIT PROFILE] Data changed, updating...');
-        
-        // Обновляем данные в Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .update(updateData);
-
-        // Обновляем displayName в Firebase Auth
-        await user.updateDisplayName(updateData['displayName']);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.translate('profileUpdated')),
-              backgroundColor: AppColors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-          
-          // Ждем немного перед закрытием
-          await Future.delayed(const Duration(milliseconds: 500));
-          
+          print('[EDIT PROFILE] Avatar uploaded successfully: $newAvatarUrl');
+        } catch (uploadError) {
+          print('[EDIT PROFILE ERROR] Avatar upload failed: $uploadError');
           if (mounted) {
-            Navigator.pop(context, true); // Возвращаем true чтобы обновить профиль
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to upload avatar: $uploadError'),
+                backgroundColor: AppColors.red,
+                duration: const Duration(seconds: 5),
+              ),
+            );
           }
+          throw uploadError;
         }
       }
-    } catch (e) {
-      print('[EDIT PROFILE ERROR] Failed to update profile: $e');
+              
+      // Подготавливаем данные для обновления
+      final updateData = <String, dynamic>{
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'displayName': '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      // Добавляем avatarUrl только если он изменился
+      if (newAvatarUrl != _originalAvatarUrl) {
+        updateData['avatarUrl'] = newAvatarUrl;
+        print('[EDIT PROFILE] Avatar URL will be updated to: $newAvatarUrl');
+      } else {
+        print('[EDIT PROFILE] Avatar URL unchanged');
+      }
+
+      // Обновляем email если он изменился
+      final currentEmail = _emailController.text.trim();
+      if (currentEmail != _originalEmail) {
+        print('[EDIT PROFILE] Email changed from $_originalEmail to $currentEmail');
+        updateData['email'] = currentEmail;
+        print('[EDIT PROFILE] Email will be updated in Firestore to: $currentEmail');
+        // Примечание: для обновления email в Firebase Auth требуется верификация
+        // await user.verifyBeforeUpdateEmail(currentEmail);
+      } else {
+        print('[EDIT PROFILE] Email unchanged');
+      }
+              
+      print('[EDIT PROFILE] Updating Firestore with data: $updateData');
+      
+      // Используем set с merge чтобы создать документ если его нет
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(updateData, SetOptions(merge: true));
+
+      print('[EDIT PROFILE] Firestore updated/created successfully');
+
+      // Обновляем displayName в Firebase Auth
+      await user.updateDisplayName(updateData['displayName']);
+      print('[EDIT PROFILE] Auth displayName updated successfully');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${context.l10n.translate('failedToUpdateProfile')}: $e'),
+            content: Text(context.l10n.translate('profileUpdated')),
+            backgroundColor: AppColors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        
+        // Ждем немного перед закрытием
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          print('[EDIT PROFILE] Closing screen and returning true');
+          Navigator.pop(context, true);
+        }
+      }
+    } on FirebaseException catch (e) {
+      print('[EDIT PROFILE ERROR] Firestore error: ${e.code} - ${e.message}');
+      if (mounted) {
+        String errorMessage = 'Firestore error: ${e.code}';
+        if (e.code == 'permission-denied') {
+          errorMessage = 'Permission denied. Please check your Firebase Firestore rules.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: AppColors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      print('[EDIT PROFILE ERROR] Failed to update profile: $e');
+      print('[EDIT PROFILE ERROR] Stack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: AppColors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+        print('[EDIT PROFILE] Loading state set to false');
       }
     }
   }
@@ -320,14 +400,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 errorBuilder: (context, error, stackTrace) =>
                                     _buildDefaultAvatar(),
                               )
-                            : _avatarUrl != null
-                                ? Image.network(
-                                    _avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        _buildDefaultAvatar(),
-                                  )
-                                : _buildDefaultAvatar(),
+                            : _buildAvatar(_avatarUrl),
                       ),
                     ),
                     Positioned(
@@ -395,7 +468,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: _emailController,
                 label: context.l10n.translate('email'),
                 hintText: 'Enter your email',
-                enabled: false, // Email нельзя изменить
+                enabled: true, // Email можно изменить
+                onChanged: (value) => setState(() {}),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your email';
@@ -447,7 +521,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
-
+  
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -527,6 +601,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         color: Colors.white,
         size: 60,
       ),
+    );
+  }
+  
+  /// Вспомогательный метод для отображения аватара (поддерживает base64 и network URL)
+  Widget _buildAvatar(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return _buildDefaultAvatar();
+    }
+    
+    // Проверяем если это base64 data URL
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        // Извлекаем base64 часть из data URL
+        final commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64String = avatarUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64String);
+          
+          return Image.memory(
+            bytes,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+          );
+        }
+      } catch (e) {
+        print('[EDIT PROFILE ERROR] Failed to decode base64 avatar: $e');
+      }
+      return _buildDefaultAvatar();
+    }
+    
+    // Иначе используем network URL
+    return Image.network(
+      avatarUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
     );
   }
 }

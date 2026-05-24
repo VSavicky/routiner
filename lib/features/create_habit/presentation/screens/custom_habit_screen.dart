@@ -326,7 +326,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                         bool isSelected = _selectedIconIndex == index;
                         return GestureDetector(
                           onTap: () {
-                            setModalState(() {
+                            setState(() {
                               _selectedIconIndex = index;
                             });
                             Navigator.of(context).pop();

@@ -151,12 +151,12 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
           'title': 'Better Sleep: No Phone Before Bed',
           'endTime': now.add(const Duration(days: 14)),
           'description': 'Improve your sleep quality by eliminating screen time 1 hour before bed. Fall asleep faster and wake up more refreshed. Your eyes will thank you!',
-          'icon': '�',
+          'icon': '😴',
           'color': const Color(0xFF7E57C2),
           'participants': 342,
           'habits': [
             {'title': 'No phone 1h before bed', 'icon': '📵', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
-            {'title': 'Read instead', 'icon': '�', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': 'Read instead', 'icon': '📖', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
@@ -207,7 +207,7 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
           'color': const Color(0xFF607D8B),
           'participants': 98,
           'habits': [
-            {'title': 'Max 1h TV/Netflix', 'icon': '�', 'targetValue': 1, 'targetUnit': 'hour', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': 'Max 1h TV/Netflix', 'icon': '📺', 'targetValue': 1, 'targetUnit': 'hour', 'incrementStep': 1, 'habitType': 'quit'},
             {'title': 'Go for a walk', 'icon': '🚶', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },

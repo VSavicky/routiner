@@ -347,6 +347,9 @@ class ChallengesService {
     // Получаем все существующие привычки пользователя для проверки дубликатов
     final existingHabits = await habitRepository.getUserHabitsFromServer(userId);
     
+    // Получаем существующие записи challenge_habits для предотвращения дубликатов
+    final existingChallengeHabits = await _challengeHabitRepository.getUserChallengeHabitsFuture(userId, challengeId);
+    
     for (int i = 0; i < habits.length; i++) {
       final habitData = habits[i] as Map<String, dynamic>;
       final habitTitle = habitData['title'] as String? ?? 'Habit ${i + 1}';
@@ -355,6 +358,17 @@ class ChallengesService {
       final targetUnit = habitData['targetUnit'] as String? ?? 'times';
       final incrementStep = habitData['incrementStep'] as int? ?? 1;
       final habitType = habitData['habitType'] as String? ?? 'build';
+      
+      // Проверяем, есть ли уже запись в challenge_habits для этой привычки
+      final existingChallengeHabit = existingChallengeHabits.where((ch) => 
+        ch.name.toLowerCase().trim() == habitTitle.toLowerCase().trim()
+      ).firstOrNull;
+      
+      // Если запись уже есть, пропускаем создание
+      if (existingChallengeHabit != null) {
+        print('[ChallengesService] Challenge habit already exists: $habitTitle, skipping');
+        continue;
+      }
       
       // Проверяем, есть ли уже такая привычка у пользователя
       final existingHabit = existingHabits.where((h) => 

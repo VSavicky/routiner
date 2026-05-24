@@ -10,6 +10,7 @@ import 'package:routiner/features/auth/domain/services/auth_service.dart';
 import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:routiner/l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -31,7 +32,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isEmailValid = true;
   bool _isPasswordValid = true;
   bool _isConfirmPasswordValid = true;
-
+  bool _isFirstNameValid = true;
+  bool _isLastNameValid = true;
+  bool _isBirthDateValid = true;
+  
+  int _currentStep = 1;
+  bool _isLoading = false; 
+  
   Future<void> _saveRegistrationData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('registration_email', _emailController.text.trim());
@@ -40,32 +47,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
     await prefs.setString('registration_last_name', _lastNameController.text.trim());
     await prefs.setString('registration_birth_date', _birthDateController.text.trim());
   }
-  bool _isFirstNameValid = true;
-  bool _isLastNameValid = true;
-  bool _isBirthDateValid = true;
-  
-  int _currentStep = 1;
-  bool _isLoading = false; 
-  
+
   bool _validateEmail(String email) {
+    if (email.isEmpty) return true;
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     return emailRegex.hasMatch(email);
   }
 
   bool _validatePassword(String password) {
+    if (password.isEmpty) return true;
     return password.length >= 8;
   }
 
   bool _validateConfirmPassword(String password, String confirmPassword) {
-    return password == confirmPassword && password.isNotEmpty;
+    if (password.isEmpty || confirmPassword.isEmpty) return true;
+    return password == confirmPassword;
   }
 
   bool _validateName(String name) {
+    if (name.isEmpty) return true;
     return name.isNotEmpty;
   }
 
   bool _validateBirthDate(String date) {
-    if (date.isEmpty) return false;
+    if (date.isEmpty) return true;
     try {
       final parts = date.split('.');
       if (parts.length != 3) return false;
@@ -84,13 +89,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool get _isStep1Valid {
-    return _isEmailValid && _isPasswordValid && _isConfirmPasswordValid &&
-           _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty && _confirmPasswordController.text.isNotEmpty;
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    
+    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      return false;
+    }
+    
+    return _validateEmail(email) && 
+           _validatePassword(password) && 
+           _validateConfirmPassword(password, confirmPassword);
   }
 
   bool get _isStep2Valid {
-    return _isFirstNameValid && _isLastNameValid && _isBirthDateValid &&
-           _firstNameController.text.isNotEmpty && _lastNameController.text.isNotEmpty && _birthDateController.text.isNotEmpty;
+    final firstName = _firstNameController.text;
+    final lastName = _lastNameController.text;
+    final birthDate = _birthDateController.text;
+    
+    if (firstName.isEmpty || lastName.isEmpty || birthDate.isEmpty) {
+      return false;
+    }
+    
+    return _validateName(firstName) && 
+           _validateName(lastName) && 
+           _validateBirthDate(birthDate);
   }
 
   bool get _isFormValid {
@@ -126,6 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _currentStep = 1;
     });
+  }
+
+  void _handleNextStep() {
+    _saveRegistrationData();
+    _nextStep();
   }
 
   void _selectBirthDate() async {
@@ -177,6 +205,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
+      print('[REGISTER] Starting registration for email: ${_emailController.text}');
+      
       final userEntity = await _authService.registerWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -187,23 +217,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
         habits: [], // Заполнится на следующих экранах
       );
 
-      if (userEntity != null) {
-        // Сохраняем данные пользователя для передачи на следующие экраны
-        // Переходим на выбор гендера
-        if (mounted) {
-          context.go('/gender');
-        }
+      print('[REGISTER] Registration result: ${userEntity != null ? "success" : "failed"}');
+
+      if (userEntity != null && mounted) {
+        print('[REGISTER] Navigation to /gender');
+        context.go('/gender');
       } else {
-        _showErrorDialog('Registration failed. Please try again.');
+        print('[REGISTER] User entity is null');
+        _showErrorDialog(context.l10n.translate('registrationFailed'));
       }
-    } catch (e) {
-      _showErrorDialog('Error: ${e.toString()}');
+    } on FirebaseAuthException catch (e) {
+      print('[REGISTER] FirebaseAuthException: ${e.code} - ${e.message}');
+      String errorMessage = _getLocalizedAuthErrorMessage(e.code);
+      _showErrorDialog(errorMessage);
+    } catch (e, stackTrace) {
+      print('[REGISTER] Error: $e');
+      print('[REGISTER] Stack trace: $stackTrace');
+      _showErrorDialog('${context.l10n.translate('registrationFailed')}: $e');
     } finally {
       if (mounted) {
+        print('[REGISTER] Setting isLoading to false');
         setState(() {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  String _getLocalizedAuthErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'weak-password':
+        return context.l10n.translate('weakPassword');
+      case 'email-already-in-use':
+        return context.l10n.translate('emailAlreadyInUse');
+      case 'invalid-email':
+        return context.l10n.translate('invalidEmail');
+      case 'operation-not-allowed':
+        return context.l10n.translate('operationNotAllowed');
+      default:
+        return context.l10n.translate('registrationFailed');
     }
   }
 
@@ -416,11 +468,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: _currentStep == 1 ? 'Next' : (_isLoading ? 'Creating...' : 'Create Account'),
-                    onPressed: _currentStep == 1 ? () {
-                      _saveRegistrationData();
-                      _nextStep();
-                    } : (_isLoading ? null : _registerUser),
+                    text: _currentStep == 1 ? 'Next' : 'Create Account',
+                    onPressed: _currentStep == 1 ? _handleNextStep : _registerUser,
                     isActive: _isFormValid && !_isLoading,
                   ),
                 ),

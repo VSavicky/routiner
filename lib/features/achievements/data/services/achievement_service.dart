@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/features/achievements/data/models/achievement_model.dart';
 import 'package:routiner/features/achievements/data/repositories/achievement_repository.dart';
+import 'package:routiner/features/notifications/data/models/notification_model.dart';
+import 'package:routiner/features/notifications/data/repositories/notification_repository.dart';
 
 class AchievementService {
   final AchievementRepository _achievementRepository = AchievementRepository();
+  final NotificationRepository _notificationRepository = NotificationRepository();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Проверить и выдать достижения за очки
@@ -149,8 +152,63 @@ class AchievementService {
       final achievement = await createAchievement();
       await _achievementRepository.awardAchievement(achievement);
       print('[ACHIEVEMENT DEBUG] Awarded new achievement: $title to user: $userId');
+      
+      // Создаем уведомление о получении достижения
+      await _createAchievementNotification(userId, achievement);
     } else {
       print('[ACHIEVEMENT DEBUG] Achievement already exists: $title for user: $userId - skipping');
+    }
+  }
+
+  // Создать уведомление о получении достижения
+  Future<void> _createAchievementNotification(String userId, AchievementModel achievement) async {
+    try {
+      // Определяем сообщение на основе названия достижения
+      String message;
+      switch (achievement.title) {
+        case 'First Habit':
+          message = 'notificationFirstHabit';
+          break;
+        case 'Habit Master':
+          message = 'notificationHabitMaster';
+          break;
+        case 'First Steps':
+          message = 'notificationFirstSteps';
+          break;
+        case 'Rising Star':
+          message = 'notificationRisingStar';
+          break;
+        case 'Point Master':
+          message = 'notificationPointMaster';
+          break;
+        case 'Week Warrior':
+          message = 'notificationWeekWarrior';
+          break;
+        case 'Monthly Champion':
+          message = 'notificationMonthlyChampion';
+          break;
+        case 'Club Member':
+          message = 'notificationClubMember';
+          break;
+        default:
+          message = achievement.title;
+      }
+      
+      final notification = NotificationModel(
+        id: '', // ID будет сгенерирован Firestore
+        userId: userId,
+        title: 'notificationAchievementTitle',
+        message: message,
+        type: 'achievement',
+        icon: achievement.icon,
+        createdAt: DateTime.now(),
+        isRead: false,
+      );
+      
+      await _notificationRepository.createNotification(notification);
+      print('[NOTIFICATION] Created achievement notification for user: $userId');
+    } catch (e) {
+      print('[NOTIFICATION ERROR] Failed to create notification: $e');
     }
   }
 
@@ -162,7 +220,7 @@ class AchievementService {
           .where('userId', isEqualTo: userId)
           .where('status', isEqualTo: 'completed')
           .get();
-
+      
       return logsQuery.docs.length * 10; // 10 очков за каждую выполненную привычку
     } catch (e) {
       print('[ACHIEVEMENT SERVICE ERROR] Failed to calculate total points: $e');
@@ -340,6 +398,9 @@ class AchievementService {
         await _achievementRepository.awardAchievement(achievement);
         print('[ACHIEVEMENT] First habit achievement awarded to user: $userId');
         
+        // Создаем уведомление о получении достижения
+        await _createAchievementNotification(userId, achievement);
+        
         // Принудительное обновление кэша достижений
         print('[ACHIEVEMENT DEBUG] Clearing achievement cache for user: $userId');
         // Здесь можно добавить логику для очистки кэша если она есть
@@ -418,6 +479,9 @@ class AchievementService {
         
         await _achievementRepository.awardAchievement(achievement);
         print('[ACHIEVEMENT] Any habit achievement awarded to user: $userId');
+        
+        // Создаем уведомление о получении достижения
+        await _createAchievementNotification(userId, achievement);
       } else {
         print('[ACHIEVEMENT DEBUG] User has less than 5 completed habits - no Habit Master yet');
       }

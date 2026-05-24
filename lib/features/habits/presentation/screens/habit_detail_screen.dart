@@ -161,10 +161,17 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       ),
     );
 
-    setState(() {
-      _dailyProgress = progressMap;
-      _todayLog = todayLog;
-    });
+    if (mounted) {
+      setState(() {
+        _dailyProgress = progressMap;
+        _todayLog = todayLog;
+      });
+    }
+  }
+
+  /// Метод для перезагрузки данных (вызывается при возврате с других экранов)
+  void reload() {
+    _loadData();
   }
 
   Future<void> _addHabit() async {
@@ -345,18 +352,24 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       AppColors.blue,
     ];
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-            stops: const [0.0, 1.0],
+    return WillPopScope(
+      onWillPop: () async {
+        // Обновляем данные на главном экране при возврате
+        Navigator.of(context).pop(true); // true = данные изменены
+        return false;
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+              stops: const [0.0, 1.0],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: _isLoading
+          child: SafeArea(
+            child: _isLoading
               ? const Center(child: CircularProgressIndicator(color: Colors.white))
               : LayoutBuilder(
                   builder: (context, constraints) {
@@ -596,6 +609,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                     );
                   },
                 ),
+          ),
         ),
       ),
     );

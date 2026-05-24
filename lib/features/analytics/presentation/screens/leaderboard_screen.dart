@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/analytics/presentation/screens/user_profile_screen.dart';
+import 'dart:convert';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -58,38 +59,44 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop();
+        return false;
+      },
+      child: Scaffold(
         backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.black100,
-            size: 20,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.black100,
+              size: 20,
+            ),
+            onPressed: () => Navigator.pop(context),
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Лидерборд',
-          style: AppFonts.bodyTitleMedium.copyWith(
-            color: AppColors.black100,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          title: Text(
+            'Лидерборд',
+            style: AppFonts.bodyTitleMedium.copyWith(
+              color: AppColors.black100,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
           ),
+          centerTitle: true,
         ),
-        centerTitle: true,
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _users.isEmpty
+                ? _buildEmptyState()
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    itemCount: _users.length,
+                    itemBuilder: (context, index) => _buildUserTile(index),
+                  ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _users.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  itemCount: _users.length,
-                  itemBuilder: (context, index) => _buildUserTile(index),
-                ),
     );
   }
 
@@ -129,18 +136,25 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final profileScreen = UserProfileScreen(
+          userId: userId,
+          userName: displayName,
+          points: points,
+          avatarUrl: avatarUrl,
+        );
+        
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UserProfileScreen(
-              userId: userId,
-              userName: displayName,
-              points: points,
-              avatarUrl: avatarUrl,
-            ),
+            builder: (context) => profileScreen,
           ),
         );
+        
+        // Обновляем данные при возврате с экрана профиля
+        if (mounted) {
+          setState(() {});
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -175,16 +189,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               const SizedBox(width: 12),
 
               // Аватар
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.blue20,
-                backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-                    ? NetworkImage(avatarUrl)
-                    : null,
-                child: avatarUrl == null || avatarUrl.isEmpty
-                    ? const Icon(Icons.person, color: AppColors.blue100, size: 24)
-                    : null,
-              ),
+              _buildAvatar(avatarUrl),
               const SizedBox(width: 12),
 
               // Имя
@@ -273,6 +278,81 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+  
+  /// Вспомогательный метод для отображения аватара (поддерживает base64 и network URL)
+  Widget _buildAvatar(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.blue20,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.person, color: AppColors.blue100, size: 24),
+      );
+    }
+    
+    // Проверяем если это base64 data URL
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        // Извлекаем base64 часть из data URL
+        final commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64String = avatarUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64String);
+          
+          return ClipOval(
+            child: Image.memory(
+              bytes,
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.blue20,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person, color: AppColors.blue100, size: 24),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        print('[LEADERBOARD ERROR] Failed to decode base64 avatar: $e');
+      }
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.blue20,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.person, color: AppColors.blue100, size: 24),
+      );
+    }
+    
+    // Иначе используем network URL
+    return ClipOval(
+      child: Image.network(
+        avatarUrl,
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.blue20,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.person, color: AppColors.blue100, size: 24),
+        ),
       ),
     );
   }

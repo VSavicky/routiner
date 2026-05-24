@@ -5,6 +5,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/l10n/app_localizations.dart';
 import 'package:routiner/features/achievements/data/models/achievement_model.dart';
+import 'dart:convert';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -25,7 +26,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   
   List<Map<String, dynamic>> _activities = [];
@@ -38,7 +39,24 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Обновляем данные когда приложение становится активным
+    if (state == AppLifecycleState.resumed) {
+      _loadUserData();
+    }
   }
 
   void _handleTabChange() {
@@ -47,10 +65,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     }
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  /// Метод для перезагрузки данных (вызывается при возврате с других экранов)
+  void reload() {
+    _loadUserData();
   }
 
   Future<void> _loadUserData() async {
@@ -367,16 +384,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
       child: Column(
         children: [
           // Аватар
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            backgroundImage: widget.avatarUrl != null && widget.avatarUrl!.isNotEmpty
-                ? NetworkImage(widget.avatarUrl!)
-                : null,
-            child: widget.avatarUrl == null || widget.avatarUrl!.isEmpty
-                ? const Icon(Icons.person, color: Colors.white, size: 48)
-                : null,
-          ),
+          _buildAvatar(widget.avatarUrl),
           
           const SizedBox(height: 16),
           
@@ -718,24 +726,6 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     }
   }
 
-  Widget _buildActivityList() {
-    if (_activities.isEmpty) {
-      return _buildEmptyState();
-    }
-    
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      color: Colors.white,
-      child: Column(
-        children: List.generate(
-          _activities.length > 15 ? 15 : _activities.length,
-          (index) => _buildActivityItem(_activities[index]),
-        ),
-      ),
-    );
-  }
-
   Widget _buildActivityItem(Map<String, dynamic> activity) {
     final icon = activity['icon'] as String;
     final points = activity['points'] as int? ?? 0;
@@ -930,6 +920,83 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+  
+  /// Вспомогательный метод для отображения аватара (поддерживает base64 и network URL)
+  Widget _buildAvatar(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return Container(
+        width: 96,
+        height: 96,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.person, color: Colors.white, size: 48),
+      );
+    }
+    
+    // Проверяем если это base64 data URL
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        // Извлекаем base64 часть из data URL
+        final commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64String = avatarUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64String);
+          
+          return ClipOval(
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Image.memory(
+                bytes,
+                width: 96,
+                height: 96,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.person, color: Colors.white, size: 48),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        print('[USER PROFILE ERROR] Failed to decode base64 avatar: $e');
+      }
+      return Container(
+        width: 96,
+        height: 96,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.person, color: Colors.white, size: 48),
+      );
+    }
+    
+    // Иначе используем network URL
+    return ClipOval(
+      child: Container(
+        width: 96,
+        height: 96,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          shape: BoxShape.circle,
+        ),
+        child: Image.network(
+          avatarUrl,
+          width: 96,
+          height: 96,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+              const Icon(Icons.person, color: Colors.white, size: 48),
+        ),
       ),
     );
   }

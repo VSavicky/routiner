@@ -15,7 +15,6 @@ import 'package:routiner/features/auth/domain/entities/user_entity.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/models/habit_log_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
-import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenges_list_screen.dart';
 import 'package:routiner/features/challenges/presentation/screens/challenge_detail_screen.dart';
 import 'package:routiner/features/habits/presentation/screens/habits_list_screen.dart';
@@ -800,6 +799,14 @@ class _HomePageState extends State<HomePage> {
                           WeekDaysList(
                             selectedDate: _selectedDate,
                             dailyProgress: _dailyProgress,
+                            onFutureDateTapped: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(context.l10n.translate('cannotCompleteFutureDates')),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
                             onDateSelected: (date) async {
                               setState(() {
                                 _selectedDate = date;
@@ -892,7 +899,15 @@ class _HomePageState extends State<HomePage> {
                                               );
                                               return habitCreatedDate.isAtSameMomentAs(selectedDate) ||
                                                      habitCreatedDate.isBefore(selectedDate);
-                                            }).map((habitModel) {
+                                            })
+                                            // Фильтруем по статусу: показываем только pending привычки для выбранной даты
+                                            .where((habitModel) {
+                                              final dayLog = habitModel.id != null ? _todayLogs[habitModel.id] : null;
+                                              final status = dayLog?.status ?? HabitStatus.pending;
+                                              // Показываем только если статус pending (не выполнен, не провален, не пропущен)
+                                              return status == HabitStatus.pending;
+                                            })
+                                            .map((habitModel) {
                                             // Получаем лог для выбранной даты (исторический прогресс)
                                             final dayLog = habitModel.id != null
                                                 ? _todayLogs[habitModel.id]
@@ -958,20 +973,13 @@ class _HomePageState extends State<HomePage> {
                                                   await _updateHabitStatus(habitModel.id!, HabitStatus.skipped);
                                                 }
                                               },
-                                              onEditPressed: () async {
-                                                // Открываем экран редактирования с передачей данных привычки
-                                                final isBadHabit = habitModel.habitType == 'quit';
-                                                await Navigator.of(context).push(
+                                              onEditPressed: () {
+                                                // Открываем детальный экран привычки
+                                                Navigator.of(context).push(
                                                   MaterialPageRoute(
-                                                    builder: (context) => CustomHabitScreen(
-                                                      isBadHabit: isBadHabit,
-                                                      moodEmoji: habitModel.emoji ?? '😊',
-                                                      moodLabel: 'Neutral',
-                                                      selectedHabitEmoji: habitModel.emoji,
-                                                      onHabitCreated: () {
-                                                        // Обновляем главный экран после сохранения
-                                                        _refreshHabits();
-                                                      },
+                                                    builder: (context) => HabitDetailScreen(
+                                                      habit: habitModel,
+                                                      challengeId: habitModel.challengeId,
                                                     ),
                                                   ),
                                                 );

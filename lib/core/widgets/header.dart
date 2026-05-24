@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/notification_icon.dart';
 import 'package:routiner/core/widgets/toggle_button.dart';
+import 'package:routiner/features/notifications/data/repositories/notification_repository.dart';
+import 'package:routiner/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:routiner/l10n/app_localizations.dart';
 
 class Header extends StatefulWidget {
@@ -36,6 +39,40 @@ class Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<Header> {
+  final NotificationRepository _notificationRepository = NotificationRepository();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  void _loadUnreadCount() {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _notificationRepository.getUnreadCount(user.uid).then((count) {
+      if (mounted) {
+        setState(() {
+          _unreadCount = count;
+        });
+      }
+    });
+  }
+
+  void _showNotifications() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NotificationsScreen(),
+      ),
+    ).then((_) {
+      // Обновляем счетчик после возврата
+      _loadUnreadCount();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -108,10 +145,8 @@ class _HeaderState extends State<Header> {
                   if (widget.showNotifications)
                     NotificationIcon(
                       icon: Icons.notifications,
-                      hasNotification: true,
-                      onTap: () {
-                        // TODO: Implement notifications navigation
-                      },
+                      hasNotification: _unreadCount > 0,
+                      onTap: _showNotifications,
                       size: 30,
                       iconColor: AppColors.black40,
                     ),

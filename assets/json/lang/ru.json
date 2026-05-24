@@ -417,25 +417,56 @@
   "showing_last_week_activity": "Показана активность за последнюю неделю",
   "showing_today_activity": "Показана активность за сегодня",
   "timeLeft": "Осталось времени",
-  "times": "раз"
-  ,"customHabitScreenComingSoon": "Экран создания привычки — скоро"
-  ,"failedToSignOut": "Не удалось выйти"
-  ,"ok": "ОК"
-  ,"iUnderstand": "Понятно"
-  ,"pleaseEnterHabitName": "Пожалуйста, введите название привычки"
-  ,"pleaseSignInToSaveHabits": "Пожалуйста, войдите, чтобы сохранить привычку"
-  ,"habitCreatedSuccessfully": "Привычка успешно создана!"
-  ,"failedToCreateHabit": "Не удалось создать привычку"
-  ,"addedToYourHabits": "{name} добавлена в ваши привычки!"
-  ,"failedToAddHabit": "Не удалось добавить привычку"
-  ,"failedToDeleteHabit": "Не удалось удалить привычку"
-  ,"cancel": "Отмена"
-  ,"delete": "Удалить"
-  ,"cannotCompleteFutureDates": "Невозможно отметить привычки на будущие даты."
-  ,"youLeftTheClub": "Вы покинули клуб"
-  ,"welcomeToClub": "Добро пожаловать в {name}! 🎉"
-  ,"selectedFileDoesNotExist": "Выбранный файл не существует"
-  ,"lessonMarkedIncomplete": "Урок помечен как неполный"
-  ,"lessonCompleted": "Урок завершен! 🎉"
-  ,"error": "Ошибка"
+  "times": "раз",
+  "customHabitScreenComingSoon": "Экран создания привычки — скоро",
+  "failedToSignOut": "Не удалось выйти",
+  "ok": "ОК",
+  "iUnderstand": "Понятно",
+  "pleaseEnterHabitName": "Пожалуйста, введите название привычки",
+  "pleaseSignInToSaveHabits": "Пожалуйста, войдите, чтобы сохранить привычку",
+  "habitCreatedSuccessfully": "Привычка успешно создана!",
+  "failedToCreateHabit": "Не удалось создать привычку",
+  "addedToYourHabits": "{name} добавлена в ваши привычки!",
+  "failedToAddHabit": "Не удалось добавить привычку",
+  "failedToDeleteHabit": "Не удалось удалить привычку",
+  "cancel": "Отмена",
+  "delete": "Удалить",
+  "cannotCompleteFutureDates": "Невозможно отметить привычки на будущие даты.",
+  "youLeftTheClub": "Вы покинули клуб",
+  "welcomeToClub": "Добро пожаловать в {name}! 🎉",
+  "selectedFileDoesNotExist": "Выбранный файл не существует",
+  "lessonMarkedIncomplete": "Урок помечен как неполный",
+  "lessonCompleted": "Урок завершен! 🎉",
+  "error": "Ошибка",
+  "notificationAchievementTitle": "🎉 Достижение разблокировано!",
+  "notificationFirstHabit": "Поздравляем! Вы выполнили первую привычку 🌟",
+  "notificationHabitMaster": "Отличная работа! Вы выполнили 5 привычек ✅",
+  "notificationFirstSteps": "Вы достигли 100 очков! 🌟",
+  "notificationRisingStar": "Вы достигли 500 очков! ⭐",
+  "notificationPointMaster": "Потрясающе! Вы достигли 1000 очков 🏆",
+  "notificationWeekWarrior": "Великолепно! Вы держали серию 7 дней 🔥",
+  "notificationMonthlyChampion": "Невероятно! Вы держали серию 30 дней 💪",
+  "notificationClubMember": "Вы присоединились к первому клубу! 👥",
+  "notificationsScreenTitle": "Уведомления",
+  "notificationsEmptyTitle": "Нет уведомлений",
+  "notificationsEmptySubtitle": "Когда вы получите уведомление,\nоно появится здесь",
+  "markAllRead": "Все прочитано",
+  "privacyPolicyIntro": "Ваша конфиденциальность важна для нас. Эта политика объясняет, как мы собираем, используем и защищаем вашу информацию.",
+  "privacyPolicyInformationWeCollect": "Информация, которую мы собираем",
+  "privacyPolicyInformationWeCollectDesc": "• Email адрес для аутентификации аккаунта\n• Данные о привычках и прогрессе\n• Информация о достижениях\n• Статистика использования",
+  "privacyPolicyHowWeUse": "Как мы используем вашу информацию",
+  "privacyPolicyHowWeUseDesc": "• Для предоставления и улучшения наших услуг\n• Для отправки вам уведомлений\n• Для отслеживания вашего прогресса\n• Для персонализации вашего опыта",
+  "privacyPolicyDataProtection": "Защита данных",
+  "privacyPolicyDataProtectionDesc": "Мы используем меры безопасности уровня индустрии для защиты ваших данных. Ваша информация зашифрована и хранится в безопасности.",
+  "weakPassword": "Слишком слабый пароль",
+  "emailAlreadyInUse": "Этот email уже зарегистрирован",
+  "invalidEmail": "Неверный формат email",
+  "operationNotAllowed": "Операция не разрешена",
+  "registrationFailed": "Регистрация не удалась",
+  "tryAgain": "Попробуйте снова",
+  "signInFailed": "Вход не удался",
+  "wrongPassword": "Неверный пароль",
+  "userNotFound": "Пользователь не найден",
+  "userDisabled": "Пользователь отключен",
+  "tooManyRequests": "Слишком много попыток. Попробуйте позже"
 }

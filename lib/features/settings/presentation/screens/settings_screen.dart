@@ -193,12 +193,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.l10n.translate('signOut'),
                   onTap: () async {
                     try {
+                      // Выходим из Firebase
                       await FirebaseAuth.instance.signOut();
-                      if (context.mounted) {
-                        context.go('/auth');
-                      }
+                      
+                      // Проверяем что контекст всё ещё валиден
+                      if (!mounted) return;
+                      
+                      // Переходим на экран авторизации и очищаем стек
+                      context.go('/auth');
                     } catch (e) {
-                      if (context.mounted) {
+                      if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('${context.l10n.translate('failedToSignOut')}: $e')),
                         );
@@ -506,43 +510,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              context.l10n.translate('aboutRoutiner'),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                context.l10n.translate('aboutRoutiner'),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.translate('aboutRoutiner'),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black87,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.translate('aboutRoutiner'),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '${context.l10n.translate('version')}: 1.0.0',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+              const SizedBox(height: 16),
+              Text(
+                '${context.l10n.translate('version')}: 1.0.0',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.translate('copyright'),
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.translate('copyright'),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           Container(
@@ -588,22 +597,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              context.l10n.translate('privacyPolicy'),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                context.l10n.translate('privacyPolicy'),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        content: const SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your privacy is important to us. This policy explains how we collect, use, and protect your information.',
+                context.l10n.translate('privacyPolicyIntro'),
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black87,
@@ -611,7 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Information We Collect',
+                context.l10n.translate('privacyPolicyInformationWeCollect'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -620,10 +632,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '• Email address for account authentication\n'
-                '• Habit data and progress\n'
-                '• Achievement information\n'
-                '• Usage statistics',
+                context.l10n.translate('privacyPolicyInformationWeCollectDesc'),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
@@ -631,7 +640,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'How We Use Your Information',
+                context.l10n.translate('privacyPolicyHowWeUse'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -640,10 +649,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '• To provide and improve our services\n'
-                '• To send you notifications\n'
-                '• To track your progress\n'
-                '• To personalize your experience',
+                context.l10n.translate('privacyPolicyHowWeUseDesc'),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
@@ -651,7 +657,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Data Protection',
+                context.l10n.translate('privacyPolicyDataProtection'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -660,7 +666,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'We use industry-standard security measures to protect your data. Your information is encrypted and stored securely.',
+                context.l10n.translate('privacyPolicyDataProtectionDesc'),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
