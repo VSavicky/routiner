@@ -42,9 +42,12 @@ class AuthHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: AppFonts.headlineH5,
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppFonts.headlineH5,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

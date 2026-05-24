@@ -626,31 +626,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  String _getActivityFilterText() {
-    if (!mounted) {
-      // Fallback для случая когда контекст не готов
-      switch (_activityFilter) {
-        case 'day':
-          return 'Showing today activity';
-        case 'week':
-          return 'Showing last week activity';
-        case 'month':
-        default:
-          return 'Showing last month activity';
-      }
-    }
-    
-    switch (_activityFilter) {
-      case 'day':
-        return context.l10n.translate('showing_today_activity');
-      case 'week':
-        return context.l10n.translate('showing_last_week_activity');
-      case 'month':
-      default:
-        return context.l10n.translate('showing_last_month_activity');
-    }
-  }
-
   void _onFilterChanged(String newFilter) {
     setState(() {
       _activityFilter = newFilter;
@@ -659,6 +634,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _loadActivities(user.uid);
+    }
+  }
+
+  String _getActivityFilterText() {
+    switch (_activityFilter) {
+      case 'day':
+        return context.l10n.translate('today');
+      case 'week':
+        return context.l10n.translate('lastWeek');
+      case 'month':
+      default:
+        return context.l10n.translate('lastMonth');
     }
   }
 
@@ -793,7 +780,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ],
     );
   }
-  
+
   Widget _buildActivityItem(Map<String, dynamic> activity) {
     final icon = activity['icon'] as String;
     final points = activity['points'] as int? ?? 0;

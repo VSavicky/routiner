@@ -29,5 +29,22 @@
   "failedToUpdateProfile": "Failed to update profile",
   "aboutRoutiner": "Routiner is a habit tracking app that helps you build and maintain good habits.",
   "version": "Version",
-  "copyright": "© 2026 Routiner Team"
+  "copyright": "© 2026 Routiner Team",
+  "showing_today_activity": "Showing today activity",
+  "showing_last_week_activity": "Showing last week activity",
+  "showing_last_month_activity": "Showing last month activity",
+  "leaderboard": "Leaderboard",
+  "user": "User",
+  "noUsersYet": "No users yet",
+  "startCompletingHabitsToLeaderboard": "Start completing habits to get into the leaderboard",
+  "profile": "Profile",
+  "yourPoints": "your points",
+  "points2": "points",
+  "thisIsYourProfile": "This is your profile",
+  "recentRecords": "Last {count} records",
+  "received": "Received",
+  "noAchievementsYet2": "No achievements yet",
+  "completeHabitsAndChallenges": "Complete habits and challenges\nto get your first achievements",
+  "noActivityYet2": "No activity yet",
+  "whenUserCompletesHabits": "Once the user completes\nhabits, they will appear here"
 }

@@ -53,10 +53,10 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   int _selectedIconIndex = 0;
   // Иконки для хороших привычек (build)
   final List<String> _iconEmojis = ['🚶', '📚', '💧', '🧘', '🏃', '😴', '🥗', '🎸', '✍️', '🎯'];
-  final List<String> _iconNames = ['Walking', 'Reading', 'Water', 'Meditation', 'Running', 'Sleep', 'Healthy Food', 'Music', 'Writing', 'Target'];
+  final List<String> _iconNames = ['Прогулка', 'Чтение', 'Вода', 'Медитация', 'Бег', 'Сон', 'Здоровая еда', 'Музыка', 'Письмо', 'Цель'];
   // Иконки для плохих привычек (quit)
   final List<String> _badHabitEmojis = ['🚬', '🍺', '🍔', '📱', '🎮', '🛋️', '😤', '🍭', '☕', '💸'];
-  final List<String> _badHabitNames = ['Smoking', 'Alcohol', 'Fast Food', 'Phone', 'Gaming', 'Laziness', 'Anger', 'Sweets', 'Caffeine', 'Spending'];
+  final List<String> _badHabitNames = ['Курение', 'Алкоголь', 'Фастфуд', 'Телефон', 'Игры', 'Лень', 'Злость', 'Сладости', 'Кофеин', 'Траты'];
   
   int _selectedColorIndex = 0;
   final List<Color> _colors = [
@@ -64,7 +64,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
     Color(0xFFFFD8B3), Color(0xFFFFF4B3), Color(0xFFB3FFF4), Color(0xFFFFB3E5),
     Color(0xFFC4B3FF), Color(0xFFB3FFC4),
   ];
-  final List<String> _colorNames = ['Pink', 'Blue', 'Green', 'Purple', 'Orange', 'Yellow', 'Turquoise', 'Rose', 'Lavender', 'Mint'];
+  final List<String> _colorNames = ['Розовый', 'Голубой', 'Зелёный', 'Фиолетовый', 'Оранжевый', 'Жёлтый', 'Бирюзовый', 'Розовый', 'Лавандовый', 'Мятный'];
 
   // Controller для названия привычки
   late TextEditingController _nameController;
@@ -73,13 +73,13 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   // Данные для GOAL
   int _frequency = 1;
   String _period = 'day';
-  String _periodLabel = 'Daily';
-  String _scheduleDetail = 'every day';
+  String _periodLabel = 'Ежедневно';
+  String _scheduleDetail = 'каждый день';
 
   // Данные для REMINDERS
   bool _remindersEnabled = true;
   List<String> _reminderTimes = ['09:30'];
-  String _reminderPeriod = 'Every day';
+  String _reminderPeriod = 'Каждый день';
 
   // Habit Type
   bool _isBuildHabit = true;
@@ -90,27 +90,27 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
 
   final List<Map<String, String>> _targetUnits = [
     {'value': 'ml', 'label': 'ml', 'icon': '💧'},
-    {'value': 'steps', 'label': 'steps', 'icon': '🚶'},
-    {'value': 'min', 'label': 'min', 'icon': '⏱️'},
-    {'value': 'hours', 'label': 'hours', 'icon': '🕐'},
-    {'value': 'times', 'label': 'times', 'icon': '🔄'},
-    {'value': 'pages', 'label': 'pages', 'icon': '📄'},
-    {'value': 'km', 'label': 'km', 'icon': '📍'},
-    {'value': 'cal', 'label': 'cal', 'icon': '🔥'},
+    {'value': 'steps', 'label': 'шагов', 'icon': '🚶'},
+    {'value': 'min', 'label': 'мин', 'icon': '⏱️'},
+    {'value': 'hours', 'label': 'часов', 'icon': '🕐'},
+    {'value': 'times', 'label': 'раз', 'icon': '🔄'},
+    {'value': 'pages', 'label': 'страниц', 'icon': '📄'},
+    {'value': 'km', 'label': 'км', 'icon': '📍'},
+    {'value': 'cal', 'label': 'кал', 'icon': '🔥'},
   ];
 
   final List<Map<String, String>> _frequencyOptions = [
-    {'value': '1', 'label': '1 time', 'detail': ''},
-    {'value': '2', 'label': '2 times', 'detail': ''},
-    {'value': '3', 'label': '3 times', 'detail': ''},
-    {'value': '5', 'label': '5 times', 'detail': ''},
-    {'value': '7', 'label': '7 times', 'detail': ''},
+    {'value': '1', 'label': '1 раз', 'detail': ''},
+    {'value': '2', 'label': '2 раза', 'detail': ''},
+    {'value': '3', 'label': '3 раза', 'detail': ''},
+    {'value': '5', 'label': '5 раз', 'detail': ''},
+    {'value': '7', 'label': '7 раз', 'detail': ''},
   ];
 
   final List<Map<String, String>> _periodOptions = [
-    {'value': 'day', 'label': 'Daily', 'detail': 'every day'},
-    {'value': 'week', 'label': 'Weekly', 'detail': 'per week'},
-    {'value': 'month', 'label': 'Monthly', 'detail': 'per month'},
+    {'value': 'day', 'label': 'Ежедневно', 'detail': 'каждый день'},
+    {'value': 'week', 'label': 'Еженедельно', 'detail': 'каждую неделю'},
+    {'value': 'month', 'label': 'Ежемесячно', 'detail': 'каждый месяц'},
   ];
 
   @override
@@ -172,19 +172,26 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   // Получаем текущий список названий иконок в зависимости от типа привычки
   List<String> get _currentIconNames => _isBuildHabit ? _iconNames : _badHabitNames;
   
+  // Получаем правильную форму слова 'раз' для частоты
+  String get _frequencyTimesLabel {
+    if (_frequency == 1) return 'раз';
+    if (_frequency >= 2 && _frequency <= 4) return 'раза';
+    return 'раз';
+  }
+  
   void _updatePeriodLabel() {
     switch (_period) {
       case 'day':
-        _periodLabel = 'Daily';
-        _scheduleDetail = 'every day';
+        _periodLabel = 'Ежедневно';
+        _scheduleDetail = 'каждый день';
         break;
       case 'week':
-        _periodLabel = 'Weekly';
-        _scheduleDetail = 'every week';
+        _periodLabel = 'Еженедельно';
+        _scheduleDetail = 'каждую неделю';
         break;
       case 'month':
-        _periodLabel = 'Monthly';
-        _scheduleDetail = 'every month';
+        _periodLabel = 'Ежемесячно';
+        _scheduleDetail = 'каждый месяц';
         break;
     }
   }
@@ -310,7 +317,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Select Icon',
+                  'Выберите иконку',
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                   ),
@@ -378,7 +385,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Select Color',
+                'Выберите цвет',
                 style: AppFonts.bodyTitleMedium.copyWith(
                   color: AppColors.black100,
                 ),
@@ -454,7 +461,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Select Frequency',
+                      'Выберите частоту',
                       style: AppFonts.bodyTitleMedium.copyWith(
                         color: AppColors.black100,
                       ),
@@ -462,7 +469,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     SizedBox(height: 24),
                     // Выбор количества
                     Text(
-                      'How many times?',
+                      'Сколько раз?',
                       style: AppFonts.bodyAlternative.copyWith(
                         color: AppColors.black60,
                         fontSize: 12,
@@ -504,7 +511,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     SizedBox(height: 24),
                     // Выбор периода
                     Text(
-                      'How often?',
+                      'Как часто?',
                       style: AppFonts.bodyAlternative.copyWith(
                         color: AppColors.black60,
                         fontSize: 12,
@@ -605,7 +612,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
   }
 
   void _showTimePicker({int? index}) async {
-    final List<String> periodOptions = ['Every day', 'Weekdays', 'Weekend', 'Only today'];
+    final List<String> periodOptions = ['Каждый день', 'По будням', 'Выходные', 'Только сегодня'];
     String selectedPeriod = _reminderPeriod;
     TimeOfDay selectedTime = index != null
         ? TimeOfDay(
@@ -630,7 +637,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Set Reminder',
+                    'Напоминание',
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.black100,
                     ),
@@ -708,7 +715,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Repeat',
+                    'Повторять',
                     style: AppFonts.bodyAlternative.copyWith(
                       fontSize: 12,
                       color: AppColors.black60,
@@ -772,7 +779,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                         ),
                       ),
                       child: Text(
-                        'Save',
+                        'Сохранить',
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: Colors.white,
                         ),
@@ -805,7 +812,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Select Unit',
+                    'Выберите единицу',
                     style: AppFonts.bodyTitleMedium.copyWith(
                       color: AppColors.black100,
                     ),
@@ -881,7 +888,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: widget.selectedHabitName != null ? 'Edit Habit' : 'Create Custom Habit',
+            title: widget.selectedHabitName != null ? 'Редактировать привычку' : 'Создать пользовательскую привычку',
             onBackPressed: () => Navigator.of(context).pop(),
           ),
           
@@ -895,7 +902,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     SizedBox(height: 20),
                     
                     Text(
-                      'NAME',
+                      'НАЗВАНИЕ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -913,7 +920,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                         color: AppColors.black100,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'New Habit',
+                        hintText: 'Новая привычка',
                         hintStyle: AppFonts.bodyTitleMedium.copyWith(
                           fontSize: 18,
                           height: 24 / 18,
@@ -935,7 +942,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     SizedBox(height: 30),
                     
                     Text(
-                      'ICON AND COLOR',
+                      'ИКОНКА И ЦВЕТ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -988,7 +995,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                           ),
                                         ),
                                         Text(
-                                          'Icon',
+                                          'Иконка',
                                           style: AppFonts.bodyAlternative.copyWith(
                                             fontSize: 12,
                                             height: 16 / 12,
@@ -1041,7 +1048,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                           ),
                                         ),
                                         Text(
-                                          'Color',
+                                          'Цвет',
                                           style: AppFonts.bodyAlternative.copyWith(
                                             fontSize: 12,
                                             height: 16 / 12,
@@ -1063,7 +1070,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     
                     // TARGET GOAL секция
                     Text(
-                      'TARGET GOAL',
+                      'ЦЕЛЬ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -1206,7 +1213,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     
                     // GOAL секция
                     Text(
-                      'GOAL',
+                      'ЦЕЛЬ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -1236,13 +1243,13 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '$_frequency ${_frequency == 1 ? 'time' : 'times'}',
+                                      '$_frequency $_frequencyTimesLabel',
                                       style: AppFonts.bodyTitleMedium.copyWith(
                                         color: AppColors.black100,
                                       ),
                                     ),
                                     Text(
-                                      _period == 'day' ? 'or more per day' : (_period == 'week' ? 'or more per week' : 'or more per month'),
+                                      _period == 'day' ? 'и более в день' : (_period == 'week' ? 'и более в неделю' : 'и более в месяц'),
                                       style: AppFonts.bodyAlternative.copyWith(
                                         fontSize: 12,
                                         height: 16 / 12,
@@ -1317,7 +1324,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     
                     // REMINDERS секция
                     Text(
-                      'REMINDERS',
+                      'НАПОМИНАНИЯ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -1343,14 +1350,14 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  'Remember to set off time for a workout today.',
-                                  style: AppFonts.bodyAlternative.copyWith(
-                                    fontSize: 12,
-                                    height: 16 / 12,
-                                    color: AppColors.black60,
+                                  child: Text(
+                                    'Настройте время для тренировки сегодня.',
+                                    style: AppFonts.bodyAlternative.copyWith(
+                                      fontSize: 12,
+                                      height: 16 / 12,
+                                      color: AppColors.black60,
+                                    ),
                                   ),
-                                ),
                               ),
                               SizedBox(width: 12),
                               // iOS стиль свитча
@@ -1434,7 +1441,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                           ),
                         ),
                         child: Text(
-                          'Add Reminder',
+                          'Добавить напоминание',
                           style: AppFonts.bodyTitleMedium.copyWith(
                             fontSize: 14,
                             color: AppColors.black100,
@@ -1447,7 +1454,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     
                     // Habit Type заголовок
                     Text(
-                      'HABIT TYPE',
+                      'ТИП ПРИВЫЧКИ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -1482,7 +1489,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    'Build',
+                                    'Создать',
                                     style: AppFonts.bodyTitleMedium.copyWith(
                                       fontSize: 14,
                                       color: _isBuildHabit ? AppColors.blue100 : AppColors.black100,
@@ -1508,7 +1515,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    'Quit',
+                                    'Избавиться',
                                     style: AppFonts.bodyTitleMedium.copyWith(
                                       fontSize: 14,
                                       color: !_isBuildHabit ? AppColors.blue100 : AppColors.black100,
@@ -1526,7 +1533,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                     
                     // MOTIVATION секция
                     Text(
-                      'MOTIVATION',
+                      'МОТИВАЦИЯ',
                       style: AppFonts.bodyAlternative.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -1554,7 +1561,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                           color: AppColors.black100,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Why is this important to you?',
+                          hintText: 'Почему это важно для вас?',
                           hintStyle: AppFonts.bodyAlternative.copyWith(
                             fontSize: 14,
                             color: AppColors.black40,
@@ -1603,7 +1610,7 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                         ),
                       )
                     : Text(
-                        widget.selectedHabitName != null ? 'Save Habit' : 'Create Habit',
+                        widget.selectedHabitName != null ? 'Сохранить привычку' : 'Создать привычку',
                         style: AppFonts.bodyTitleMedium.copyWith(
                           color: Colors.white,
                         ),

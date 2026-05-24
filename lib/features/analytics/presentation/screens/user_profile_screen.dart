@@ -235,9 +235,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     
     String dayText;
     if (dateDay.isAtSameMomentAs(today)) {
-      dayText = 'Сегодня';
+      dayText = context.l10n.translate('today');
     } else if (dateDay.isAtSameMomentAs(yesterday)) {
-      dayText = 'Вчера';
+      dayText = context.l10n.translate('yesterday');
     } else {
       final months = [
         'янв', 'фев', 'мар', 'апр', 'май', 'июн',
@@ -267,7 +267,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Профиль',
+          context.l10n.translate('profile'),
           style: AppFonts.bodyTitleMedium.copyWith(
             color: AppColors.black100,
             fontSize: 18,
@@ -445,7 +445,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                'Это ваш профиль',
+                context.l10n.translate('thisIsYourProfile'),
                 style: AppFonts.bodyAlternative.copyWith(
                   fontSize: 12,
                   color: AppColors.orange,
@@ -508,9 +508,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     
     String timeAgo;
     if (diff.inDays == 0) {
-      timeAgo = 'Сегодня';
+      timeAgo = context.l10n.translate('today');
     } else if (diff.inDays == 1) {
-      timeAgo = 'Вчера';
+      timeAgo = context.l10n.translate('yesterday');
     } else if (diff.inDays < 7) {
       timeAgo = '${diff.inDays} ${_getDaysWord(diff.inDays)}';
     } else if (diff.inDays < 30) {
@@ -590,7 +590,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                   const SizedBox(height: 4),
                 ],
                 Text(
-                  'Получено $timeAgo',
+                  '${context.l10n.translate('received')} $timeAgo',
                   style: AppFonts.bodyAlternative.copyWith(
                     fontSize: 11,
                     color: AppColors.black40,
@@ -672,7 +672,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Пока нет достижений',
+            context.l10n.translate('noAchievementsYet2'),
             style: AppFonts.bodyTitleMedium.copyWith(
               color: AppColors.black100,
               fontSize: 16,
@@ -681,7 +681,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           ),
           const SizedBox(height: 4),
           Text(
-            'Выполняйте привычки и челленджи\nчтобы получить первые достижения',
+            context.l10n.translate('completeHabitsAndChallenges'),
             textAlign: TextAlign.center,
             style: AppFonts.bodyAlternative.copyWith(
               color: AppColors.black40,
@@ -695,34 +695,34 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   String _getDaysWord(int days) {
     if (days % 10 == 1 && days % 100 != 11) {
-      return 'день';
+      return context.l10n.translate('day');
     } else if (days % 10 >= 2 && days % 10 <= 4 && 
                (days % 100 < 10 || days % 100 >= 20)) {
       return 'дня';
     } else {
-      return 'дней';
+      return context.l10n.translate('days');
     }
   }
 
   String _getWeeksWord(int weeks) {
     if (weeks % 10 == 1 && weeks % 100 != 11) {
-      return 'неделю';
+      return context.l10n.translate('week');
     } else if (weeks % 10 >= 2 && weeks % 10 <= 4 && 
                (weeks % 100 < 10 || weeks % 100 >= 20)) {
       return 'недели';
     } else {
-      return 'недель';
+      return context.l10n.translate('weeks');
     }
   }
 
   String _getMonthsWord(int months) {
     if (months % 10 == 1 && months % 100 != 11) {
-      return 'месяц';
+      return context.l10n.translate('month');
     } else if (months % 10 >= 2 && months % 10 <= 4 && 
                (months % 100 < 10 || months % 100 >= 20)) {
       return 'месяца';
     } else {
-      return 'месяцев';
+      return context.l10n.translate('months');
     }
   }
 
@@ -903,7 +903,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Пока нет активности',
+            context.l10n.translate('noActivityYet2'),
             style: AppFonts.bodyTitleMedium.copyWith(
               color: AppColors.black100,
               fontSize: 16,
@@ -912,7 +912,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
           ),
           const SizedBox(height: 4),
           Text(
-            'Как только пользователь выполнит\nпривычки, они появятся здесь',
+            context.l10n.translate('whenUserCompletesHabits'),
             textAlign: TextAlign.center,
             style: AppFonts.bodyAlternative.copyWith(
               color: AppColors.black40,

@@ -29,5 +29,22 @@
   "failedToUpdateProfile": "Профильді өңдеу сәтсіз",
   "aboutRoutiner": "Routiner - бұл адаттарды қалыптастыруға және оңтайтын жақсын тұрағызатын көмек көмегетін қолданба.",
   "version": "Нұсқасы",
-  "copyright": "© 2026 Routiner командасы"
+  "copyright": "© 2026 Routiner командасы",
+  "showing_today_activity": "Бүгінгі белсенділік көрсетілген",
+  "showing_last_week_activity": "Соңғы аптадағы белсенділік көрсетілген",
+  "showing_last_month_activity": "Соңғы айдағы белсенділік көрсетілген",
+  "leaderboard": "Лидерборд",
+  "user": "Пользователь",
+  "noUsersYet": "Әзірге пользовательдер жоқ",
+  "startCompletingHabitsToLeaderboard": "Лидербордқа түсу үшін әдеттерді орындаңыз",
+  "profile": "Профиль",
+  "yourPoints": "сіздің ұпайыңыз",
+  "points2": "ұпай",
+  "thisIsYourProfile": "Бұл сіздің профиліңіз",
+  "recentRecords": "Соңғы {count} жазба",
+  "received": "Алынды",
+  "noAchievementsYet2": "Әзірге жетістіктер жоқ",
+  "completeHabitsAndChallenges": "Әдеттер мен сындарды орындаңыз\nалғашқы жетістіктерді алу үшін",
+  "noActivityYet2": "Әзірге белсенділік жоқ",
+  "whenUserCompletesHabits": "Пользователь әдеттерді орындағанда\nолар мұнда пайда болады"
 }
