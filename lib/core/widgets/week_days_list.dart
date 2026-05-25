@@ -206,11 +206,6 @@ class _WeekDaysListState extends State<WeekDaysList> {
                 
                 return GestureDetector(
                   onTap: () {
-                    if (isFuture) {
-                      // Показываем сообщение о будущей дате
-                      widget.onFutureDateTapped?.call();
-                      return;
-                    }
                     setState(() {
                       _selectedDate = date;
                     });
@@ -225,9 +220,7 @@ class _WeekDaysListState extends State<WeekDaysList> {
                           ? AppColors.blue100.withOpacity(0.15)  // Синий фон для выбранного
                           : isToday 
                               ? Colors.white  // Белый фон для сегодня
-                              : isFuture
-                                  ? Colors.transparent  // Прозрачный для будущих
-                                  : Colors.transparent,
+                              : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isSelected 
@@ -235,9 +228,9 @@ class _WeekDaysListState extends State<WeekDaysList> {
                             : isToday 
                                 ? AppColors.blue40  // Светлая рамка для сегодня
                                 : isFuture
-                                    ? Colors.transparent  // Нет рамки для будущих
+                                    ? AppColors.black20  // Серая рамка для будущих (более заметная)
                                     : Colors.transparent,
-                        width: isSelected ? 2.5 : (isToday ? 1.5 : 0),
+                        width: isSelected ? 2.5 : (isToday ? 1.5 : (isFuture ? 1.5 : 0)),
                       ),
                       boxShadow: isSelected
                           ? [
@@ -280,7 +273,7 @@ class _WeekDaysListState extends State<WeekDaysList> {
                                   strokeWidth: 3,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     isFuture 
-                                        ? AppColors.black10.withOpacity(0.1)  // Очень светлый для будущих
+                                        ? AppColors.black10.withOpacity(0.2)  // Более заметный фон
                                         : AppColors.black10,
                                   ),
                                 ),
@@ -290,13 +283,11 @@ class _WeekDaysListState extends State<WeekDaysList> {
                                 width: 36,
                                 height: 36,
                                 child: CircularProgressIndicator(
-                                  value: isFuture 
-                                      ? 0.0  // Нет прогресса для будущих дат
-                                      : widget.dailyProgress[_dateKey(date)] ?? 0.0,
+                                  value: widget.dailyProgress[_dateKey(date)] ?? 0.0,
                                   strokeWidth: 3,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     isFuture
-                                        ? AppColors.black10.withOpacity(0.1)  // Очень светлый для будущих
+                                        ? AppColors.black10.withOpacity(0.1)
                                         : isSelected 
                                             ? AppColors.blue100 
                                             : AppColors.blue40,
@@ -308,7 +299,7 @@ class _WeekDaysListState extends State<WeekDaysList> {
                                 date.day.toString(),
                                 style: AppFonts.headlineH5.copyWith(
                                   color: isFuture
-                                      ? AppColors.black10.withOpacity(0.3)  // Очень светлый для будущих
+                                      ? AppColors.black60  // Более заметный цвет для будущих дат
                                       : isSelected 
                                           ? AppColors.blue100 
                                           : isToday 

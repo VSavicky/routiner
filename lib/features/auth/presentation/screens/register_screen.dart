@@ -280,9 +280,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: AppColors.blue100),
+            child: Text(
+              context.l10n.translate('ok'),
+              style: const TextStyle(color: AppColors.blue100),
             ),
           ),
         ],
@@ -327,7 +327,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: _currentStep == 1 ? 'Create Account' : 'Personal Information',
+            title: _currentStep == 1 
+                ? context.l10n.translate('registerTitle')
+                : context.l10n.translate('registerPersonalInfoTitle'),
             onBackPressed: () {
               if (_currentStep == 1) {
                 context.go('/auth');
@@ -347,8 +349,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 24),
                         if (_currentStep == 1) ...[
                           AuthInputField(
-                            title: 'E-mail',
-                            hintText: 'Enter your e-mail',
+                            title: context.l10n.translate('authEmailTitle'),
+                            hintText: context.l10n.translate('authEmailHint'),
                             controller: _emailController,
                             isValid: _isEmailValid,
                             onClear: () {
@@ -360,8 +362,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 24),
                           PasswordInputField(
-                            title: 'Password',
-                            hintText: 'Enter your password',
+                            title: context.l10n.translate('authPasswordTitle'),
+                            hintText: context.l10n.translate('authPasswordHint'),
                             controller: _passwordController,
                             isValid: _isPasswordValid,
                             onClear: () {
@@ -373,8 +375,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 24),
                           PasswordInputField(
-                            title: 'Confirm Password',
-                            hintText: 'Confirm your password',
+                            title: context.l10n.translate('registerConfirmPassword'),
+                            hintText: context.l10n.translate('registerConfirmPasswordHint'),
                             controller: _confirmPasswordController,
                             isValid: _isConfirmPasswordValid,
                             onClear: () {
@@ -386,8 +388,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ] else ...[
                           AuthInputField(
-                            title: 'First Name',
-                            hintText: 'Enter your first name',
+                            title: context.l10n.translate('registerFirstName'),
+                            hintText: context.l10n.translate('registerFirstNameHint'),
                             controller: _firstNameController,
                             isValid: _isFirstNameValid,
                             onClear: () {
@@ -399,8 +401,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 24),
                           AuthInputField(
-                            title: 'Last Name',
-                            hintText: 'Enter your last name',
+                            title: context.l10n.translate('registerLastName'),
+                            hintText: context.l10n.translate('registerLastNameHint'),
                             controller: _lastNameController,
                             isValid: _isLastNameValid,
                             onClear: () {
@@ -415,8 +417,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onTap: _selectBirthDate,
                             child: AbsorbPointer(
                               child: AuthInputField(
-                                title: 'Birth Date',
-                                hintText: 'DD.MM.YYYY',
+                                title: context.l10n.translate('registerBirthDate'),
+                                hintText: context.l10n.translate('registerBirthDateHint'),
                                 controller: _birthDateController,
                                 isValid: _isBirthDateValid,
                                 onClear: () {
@@ -446,13 +448,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                       child: Text.rich(
                         TextSpan(
-                          text: "Already have account? ",
+                          text: context.l10n.translate('alreadyHaveAccount'),
                           style: AppFonts.body.copyWith(
                             color: AppColors.black100,
                           ),
                           children: [
                             TextSpan(
-                              text: "Sign In!",
+                              text: context.l10n.translate('signIn'),
                               style: AppFonts.body.copyWith(
                                 color: AppColors.blue100,
                               ),
@@ -468,7 +470,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: _currentStep == 1 ? 'Next' : 'Create Account',
+                    text: _currentStep == 1 
+                        ? context.l10n.translate('authNext')
+                        : context.l10n.translate('registerCreateAccount'),
                     onPressed: _currentStep == 1 ? _handleNextStep : _registerUser,
                     isActive: _isFormValid && !_isLoading,
                   ),

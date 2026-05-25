@@ -721,6 +721,7 @@ class _HomePageState extends State<HomePage> {
             selectedDate: _selectedDate,
             initialMonth: _selectedDate,
             dailyProgress: _dailyProgress,
+            l10n: context.l10n,
             onDateSelected: (date) async {
               // Закрываем диалог сразу, до асинхронных операций
               Navigator.of(dialogContext).pop();
@@ -808,6 +809,8 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                             onDateSelected: (date) async {
+                              print('[HOME] Date selected: $date');
+                              print('[HOME] Is future: ${_getIsFutureDate()}');
                               setState(() {
                                 _selectedDate = date;
                               });
@@ -815,6 +818,7 @@ class _HomePageState extends State<HomePage> {
                               await _loadLogsForDate(date);
                               // Пересчитываем прогресс для обновления виджета целей
                               setState(() {});
+                              print('[HOME] Selected date updated: ${_selectedDate}');
                             },
                             onLoadProgressForDates: (dates) async {
                               // Ленивая загрузка прогресса для видимых дат
@@ -900,12 +904,16 @@ class _HomePageState extends State<HomePage> {
                                               return habitCreatedDate.isAtSameMomentAs(selectedDate) ||
                                                      habitCreatedDate.isBefore(selectedDate);
                                             })
-                                            // Фильтруем по статусу: показываем только pending привычки для выбранной даты
+                                            // Для будущих дат показываем только pending привычки, для остальных - все
                                             .where((habitModel) {
                                               final dayLog = habitModel.id != null ? _todayLogs[habitModel.id] : null;
                                               final status = dayLog?.status ?? HabitStatus.pending;
-                                              // Показываем только если статус pending (не выполнен, не провален, не пропущен)
-                                              return status == HabitStatus.pending;
+                                              // Для будущих дат показываем только pending
+                                              if (_getIsFutureDate()) {
+                                                return status == HabitStatus.pending;
+                                              }
+                                              // Для текущих и прошлых дат показываем все
+                                              return true;
                                             })
                                             .map((habitModel) {
                                             // Получаем лог для выбранной даты (исторический прогресс)
@@ -988,6 +996,7 @@ class _HomePageState extends State<HomePage> {
                                             );
                                           }).toList(),
                                           l10n: context.l10n,
+                                          isReadOnly: _getIsFutureDate(),
                                           onViewAllPressed: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
@@ -1013,6 +1022,15 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  /// Проверка: является ли выбранная дата будущей
+  bool _getIsFutureDate() {
+    if (_selectedDate == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
+    return selected.isAfter(today);
   }
 
   Widget _buildClubsPage() {

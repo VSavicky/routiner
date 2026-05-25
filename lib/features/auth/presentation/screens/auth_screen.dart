@@ -121,10 +121,10 @@ class _AuthScreenState extends State<AuthScreen> {
           context.go('/home');
         }
       } else {
-        _showErrorDialog('Google sign in failed.');
+        _showErrorDialog(context.l10n.translate('googleSignInFailed'));
       }
     } catch (e) {
-      _showErrorDialog('Error: ${e.toString()}');
+      _showErrorDialog(context.l10n.translateWithArgs('googleSignInError', {'error': e.toString()}));
     } finally {
       if (mounted) {
         setState(() {
@@ -155,9 +155,9 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: AppColors.blue100),
+            child: Text(
+              context.l10n.translate('ok'),
+              style: const TextStyle(color: AppColors.blue100),
             ),
           ),
         ],
@@ -188,7 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: 'Continue with E-mail',
+            title: context.l10n.translate('authTitle'),
             onBackPressed: () {
               context.go('/onboarding');
             },
@@ -203,8 +203,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       children: [
                         const SizedBox(height: 24),
                         AuthInputField(
-                          title: 'E-mail',
-                          hintText: 'Enter your e-mail',
+                          title: context.l10n.translate('authEmailTitle'),
+                          hintText: context.l10n.translate('authEmailHint'),
                           controller: _emailController,
                           isValid: _isEmailValid,
                           onClear: () {
@@ -216,8 +216,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         const SizedBox(height: 24),
                         PasswordInputField(
-                          title: 'Password',
-                          hintText: 'Enter your password',
+                          title: context.l10n.translate('authPasswordTitle'),
+                          hintText: context.l10n.translate('authPasswordHint'),
                           controller: _passwordController,
                           isValid: _isPasswordValid,
                           onClear: () {
@@ -235,7 +235,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               
                             },
                             child: Text(
-                              'I forgot my password',
+                              context.l10n.translate('authForgotPassword'),
                               style: AppFonts.body.copyWith(
                                 color: AppColors.black60,
                               ),
@@ -259,13 +259,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                       child: Text.rich(
                         TextSpan(
-                          text: "Don't have account? ",
+                          text: context.l10n.translate('authNoAccount'),
                           style: AppFonts.body.copyWith(
                             color: AppColors.black100,
                           ),
                           children: [
                             TextSpan(
-                              text: "Let's create!",
+                              text: context.l10n.translate('authCreateAccount'),
                               style: AppFonts.body.copyWith(
                                 color: AppColors.blue100,
                               ),
@@ -281,7 +281,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: _isLoading ? 'Signing In...' : 'Next',
+                    text: _isLoading ? context.l10n.translate('authSigningIn') : context.l10n.translate('authNext'),
                     onPressed: _isFormValid && !_isLoading ? _signInWithEmail : null,
                     isActive: _isFormValid && !_isLoading,
                   ),

@@ -1187,7 +1187,10 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
                                           style: TextStyle(fontSize: 20),
                                         ),
                                         Text(
-                                          _targetUnit,
+                                          _targetUnits.firstWhere(
+                                            (u) => u['value'] == _targetUnit,
+                                            orElse: () => _targetUnits[4],
+                                          )['label']!,
                                           style: AppFonts.bodyTitleMedium.copyWith(
                                             fontSize: 14,
                                             color: AppColors.black100,

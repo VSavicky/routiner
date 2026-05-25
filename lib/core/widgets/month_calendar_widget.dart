@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 /// Виджет месячного календаря с отображением прогресса по дням
 /// Показывает сетку дней месяца с круговыми прогресс-барами как в WeekDaysList
@@ -10,6 +11,7 @@ class MonthCalendarWidget extends StatefulWidget {
   final Map<String, double> dailyProgress; // Ключ: YYYY-MM-DD, Значение: прогресс 0.0-1.0
   final Function(DateTime)? onDateSelected;
   final Function(DateTime)? onMonthChanged;
+  final AppLocalizations l10n;
 
   const MonthCalendarWidget({
     Key? key,
@@ -18,6 +20,7 @@ class MonthCalendarWidget extends StatefulWidget {
     this.dailyProgress = const {},
     this.onDateSelected,
     this.onMonthChanged,
+    required this.l10n,
   }) : super(key: key);
 
   @override
@@ -109,10 +112,28 @@ class _MonthCalendarWidgetState extends State<MonthCalendarWidget> {
   Widget build(BuildContext context) {
     final days = _getDaysInMonth();
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      widget.l10n.translate('january'),
+      widget.l10n.translate('february'),
+      widget.l10n.translate('march'),
+      widget.l10n.translate('april'),
+      widget.l10n.translate('may'),
+      widget.l10n.translate('june'),
+      widget.l10n.translate('july'),
+      widget.l10n.translate('august'),
+      widget.l10n.translate('september'),
+      widget.l10n.translate('october'),
+      widget.l10n.translate('november'),
+      widget.l10n.translate('december'),
     ];
-    final weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final weekdayNames = [
+      widget.l10n.translate('monday'),
+      widget.l10n.translate('tuesday'),
+      widget.l10n.translate('wednesday'),
+      widget.l10n.translate('thursday'),
+      widget.l10n.translate('friday'),
+      widget.l10n.translate('saturday'),
+      widget.l10n.translate('sunday'),
+    ];
 
     return Container(
       decoration: BoxDecoration(
@@ -278,6 +299,7 @@ class MonthCalendarDialog extends StatelessWidget {
   final Map<String, double> dailyProgress;
   final Function(DateTime) onDateSelected;
   final Function(DateTime)? onMonthChanged;
+  final AppLocalizations l10n;
 
   const MonthCalendarDialog({
     Key? key,
@@ -286,6 +308,7 @@ class MonthCalendarDialog extends StatelessWidget {
     required this.dailyProgress,
     required this.onDateSelected,
     this.onMonthChanged,
+    required this.l10n,
   }) : super(key: key);
 
   @override
@@ -300,6 +323,7 @@ class MonthCalendarDialog extends StatelessWidget {
           onDateSelected(date);
         },
         onMonthChanged: onMonthChanged,
+        l10n: l10n,
       ),
     );
   }

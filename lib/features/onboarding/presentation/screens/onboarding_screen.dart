@@ -24,21 +24,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, String>> _onboardingData = [
     {
       'image': 'assets/images/onboarding/onboarding1.png',
-      'title': 'Welcome to Routiner',
-      'subtitle': 'Create Good Habits',
-      'description': 'Change your life by slowly adding new healthy habits and sticking to them.',
+      'title': 'onboardingWelcomeTitle',
+      'subtitle': 'onboardingWelcomeSubtitle',
+      'description': 'onboardingWelcomeDescription',
     },
     {
       'image': 'assets/images/onboarding/onboarding2.png',
-      'title': 'Track Your Progress',
-      'subtitle': 'Track Your Progress',
-      'description': 'Everyday you become one step closer to your goal. Don’t give up!',
+      'title': 'onboardingTrackTitle',
+      'subtitle': 'onboardingTrackSubtitle',
+      'description': 'onboardingTrackDescription',
     },
     {
       'image': 'assets/images/onboarding/onboarding3.png',
-      'title': 'Achieve Your Goals',
-      'subtitle': 'Stay Together and Strong',
-      'description': 'Find friends to discuss common topics. Complete challenges together.',
+      'title': 'onboardingAchieveTitle',
+      'subtitle': 'onboardingAchieveSubtitle',
+      'description': 'onboardingAchieveDescription',
     },
   ];
 
@@ -168,12 +168,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           const Spacer(),
                           Text(
-                            data['subtitle']!,
+                            context.l10n.translate(data['subtitle']!),
                             style: AppFonts.headlineH2,
                           ),
                           const SizedBox(height: 32),
                           Text(
-                            data['description']!,
+                            context.l10n.translate(data['description']!),
                             style: AppFonts.body,
                           ),
                         ],
@@ -221,7 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     child: Text(
-                      'Continue with E-mail',
+                      context.l10n.translate('continueWithEmail'),
                       style: AppFonts.body.copyWith(
                         color: Colors.black,
                       ),
@@ -262,7 +262,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'Continue with Google',
+                                context.l10n.translate('continueWithGoogle'),
                                 style: AppFonts.body.copyWith(
                                   color: Colors.black,
                                 ),

@@ -5,6 +5,7 @@ import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/presentation/widgets/auth_header.dart';
 import 'package:routiner/features/auth/presentation/widgets/primary_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
   const GenderSelectionScreen({super.key});
@@ -30,7 +31,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: 'Create Account',
+            title: context.l10n.translate('registerTitle'),
             onBackPressed: () {
               context.go('/register');
             },
@@ -47,7 +48,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Choose your gender',
+                            context.l10n.translate('genderSelectionTitle'),
                             style: AppFonts.bodyTitleMedium,
                           ),
                         ),
@@ -91,7 +92,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        'Male',
+                                        context.l10n.translate('male'),
                                         style: AppFonts.bodyTitleMedium,
                                       ),
                                     ],
@@ -137,7 +138,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        'Female',
+                                        context.l10n.translate('female'),
                                         style: AppFonts.bodyTitleMedium,
                                       ),
                                     ],
@@ -157,7 +158,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: 'Next',
+                    text: context.l10n.translate('genderNext'),
                     onPressed: _selectedGender != null ? () {
                       _saveGenderAndNavigate();
                     } : null,

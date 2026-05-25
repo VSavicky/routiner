@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:routiner/features/habits/data/models/habit_model.dart';
 import 'package:routiner/features/habits/data/repositories/habit_repository.dart';
+import 'package:routiner/l10n/app_localizations.dart';
 
 class HabitSelectionScreen extends StatefulWidget {
   const HabitSelectionScreen({super.key});
@@ -21,17 +22,44 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
   String? _selectedHabit;
   
   final List<Map<String, String>> habits = [
-    {'emoji': '🏃‍♂️', 'name': 'Running'},
-    {'emoji': '🧘‍♀️', 'name': 'Meditation'},
-    {'emoji': '📚', 'name': 'Reading'},
-    {'emoji': '💪', 'name': 'Fitness'},
-    {'emoji': '🥗', 'name': 'Healthy Eating'},
-    {'emoji': '💧', 'name': 'Drinking Water'},
-    {'emoji': '😴', 'name': 'Sleep Schedule'},
-    {'emoji': '✍️', 'name': 'Journaling'},
-    {'emoji': '🎨', 'name': 'Creative Work'},
-    {'emoji': '🚴‍♀️', 'name': 'Cycling'},
+    {'emoji': '🏃‍♂️', 'name': 'running'},
+    {'emoji': '🧘‍♀️', 'name': 'meditation'},
+    {'emoji': '📚', 'name': 'reading'},
+    {'emoji': '💪', 'name': 'fitness'},
+    {'emoji': '🥗', 'name': 'healthyEating'},
+    {'emoji': '💧', 'name': 'drinkingWater'},
+    {'emoji': '😴', 'name': 'sleepSchedule'},
+    {'emoji': '✍️', 'name': 'journaling'},
+    {'emoji': '🎨', 'name': 'creativeWork'},
+    {'emoji': '🚴‍♀️', 'name': 'cycling'},
   ];
+
+  String _getLocalizedHabitName(String habitKey, BuildContext context) {
+    switch (habitKey) {
+      case 'running':
+        return context.l10n.translate('running');
+      case 'meditation':
+        return context.l10n.translate('meditation');
+      case 'reading':
+        return context.l10n.translate('reading');
+      case 'fitness':
+        return context.l10n.translate('fitness');
+      case 'healthyEating':
+        return context.l10n.translate('healthyEating');
+      case 'drinkingWater':
+        return context.l10n.translate('drinkingWater');
+      case 'sleepSchedule':
+        return context.l10n.translate('sleepSchedule');
+      case 'journaling':
+        return context.l10n.translate('journaling');
+      case 'creativeWork':
+        return context.l10n.translate('creativeWork');
+      case 'cycling':
+        return context.l10n.translate('cycling');
+      default:
+        return habitKey;
+    }
+  }
 
   Future<void> _saveUserDataAndNavigate() async {
     try {
@@ -101,7 +129,7 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: 'Create Account',
+            title: context.l10n.translate('registerTitle'),
             onBackPressed: () {
               context.go('/gender');
             },
@@ -118,7 +146,7 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Choose your first habits',
+                            context.l10n.translate('habitSelectionTitle'),
                             style: AppFonts.bodyTitleMedium,
                           ),
                         ),
@@ -126,7 +154,7 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'You may add more habits later',
+                            context.l10n.translate('habitSelectionSubtitle'),
                             style: AppFonts.body.copyWith(
                               color: AppColors.black60,
                             ),
@@ -173,7 +201,7 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      habit['name']!,
+                                      _getLocalizedHabitName(habit['name']!, context),
                                       style: AppFonts.bodyTitleMedium,
                                       textAlign: TextAlign.center,
                                     ),
@@ -193,7 +221,7 @@ class _HabitSelectionScreenState extends State<HabitSelectionScreen> {
                   right: 24,
                   bottom: 20,
                   child: PrimaryButton(
-                    text: 'Next',
+                    text: context.l10n.translate('genderNext'),
                     onPressed: _selectedHabit != null ? () {
                       _saveUserDataAndNavigate();
                     } : null,

@@ -119,6 +119,7 @@ class HabitsWidget extends StatefulWidget {
   final List<Habit> habits;
   final VoidCallback? onViewAllPressed;
   final bool isDarkBackground; // true = белые цвета для темного фона
+  final bool isReadOnly; // Режим только для просмотра (будущие даты)
   final AppLocalizations l10n;
 
   const HabitsWidget({
@@ -126,6 +127,7 @@ class HabitsWidget extends StatefulWidget {
     required this.habits,
     this.onViewAllPressed,
     this.isDarkBackground = false,
+    this.isReadOnly = false,
     required this.l10n,
   });
 
@@ -217,6 +219,7 @@ class _HabitsWidgetState extends State<HabitsWidget> {
               isLeftPanelVisible: _leftPanelVisible[habit.id] ?? false,
               isRightPanelVisible: _rightPanelVisible[habit.id] ?? false,
               isDarkBackground: widget.isDarkBackground,
+              isReadOnly: widget.isReadOnly,
               onHorizontalDragEnd: (details) => _onHorizontalDragEnd(habit.id, details),
               onResetPanels: () => _resetPanels(habit.id),
             ),
@@ -234,6 +237,7 @@ class _HabitContainer extends StatelessWidget {
   final Function(DragEndDetails) onHorizontalDragEnd;
   final VoidCallback onResetPanels; // Сброс позиции после действий
   final bool isDarkBackground;
+  final bool isReadOnly; // Режим только для просмотра
 
   const _HabitContainer({
     required this.habit,
@@ -242,6 +246,7 @@ class _HabitContainer extends StatelessWidget {
     required this.onHorizontalDragEnd,
     required this.onResetPanels,
     this.isDarkBackground = false,
+    this.isReadOnly = false,
   });
 
   @override
@@ -466,7 +471,7 @@ class _HabitContainer extends StatelessWidget {
                             SizedBox(width: 8),
                             // Кнопка добавления шага (+)
                             GestureDetector(
-                              onTap: habit.isCompleted || habit.isSkipped || habit.isFailed
+                              onTap: isReadOnly || habit.isCompleted || habit.isSkipped || habit.isFailed
                                   ? null 
                                   : () {
                                       // Вызываем с умным шагом
@@ -519,14 +524,14 @@ class _HabitContainer extends StatelessWidget {
                   ),
                 ),
               ),
-              // Левая боковая панель (выдвигается при свайпе вправо)
+                        // Левая боковая панель (выдвигается при свайпе вправо)
               AnimatedPositioned(
                 duration: Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
                 left: isLeftPanelVisible ? 0.0 : -120.0,
                 top: 0,
                 bottom: 0,
-                child: Container(
+                child: isReadOnly ? Container(width: 0) : Container(
                   width: 120,
                   height: 80,
                   decoration: BoxDecoration(
@@ -628,7 +633,7 @@ class _HabitContainer extends StatelessWidget {
                 right: isRightPanelVisible ? 0.0 : -120.0,
                 top: 0,
                 bottom: 0,
-                child: Container(
+                child: isReadOnly ? Container(width: 0) : Container(
                   width: 120,
                   height: 80,
                   decoration: BoxDecoration(
