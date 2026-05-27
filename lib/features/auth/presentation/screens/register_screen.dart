@@ -165,6 +165,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.blue100, // Цвет акцента
+              onPrimary: Colors.white, // Цвет текста на кнопках
+              surface: Colors.white, // Цвет фона календаря
+              onSurface: AppColors.black100, // Цвет текста
+            ),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             // Уменьшаем текст кнопок
             textButtonTheme: TextButtonThemeData(

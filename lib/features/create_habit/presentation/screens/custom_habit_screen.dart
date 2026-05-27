@@ -888,7 +888,9 @@ class _CustomHabitScreenState extends State<CustomHabitScreen> {
       body: Column(
         children: [
           AuthHeader(
-            title: widget.selectedHabitName != null ? 'Редактировать привычку' : 'Создать пользовательскую привычку',
+            title: widget.selectedHabitName != null 
+                ? context.l10n.translate('editHabitTitle')
+                : context.l10n.translate('createHabitTitle'),
             onBackPressed: () => Navigator.of(context).pop(),
           ),
           

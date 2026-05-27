@@ -39,9 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
     _loadUserData();
-    
-    // Слушаем возвращение с других экранов
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
   
   @override
@@ -1085,11 +1082,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           ),
                         ),
                         const SizedBox(height: 24),
-                        Text(
-                          context.l10n.translate('keepGoingToUnlock'),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                        SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            context.l10n.translate('keepGoingToUnlock'),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                       ],

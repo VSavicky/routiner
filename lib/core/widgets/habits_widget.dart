@@ -7,7 +7,7 @@ import 'package:routiner/l10n/app_localizations.dart';
 class Habit {
   final String id;
   final String title;
-  final String subtitle;
+  final String subtitle; // В формате "0/1 times"
   final int friendsCount;
   final int currentProgress;
   final int targetProgress;
@@ -21,6 +21,7 @@ class Habit {
   final String? challengeId; // ID челленджа
   final String? challengeName; // Название челленджа
   final bool isClubHabit; // Является ли привычка из клуба
+  final String? targetUnit; // Единица измерения (для локализации)
   final VoidCallback? onViewPressed;
   final VoidCallback? onDonePressed;
   final VoidCallback? onFallPressed;
@@ -49,6 +50,7 @@ class Habit {
     this.challengeId,
     this.challengeName,
     this.isClubHabit = false,
+    this.targetUnit,
     this.onViewPressed,
     this.onDonePressed,
     this.onFallPressed,
@@ -97,9 +99,9 @@ class Habit {
   
   /// Текст статуса
   String get statusText {
-    if (isCompleted) return 'Completed!';
-    if (isFailed) return 'Failed';
-    if (isSkipped) return 'Skipped';
+    if (isCompleted) return this.l10n.translate('completed');
+    if (isFailed) return this.l10n.translate('failed');
+    if (isSkipped) return this.l10n.translate('skipped');
     return subtitle;
   }
   
@@ -112,6 +114,41 @@ class Habit {
     if (targetProgress <= 500) return 50;
     if (targetProgress <= 1000) return 100;
     return (targetProgress / 10).ceil(); // Делим на 10 частей
+  }
+
+  /// Локализация subtitle (прогресса)
+  String get localizedSubtitle {
+    if (targetUnit != null && targetUnit!.isNotEmpty) {
+      final localizedUnit = _getLocalizedUnit(targetUnit!);
+      return '$currentProgress/$targetProgress $localizedUnit';
+    }
+    return subtitle;
+  }
+
+  /// Локализация единицы измерения
+  String _getLocalizedUnit(String unit) {
+    switch (unit.toLowerCase()) {
+      case 'times':
+        return l10n.translate('times');
+      case 'steps':
+        return l10n.translate('steps');
+      case 'min':
+        return l10n.translate('min');
+      case 'hour':
+      case 'hours':
+        return l10n.translate('hours');
+      case 'pages':
+        return l10n.translate('pages');
+      case 'ml':
+        return l10n.translate('ml');
+      case 'km':
+        return l10n.translate('km');
+      case 'cal':
+      case 'kcal':
+        return 'kcal';
+      default:
+        return unit;
+    }
   }
 }
 
@@ -432,7 +469,7 @@ class _HabitContainer extends StatelessWidget {
                                         // Подпись статуса
                                         Expanded(
                                           child: Text(
-                                            habit.statusText,
+                                            habit.localizedSubtitle,
                                             style: AppFonts.bodyAlternative.copyWith(
                                               color: habit.getTextColor(isDarkBackground),
                                               fontSize: 11,
@@ -543,7 +580,7 @@ class _HabitContainer extends StatelessWidget {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -561,7 +598,7 @@ class _HabitContainer extends StatelessWidget {
                             onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -571,12 +608,13 @@ class _HabitContainer extends StatelessWidget {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'View',
+                                habit.l10n.translate('view'),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.normal,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
@@ -601,7 +639,7 @@ class _HabitContainer extends StatelessWidget {
                             onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -611,12 +649,13 @@ class _HabitContainer extends StatelessWidget {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Done',
+                                habit.l10n.translate('done'),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.normal,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
@@ -645,7 +684,7 @@ class _HabitContainer extends StatelessWidget {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -660,7 +699,7 @@ class _HabitContainer extends StatelessWidget {
                             onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -670,12 +709,13 @@ class _HabitContainer extends StatelessWidget {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Fall',
+                                habit.l10n.translate('fall'),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.normal,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
@@ -697,7 +737,7 @@ class _HabitContainer extends StatelessWidget {
                             onResetPanels(); // Возвращаем карточку
                           },
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -707,12 +747,13 @@ class _HabitContainer extends StatelessWidget {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Skip',
+                                habit.l10n.translate('skip'),
                                 style: AppFonts.bodyAlternative.copyWith(
                                   color: isDarkBackground ? Colors.white.withOpacity(0.7) : AppColors.black40,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.normal,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),

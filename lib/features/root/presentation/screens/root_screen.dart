@@ -22,7 +22,7 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   bool _isAddModalVisible = false;
-  
+
   final HabitRepository _habitRepository = HabitRepository();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -43,7 +43,6 @@ class _RootScreenState extends State<RootScreen> {
     });
   }
 
-  
   void _onQuitBadHabbit() {
     print('Quit Bad Habbit pressed');
     _closeAddModal();
@@ -69,22 +68,19 @@ class _RootScreenState extends State<RootScreen> {
   void _onCustomHabbit() async {
     print('Custom Habbit pressed');
     _closeAddModal();
-    
-    // Переходим на экран создания кастомной привычки как в HabitBottomSheet
+
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CustomHabitScreen(
-          isBadHabit: false, // Для кастомной привычки считаем ее хорошей
+          isBadHabit: false,
           moodEmoji: '😊',
           moodLabel: context.l10n.translate('good'),
         ),
       ),
     );
-    
-    // Если привычка создана, можно добавить логику обновления
+
     if (result != null) {
       print('Custom habit created successfully');
-      // Здесь можно добавить обновление UI или уведомления
     }
   }
 
@@ -99,16 +95,14 @@ class _RootScreenState extends State<RootScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => HabitBottomSheet(
-      title: title,
-      subtitle: subtitle,
+        title: title,
+        subtitle: subtitle,
         iconPath: iconPath,
         isBadHabbit: isBadHabbit,
-      moodEmoji: '😊',
-      moodLabel: context.l10n.translate('good'),
+        moodEmoji: '😊',
+        moodLabel: context.l10n.translate('good'),
         onClose: () => Navigator.of(context).pop(),
         onHabitCreated: () {
-          // Привычка создана - можно добавить здесь логику уведомления
-          // Например, через события или глобальный ключ
           print('Habit created - refreshing...');
         },
       ),
@@ -126,11 +120,11 @@ class _RootScreenState extends State<RootScreen> {
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
-              margin: const EdgeInsets.only(bottom: 16), // Отступ 16px снизу
-              width: double.infinity, // Ограничиваем ширину контейнера
+              margin: const EdgeInsets.only(bottom: 16),
+              width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(64)), // Все углы скруглены на 64px
+                borderRadius: const BorderRadius.all(Radius.circular(64)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -140,10 +134,10 @@ class _RootScreenState extends State<RootScreen> {
                 ],
               ),
               child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(64)), // Все углы скруглены на 64px
+                borderRadius: const BorderRadius.all(Radius.circular(64)),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20), // Отступы 20px по бокам
-                  width: double.infinity, // Ограничиваем ширину внутреннего контейнера
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  width: double.infinity,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _buildBottomNavBarItems(),
@@ -153,12 +147,12 @@ class _RootScreenState extends State<RootScreen> {
             ),
           ),
         ),
-        
+
         // Модальное окно поверх всего
         if (_isAddModalVisible)
           Positioned.fill(
             child: Material(
-               color: Colors.transparent,
+              color: Colors.transparent,
               child: GestureDetector(
                 onTap: _closeAddModal,
                 child: Stack(
@@ -169,16 +163,15 @@ class _RootScreenState extends State<RootScreen> {
                         color: Colors.black.withOpacity(0.5),
                       ),
                     ),
-                    
+
                     // Кнопка Добавить/Закрыть (поверх затемнения)
                     Positioned(
-                      bottom: 16 + 20, // margin.bottom + padding.vertical
+                      bottom: 16 + 20,
                       left: 0,
                       right: 0,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Кнопка Добавить/Закрыть (активная)
                           _buildAddNavItem(
                             icon: _isAddModalVisible ? Icons.close : Icons.add,
                             label: context.l10n.translate('add'),
@@ -189,10 +182,10 @@ class _RootScreenState extends State<RootScreen> {
                         ],
                       ),
                     ),
-                    
+
                     // Контейнеры внизу над кнопкой
                     Positioned(
-                      bottom: 100, // Сразу над кнопкой (кнопка на 36px от низа)
+                      bottom: 100,
                       left: 0,
                       right: 0,
                       child: Column(
@@ -202,85 +195,83 @@ class _RootScreenState extends State<RootScreen> {
                           GestureDetector(
                             onTap: _onCustomHabbit,
                             child: Container(
-                              margin: EdgeInsets.symmetric(horizontal: 24),
-                              padding: EdgeInsets.all(16),
+                              margin: const EdgeInsets.symmetric(horizontal: 24),
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               height: 80,
-                            child: Row(
-                              children: [
-                                // Центрированный текст на всю ширину
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        context.l10n.translate('customHabit'),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.black100,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          context.l10n.translate('customHabit'),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.black100,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        context.l10n.translate('createYourOwnRoutine'),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.black40,
-                                          fontFamily: 'SF Pro Display',
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          context.l10n.translate('createYourOwnRoutine'),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.black40,
+                                            fontFamily: 'SF Pro Display',
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                             ),
                           ),
-                          
-                          SizedBox(height: 8), // Отступ между блоками
-                          
-                          // Два узких контейнера вверху
+
+                          const SizedBox(height: 8),
+
+                          // Два узких контейнера
                           Container(
-                            margin: EdgeInsets.symmetric(horizontal: 24),
+                            margin: const EdgeInsets.symmetric(horizontal: 24),
                             child: Row(
                               children: [
-                                // Левый узкий контейнер
+                                // Левый — Quit Bad Habit
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: _onQuitBadHabbit,
                                     child: Container(
-                                      height: 90, // Увеличиваем с 70 до 90 для соответствия
-                                      padding: EdgeInsets.all(16), // Увеличиваем паддинг для большего пространства
+                                      height: 90,
+                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Row(
                                         children: [
-                                          // Текст слева
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                    context.l10n.translate('quitBadHabit'),
-                                                  style: TextStyle(
-                                                    fontSize: 14, // Увеличиваем с 11 до 14
+                                                  context.l10n.translate('quitBadHabit'),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
                                                     fontWeight: FontWeight.w600,
                                                     color: AppColors.black100,
                                                   ),
                                                 ),
-                                                SizedBox(height: 2), // Увеличиваем отступ
+                                                const SizedBox(height: 2),
                                                 Text(
-                                                    context.l10n.translate('neverTooLate'),
-                                                  style: TextStyle(
-                                                    fontSize: 11, // Увеличиваем с 9 до 11
+                                                  context.l10n.translate('neverTooLate'),
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
                                                     color: AppColors.black40,
                                                     fontFamily: 'SF Pro Display',
                                                   ),
@@ -288,13 +279,10 @@ class _RootScreenState extends State<RootScreen> {
                                               ],
                                             ),
                                           ),
-                                        
-                                          SizedBox(width: 6), // Уменьшил с 8 до 6
-                                        
-                                          // Иконка справа
-                                          Container(
-                                            width: 20, // Уменьшил с 24 до 20
-                                            height: 20, // Уменьшил с 24 до 20
+                                          const SizedBox(width: 6),
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
                                             child: SvgPicture.asset(
                                               'assets/icons/ShieldFail.svg',
                                               width: 16,
@@ -306,41 +294,40 @@ class _RootScreenState extends State<RootScreen> {
                                     ),
                                   ),
                                 ),
-                                
-                                SizedBox(width: 8), // Расстояние между контейнерами
-                                
-                                // Правый узкий контейнер
+
+                                const SizedBox(width: 8),
+
+                                // Правый — New Good Habit
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: _onNewGoodHabbit,
                                     child: Container(
-                                      height: 90, // Увеличиваем с 70 до 90 для лучшего вида
-                                      padding: EdgeInsets.all(16), // Увеличиваем паддинг для большего пространства
+                                      height: 90,
+                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Row(
                                         children: [
-                                          // Текст слева
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                    context.l10n.translate('newGoodHabit'),
-                                                  style: TextStyle(
-                                                    fontSize: 14, // Увеличиваем с 11 до 14
+                                                  context.l10n.translate('newGoodHabit'),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
                                                     fontWeight: FontWeight.w600,
                                                     color: AppColors.black100,
                                                   ),
                                                 ),
-                                                SizedBox(height: 2), // Увеличиваем отступ
+                                                const SizedBox(height: 2),
                                                 Text(
-                                                    context.l10n.translate('forABetterLife'),
-                                                  style: TextStyle(
-                                                    fontSize: 11, // Увеличиваем с 9 до 11
+                                                  context.l10n.translate('forABetterLife'),
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
                                                     color: AppColors.black40,
                                                     fontFamily: 'SF Pro Display',
                                                   ),
@@ -348,13 +335,10 @@ class _RootScreenState extends State<RootScreen> {
                                               ],
                                             ),
                                           ),
-                                        
-                                          SizedBox(width: 6), // Уменьшил с 8 до 6
-                                        
-                                          // Иконка справа
-                                          Container(
-                                            width: 20, // Уменьшил с 24 до 20
-                                            height: 20, // Уменьшил с 24 до 20
+                                          const SizedBox(width: 6),
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
                                             child: SvgPicture.asset(
                                               'assets/icons/ShieldDone.svg',
                                               width: 16,
@@ -369,8 +353,7 @@ class _RootScreenState extends State<RootScreen> {
                               ],
                             ),
                           ),
-                          
-                                                  ],
+                        ],
                       ),
                     ),
                   ],
@@ -382,21 +365,19 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
-  // Неактивная кнопка (затемненная)
   Widget _buildDisabledNavItem() {
     return Container(
       width: 40,
       height: 40,
       alignment: Alignment.center,
       child: Icon(
-        Icons.home, // Любая иконка, она будет затемнена
+        Icons.home,
         size: 30,
-        color: Colors.black.withOpacity(0.3), // Затемненная
+        color: Colors.black.withOpacity(0.3),
       ),
     );
   }
 
-  // Блок опции для создания привычки
   Widget _buildHabitOption({
     required IconData icon,
     required String title,
@@ -406,7 +387,7 @@ class _RootScreenState extends State<RootScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.circular(12),
@@ -417,12 +398,11 @@ class _RootScreenState extends State<RootScreen> {
         ),
         child: Row(
           children: [
-            // Иконка
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
@@ -439,25 +419,23 @@ class _RootScreenState extends State<RootScreen> {
                 size: 20,
               ),
             ),
-            SizedBox(width: 16),
-            
-            // Текст
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.black100,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.black40,
                     ),
@@ -465,9 +443,7 @@ class _RootScreenState extends State<RootScreen> {
                 ],
               ),
             ),
-            
-            // Стрелка
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.black40,
               size: 16,
@@ -478,39 +454,33 @@ class _RootScreenState extends State<RootScreen> {
     );
   }
 
-  // Возвращает список виджетов для нижней навигации
   List<Widget> _buildBottomNavBarItems() {
     return [
-      // Главная
       _buildNavItem(
         icon: Icons.home,
         label: context.l10n.translate('home'),
         isActive: widget.navigationShell.currentIndex == 0,
         onTap: () => _navigateToIndex(0),
       ),
-      // Статистика
       _buildNavItem(
         icon: Icons.bar_chart,
         label: context.l10n.translate('analytics'),
         isActive: widget.navigationShell.currentIndex == 1,
         onTap: () => _navigateToIndex(1),
       ),
-      // Добавить (увеличенная иконка с градиентом)
       _buildAddNavItem(
         icon: _isAddModalVisible ? Icons.close : Icons.add,
         label: context.l10n.translate('add'),
         isActive: widget.navigationShell.currentIndex == 2,
         onTap: _toggleAddModal,
-        size: 30.0, // Обычный размер как у других кнопок
+        size: 30.0,
       ),
-      // Библиотека
       _buildNavItem(
         icon: Icons.library_books,
         label: context.l10n.translate('library'),
         isActive: widget.navigationShell.currentIndex == 3,
         onTap: () => _navigateToIndex(3),
       ),
-      // Профиль
       _buildNavItem(
         icon: Icons.person,
         label: context.l10n.translate('profile'),
@@ -520,13 +490,12 @@ class _RootScreenState extends State<RootScreen> {
     ];
   }
 
-  // Строит один элемент навигации
   Widget _buildNavItem({
     required IconData icon,
     required String label,
     required bool isActive,
     required VoidCallback onTap,
-    double? size, // Добавляем опциональный параметр размера
+    double? size,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -536,14 +505,13 @@ class _RootScreenState extends State<RootScreen> {
         alignment: Alignment.center,
         child: Icon(
           icon,
-          size: size ?? 30, // Используем переданный размер или по умолчанию 24
+          size: size ?? 30,
           color: isActive ? AppColors.blue100 : AppColors.black40,
         ),
       ),
     );
   }
 
-  // Строит кнопку Добавить с градиентом
   Widget _buildAddNavItem({
     required IconData icon,
     required String label,
@@ -554,11 +522,11 @@ class _RootScreenState extends State<RootScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, // Обычный размер как у других кнопок
-        height: 40, // Обычный размер как у других кнопок
+        width: 40,
+        height: 40,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
@@ -567,18 +535,17 @@ class _RootScreenState extends State<RootScreen> {
             ],
             stops: [0.0, 1.0],
           ),
-          borderRadius: BorderRadius.circular(20), // Полукруглая кнопка обычного размера
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Icon(
           icon,
           size: size ?? 30,
-          color: Colors.white, // Белый плюс
+          color: Colors.white,
         ),
       ),
     );
   }
 
-  // Навигация на нужный индекс
   void _navigateToIndex(int index) {
     widget.navigationShell.goBranch(
       index,

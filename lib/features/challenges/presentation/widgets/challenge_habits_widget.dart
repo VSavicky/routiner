@@ -188,6 +188,10 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
         return widget.l10n.translate('max1hTvNetflix');
       case 'Go for a walk':
         return widget.l10n.translate('goForAWalk');
+      case 'cycling':
+        return widget.l10n.translate('cycling');
+      case 'Cycling':
+        return widget.l10n.translate('cycling');
       default:
         return habitName;
     }

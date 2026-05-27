@@ -134,6 +134,10 @@ class _HomePageState extends State<HomePage> {
         return context.l10n.translate('max1hTvNetflix');
       case 'Go for a walk':
         return context.l10n.translate('goForAWalk');
+      case 'cycling':
+        return context.l10n.translate('cycling');
+      case 'Cycling':
+        return context.l10n.translate('cycling');
       default:
         return habitName;
     }
@@ -904,7 +908,7 @@ class _HomePageState extends State<HomePage> {
                                               return habitCreatedDate.isAtSameMomentAs(selectedDate) ||
                                                      habitCreatedDate.isBefore(selectedDate);
                                             })
-                                            // Для будущих дат показываем только pending привычки, для остальных - все
+                                            // Для будущих дат показываем только pending привычки, для остальных - только pending
                                             .where((habitModel) {
                                               final dayLog = habitModel.id != null ? _todayLogs[habitModel.id] : null;
                                               final status = dayLog?.status ?? HabitStatus.pending;
@@ -912,8 +916,8 @@ class _HomePageState extends State<HomePage> {
                                               if (_getIsFutureDate()) {
                                                 return status == HabitStatus.pending;
                                               }
-                                              // Для текущих и прошлых дат показываем все
-                                              return true;
+                                              // Для текущих и прошлых дат показываем только pending (выполненные/проваленные/пропущенные сразу исчезают)
+                                              return status == HabitStatus.pending;
                                             })
                                             .map((habitModel) {
                                             // Получаем лог для выбранной даты (исторический прогресс)
@@ -938,6 +942,7 @@ class _HomePageState extends State<HomePage> {
                                               id: habitModel.id ?? '',
                                               title: _getLocalizedHabitName(habitModel.name),
                                               subtitle: '$currentProgress/${habitModel.targetValue} ${habitModel.targetUnit}',
+                                              targetUnit: habitModel.targetUnit,
                                               isChallenge: isChallengeHabit,
                                               challengeId: habitModel.challengeId,
                                               challengeName: null, // TODO: загрузить имя челленджа
@@ -1004,10 +1009,7 @@ class _HomePageState extends State<HomePage> {
                                                   selectedDate: _selectedDate,
                                                 ),
                                               ),
-                                            ).then((_) {
-                                              // Обновляем при возврате
-                                              _refreshHabits();
-                                            });
+                                            );
                                           },
                                         ),
                             ],

@@ -39,8 +39,10 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
   // Данные привычки (либо из HabitModel, либо из DefaultHabit)
   late String _name;
+  late String _localizedHabitName; // Локализованное название
   late String _emoji;
   late String _description;
+  late String _localizedDescription; // Локализованное описание
   late Color _color;
   late int _targetValue;
   late String _targetUnit;
@@ -58,7 +60,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       // Пользовательская привычка
       _name = widget.habit!.name;
       _emoji = widget.habit!.emoji;
-      _description = widget.habit!.motivation ?? 'No description';
+      _description = widget.habit!.motivation ?? '';
       _color = widget.habit!.colorValue;
       _targetValue = widget.habit!.targetValue > 0 ? widget.habit!.targetValue : 1;
       _targetUnit = widget.habit!.targetUnit.isNotEmpty
@@ -76,6 +78,70 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       _targetUnit = 'times';
       _habitType = 'build';
       _isAdded = false;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Локализация названия и описания происходит здесь, когда контекст доступен
+    _localizedHabitName = _getLocalizedHabitName(_name);
+    _localizedDescription = _description.isNotEmpty 
+        ? _description 
+        : context.l10n.translate('noDescription');
+  }
+
+  /// Локализация названия привычки
+  String _getLocalizedHabitName(String habitName) {
+    switch (habitName.toLowerCase()) {
+      case 'cycling':
+        return context.l10n.translate('cycling');
+      case 'drink water':
+        return context.l10n.translate('drinkWater');
+      case 'daily workout':
+        return context.l10n.translate('dailyWorkout');
+      case 'take 8k steps':
+        return context.l10n.translate('take8KSteps');
+      case 'meditate':
+        return context.l10n.translate('meditate');
+      case 'morning stretch':
+        return context.l10n.translate('morningStretch');
+      case 'read book':
+        return context.l10n.translate('readBook');
+      case 'eat vegetables':
+        return context.l10n.translate('eatVegetables');
+      case 'cook at home':
+        return context.l10n.translate('cookAtHome');
+      case 'no phone 1h before bed':
+        return context.l10n.translate('noPhone1hBeforeBed');
+      case 'read instead':
+        return context.l10n.translate('readInstead');
+      case 'no sugar':
+        return context.l10n.translate('noSugar');
+      case 'max 1 coffee':
+        return context.l10n.translate('max1Coffee');
+      case 'drink herbal tea':
+        return context.l10n.translate('drinkHerbalTea');
+      case 'complete 3 priorities':
+        return context.l10n.translate('complete3Priorities');
+      case 'no social media at work':
+        return context.l10n.translate('noSocialMediaAtWork');
+      case 'max 1h tv/netflix':
+        return context.l10n.translate('max1hTvNetflix');
+      case 'go for a walk':
+        return context.l10n.translate('goForAWalk');
+      case 'run':
+        return context.l10n.translate('run');
+      case 'walk':
+        return context.l10n.translate('walk');
+      case 'read':
+        return context.l10n.translate('read');
+      case 'less sugar':
+        return context.l10n.translate('lessSugar');
+      case 'stop procrastinating':
+        return context.l10n.translate('stopProcrastinating');
+      default:
+        return habitName;
     }
   }
 
@@ -174,6 +240,56 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     _loadData();
   }
 
+  /// Локализация единицы измерения
+  String _getLocalizedUnit(String unit) {
+    switch (unit.toLowerCase()) {
+      case 'times':
+        return context.l10n.translate('times');
+      case 'steps':
+        return context.l10n.translate('steps');
+      case 'min':
+        return context.l10n.translate('min');
+      case 'hour':
+      case 'hours':
+        return context.l10n.translate('hours');
+      case 'pages':
+        return context.l10n.translate('pages');
+      case 'ml':
+        return context.l10n.translate('ml');
+      case 'km':
+        return context.l10n.translate('km');
+      case 'cal':
+      case 'kcal':
+        return 'kcal';
+      default:
+        return unit;
+    }
+  }
+
+  /// Локализация типа привычки
+  String _getLocalizedHabitType(String type) {
+    switch (type.toLowerCase()) {
+      case 'build':
+        return context.l10n.translate('building');
+      case 'quit':
+        return context.l10n.translate('quitting');
+      default:
+        return type;
+    }
+  }
+
+  /// Локализация подписи цели
+  String _getLocalizedTargetLabel() {
+    switch (_habitType.toLowerCase()) {
+      case 'build':
+        return context.l10n.translate('buildingGoal');
+      case 'quit':
+        return context.l10n.translate('quittingGoal');
+      default:
+        return context.l10n.translate('target');
+    }
+  }
+
   Future<void> _addHabit() async {
     if (widget.defaultHabit == null) return;
 
@@ -248,7 +364,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               const SizedBox(height: 20),
               // Заголовок
               Text(
-                'Delete Habit?',
+                context.l10n.translate('deleteHabit'),
                 style: AppFonts.bodyTitleMedium.copyWith(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -258,7 +374,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               const SizedBox(height: 12),
               // Описание
               Text(
-                'Are you sure you want to delete "$_name"? This action cannot be undone.',
+                context.l10n.translate('deleteHabitConfirmation').replaceAll('{name}', _name),
                 textAlign: TextAlign.center,
                 style: AppFonts.bodyTitleMedium.copyWith(
                   fontSize: 14,
@@ -432,7 +548,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
                               // Title
                               Text(
-                                _name,
+                                _localizedHabitName,
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w700,
@@ -463,7 +579,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'From: ${widget.challengeName}',
+                                        '${context.l10n.translate('from')}: ${widget.challengeName}',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 14,
@@ -485,7 +601,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
-                                  _description,
+                                  _localizedDescription,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,
@@ -501,18 +617,16 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                                 children: [
                                   _buildInfoCard(
                                     icon: Icons.track_changes,
-                                    label: 'Target',
-                                    value: '$_targetValue $_targetUnit',
+                                    label: _getLocalizedTargetLabel(),
+                                    value: '$_targetValue ${_getLocalizedUnit(_targetUnit)}',
                                   ),
                                   const SizedBox(width: 12),
                                   _buildInfoCard(
                                     icon: _habitType == 'build'
                                         ? Icons.trending_up
                                         : Icons.trending_down,
-                                    label: 'Type',
-                                    value: _habitType == 'build'
-                                        ? 'Build'
-                                        : 'Quit',
+                                    label: context.l10n.translate('type'),
+                                    value: _getLocalizedHabitType(_habitType),
                                   ),
                                 ],
                               ),
@@ -521,8 +635,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
                               // Today's progress (if added)
                               if (_isAdded && _todayLog != null) ...[
-                                const Text(
-                                  'Today\'s Progress',
+                                Text(
+                                  context.l10n.translate('todayProgress'),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -536,8 +650,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
                               // Last 30 days
                               if (_isAdded) ...[
-                                const Text(
-                                  'Last 30 Days',
+                                Text(
+                                  context.l10n.translate('last30Days'),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -566,8 +680,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                                       ),
                                     ),
                                     icon: const Icon(Icons.delete_outline),
-                                    label: const Text(
-                                      'Delete Habit',
+                                    label: Text(
+                                      context.l10n.translate('deleteHabit'),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -591,8 +705,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                                       ),
                                     ),
                                     icon: const Icon(Icons.add),
-                                    label: const Text(
-                                      'Add to My Habits',
+                                    label: Text(
+                                      context.l10n.translate('addToMyHabits'),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -673,7 +787,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$currentValue / $_targetValue $_targetUnit',
+                '$currentValue / $_targetValue ${_getLocalizedUnit(_targetUnit)}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -805,7 +919,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   String _getWeekdayShort(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     return days[weekday - 1];
   }
 }
