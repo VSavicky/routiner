@@ -119,7 +119,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
       await _addClubHabits();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.trArgs('welcomeToClub', {'name': widget.club['name']})),
+          content: Text(context.l10n.translate('welcomeToClub').replaceAll('{name}', widget.club['name'] as String)),
           backgroundColor: AppColors.blue100,
           duration: const Duration(seconds: 2),
         ),
@@ -158,7 +158,7 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
         remindersEnabled: false,
         reminderTimes: [],
         reminderPeriod: 'Every day',
-        motivation: 'Club habit from ${widget.club['name']}',
+        motivation: 'clubHabitMotivation',
         isDefaultHabit: false,
         defaultHabitId: null,
         challengeId: 'club_${widget.club['id'] as String}', // Используем challengeId для клубов

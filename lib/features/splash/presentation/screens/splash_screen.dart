@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:routiner/features/auth/domain/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -33,11 +35,27 @@ class _SplashScreenState extends State<SplashScreen> {
         await prefs.setBool('is_first_run', false);
         context.pushReplacement('/onboarding');
       } else {
-        // Не первый запуск - проверяем авторизацию через сохраненную сессию
-        final isLoggedIn = await _authService.isLoggedIn();
-        if (isLoggedIn) {
-          // Пользователь авторизован - на главный экран
-          context.pushReplacement('/home');
+        // Не первый запуск - проверяем авторизацию
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser != null) {
+          // Пользователь авторизован в Firebase - проверяем есть ли данные в Firestore
+          try {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(firebaseUser.uid)
+                .get();
+            
+            if (userDoc.exists) {
+              // Данные есть - онбординг завершён, на главный экран
+              context.pushReplacement('/home');
+            } else {
+              // Данных нет - онбординг не завершён, на выбор гендера
+              context.pushReplacement('/gender');
+            }
+          } catch (e) {
+            // Ошибка - на авторизацию
+            context.pushReplacement('/auth');
+          }
         } else {
           // Пользователь не авторизован - на onboarding
           context.pushReplacement('/onboarding');

@@ -86,9 +86,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
     super.didChangeDependencies();
     // Локализация названия и описания происходит здесь, когда контекст доступен
     _localizedHabitName = _getLocalizedHabitName(_name);
-    _localizedDescription = _description.isNotEmpty 
-        ? _description 
-        : context.l10n.translate('noDescription');
+    if (_description.isNotEmpty) {
+      final translated = context.l10n.translate(_description);
+      _localizedDescription = translated != _description ? translated : _description;
+    } else {
+      _localizedDescription = context.l10n.translate('noDescription');
+    }
   }
 
   /// Локализация названия привычки
@@ -140,6 +143,24 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         return context.l10n.translate('lessSugar');
       case 'stop procrastinating':
         return context.l10n.translate('stopProcrastinating');
+      case 'running':
+        return context.l10n.translate('running');
+      case 'meditation':
+        return context.l10n.translate('meditation');
+      case 'reading':
+        return context.l10n.translate('reading');
+      case 'fitness':
+        return context.l10n.translate('fitness');
+      case 'healthyeating':
+        return context.l10n.translate('healthyEating');
+      case 'drinkingwater':
+        return context.l10n.translate('drinkingWater');
+      case 'sleepschedule':
+        return context.l10n.translate('sleepSchedule');
+      case 'journaling':
+        return context.l10n.translate('journaling');
+      case 'creativework':
+        return context.l10n.translate('creativeWork');
       default:
         return habitName;
     }
@@ -260,7 +281,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         return context.l10n.translate('km');
       case 'cal':
       case 'kcal':
-        return 'kcal';
+        return context.l10n.translate('cal');
       default:
         return unit;
     }
@@ -316,7 +337,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         setState(() => _isAdded = true);
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.trArgs('addedToYourHabits', {'name': _name})),
+              content: Text(context.l10n.translate('addedToYourHabits').replaceAll('{name}', _localizedHabitName)),
             backgroundColor: AppColors.green,
           ),
         );
@@ -919,7 +940,23 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   String _getWeekdayShort(int weekday) {
-    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    return days[weekday - 1];
+    switch (weekday) {
+      case DateTime.monday:
+        return context.l10n.translate('monday');
+      case DateTime.tuesday:
+        return context.l10n.translate('tuesday');
+      case DateTime.wednesday:
+        return context.l10n.translate('wednesday');
+      case DateTime.thursday:
+        return context.l10n.translate('thursday');
+      case DateTime.friday:
+        return context.l10n.translate('friday');
+      case DateTime.saturday:
+        return context.l10n.translate('saturday');
+      case DateTime.sunday:
+        return context.l10n.translate('sunday');
+      default:
+        return '';
+    }
   }
 }

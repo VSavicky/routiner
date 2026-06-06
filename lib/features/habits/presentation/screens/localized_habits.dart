@@ -14,7 +14,7 @@ class LocalizedDefaultHabits {
         targetValue: 10000,
         targetUnit: 'steps',
         unitLabel: 'steps',
-        motivation: 'Walking improves cardiovascular health and boosts mood',
+        motivation: 'walkMotivation',
         reminderTime: '08:00',
       ),
       DefaultHabit(
@@ -26,7 +26,7 @@ class LocalizedDefaultHabits {
         targetValue: 30,
         targetUnit: 'pages',
         unitLabel: 'pages',
-        motivation: 'Reading expands knowledge and reduces stress',
+        motivation: 'readMotivation',
         reminderTime: '21:00',
       ),
       DefaultHabit(
@@ -38,7 +38,7 @@ class LocalizedDefaultHabits {
         targetValue: 2000,
         targetUnit: 'ml',
         unitLabel: 'ml',
-        motivation: 'Staying hydrated improves energy and concentration',
+        motivation: 'waterMotivation',
         reminderTime: '09:00',
       ),
       DefaultHabit(
@@ -50,7 +50,7 @@ class LocalizedDefaultHabits {
         targetValue: 15,
         targetUnit: 'min',
         unitLabel: 'min',
-        motivation: 'Meditation reduces anxiety and improves focus',
+        motivation: 'meditateMotivation',
         reminderTime: '07:00',
       ),
       DefaultHabit(
@@ -62,7 +62,7 @@ class LocalizedDefaultHabits {
         targetValue: 5,
         targetUnit: 'km',
         unitLabel: 'km',
-        motivation: 'Running strengthens heart and builds endurance',
+        motivation: 'runMotivation',
         reminderTime: '06:00',
       ),
       DefaultHabit(
@@ -74,7 +74,7 @@ class LocalizedDefaultHabits {
         targetValue: 8,
         targetUnit: 'hours',
         unitLabel: 'hours',
-        motivation: 'Good sleep is essential for health and productivity',
+        motivation: 'sleepMotivation',
         reminderTime: '22:00',
       ),
       DefaultHabit(
@@ -86,7 +86,7 @@ class LocalizedDefaultHabits {
         targetValue: 45,
         targetUnit: 'min',
         unitLabel: 'min',
-        motivation: 'Regular exercise keeps body strong and mind sharp',
+        motivation: 'workoutMotivation',
         reminderTime: '18:00',
       ),
       DefaultHabit(
@@ -98,7 +98,7 @@ class LocalizedDefaultHabits {
         targetValue: 1,
         targetUnit: 'times',
         unitLabel: 'times',
-        motivation: 'Journaling helps process emotions and track growth',
+        motivation: 'journalMotivation',
         reminderTime: '20:00',
       ),
     ];
@@ -116,7 +116,7 @@ class LocalizedDefaultHabits {
         targetUnit: 'times',
         unitLabel: 'cigarettes',
         isGoodHabit: false,
-        motivation: 'Quitting smoking dramatically improves health',
+        motivation: 'smokeMotivation',
       ),
       DefaultHabit(
         id: 'social_media',
@@ -128,7 +128,7 @@ class LocalizedDefaultHabits {
         targetUnit: 'hour',
         unitLabel: 'hour',
         isGoodHabit: false,
-        motivation: 'Reducing social media improves focus and mental health',
+        motivation: 'socialMotivation',
       ),
       DefaultHabit(
         id: 'alcohol',
@@ -140,7 +140,7 @@ class LocalizedDefaultHabits {
         targetUnit: 'ml',
         unitLabel: 'ml',
         isGoodHabit: false,
-        motivation: 'Avoiding alcohol improves sleep and overall health',
+        motivation: 'alcoholMotivation',
       ),
       DefaultHabit(
         id: 'procrastinate',
@@ -152,7 +152,7 @@ class LocalizedDefaultHabits {
         targetUnit: 'times',
         unitLabel: 'times',
         isGoodHabit: false,
-        motivation: 'Overcoming procrastination boosts productivity and reduces stress',
+        motivation: 'procrastinateMotivation',
       ),
     ];
   }

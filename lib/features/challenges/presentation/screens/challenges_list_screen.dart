@@ -49,27 +49,28 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
   }
 
   String _getLocalizedChallengeTitle(String challengeId) {
+    final l10n = context.l10n;
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('7DayWaterChallenge');
+        return l10n.translate('7DayWaterChallenge');
       case '21_day_fitness':
-        return context.l10n.translate('21DayFitnessKickstart');
+        return l10n.translate('21DayFitnessKickstart');
       case 'morning_routine':
-        return context.l10n.translate('perfectMorningRoutine');
+        return l10n.translate('perfectMorningRoutine');
       case 'read_daily':
-        return context.l10n.translate('dailyReadingHabit');
+        return l10n.translate('dailyReadingHabit');
       case 'eat_healthy':
-        return context.l10n.translate('healthyEatingWeek');
+        return l10n.translate('healthyEatingWeek');
       case 'no_phone_before_bed':
-        return context.l10n.translate('betterSleepNoPhoneBeforeBed');
+        return l10n.translate('betterSleepNoPhoneBeforeBed');
       case 'no_sugar_week':
-        return context.l10n.translate('noSugarWeek');
+        return l10n.translate('noSugarWeek');
       case 'reduce_caffeine':
-        return context.l10n.translate('reduceCaffeineIntake');
+        return l10n.translate('reduceCaffeineIntake');
       case 'no_procrastination':
-        return context.l10n.translate('beatProcrastination');
+        return l10n.translate('beatProcrastination');
       case 'less_tv':
-        return context.l10n.translate('lessScreenTime');
+        return l10n.translate('lessScreenTime');
       default:
         return challengeId;
     }
@@ -80,135 +81,134 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
     try {
       final now = DateTime.now();
       
+      final l10n = context.l10n;
       final challenges = [
-        // ========== ЧЕЛЛЕНДЖИ ДЛЯ ХОРОШИХ ПРИВЫЧЕК (build) ==========
         {
           'id': '7_day_water',
-          'title': '7-Day Water Challenge',
+          'title': l10n.translate('7DayWaterChallenge'),
           'endTime': now.add(const Duration(days: 7)),
-          'description': 'Start your wellness journey with proper hydration. Drink 8 glasses of water daily for one week and feel the difference in your energy levels and skin health.',
+          'description': l10n.translate('7DayWaterChallengeDescription'),
           'icon': '💧',
           'color': const Color(0xFF29B6F6),
           'participants': 128,
           'habits': [
-            {'title': 'Drink water', 'icon': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('drinkWaterHabit'), 'icon': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': '21_day_fitness',
-          'title': '21-Day Fitness Kickstart',
+          'title': l10n.translate('21DayFitnessKickstart'),
           'endTime': now.add(const Duration(days: 21)),
-          'description': 'Build a consistent workout habit in just 3 weeks. Start with manageable 20-minute sessions and transform your fitness level. Perfect for beginners!',
+          'description': l10n.translate('21DayFitnessKickstartDescription'),
           'icon': '🏃',
           'color': const Color(0xFF5B6EFC),
           'participants': 256,
           'habits': [
-            {'title': 'Daily workout', 'icon': '💪', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Take 8K steps', 'icon': '🚶', 'targetValue': 8000, 'targetUnit': 'steps', 'incrementStep': 1000, 'habitType': 'build'},
+            {'title': l10n.translate('dailyWorkoutHabit'), 'icon': '💪', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': l10n.translate('take8KStepsHabit'), 'icon': '🚶', 'targetValue': 8000, 'targetUnit': 'steps', 'incrementStep': 1000, 'habitType': 'build'},
           ],
         },
         {
           'id': 'morning_routine',
-          'title': 'Perfect Morning Routine',
+          'title': l10n.translate('perfectMorningRoutine'),
           'endTime': now.add(const Duration(days: 14)),
-          'description': 'Transform your mornings and set the tone for productive days. Simple 10-minute meditation and light stretching to wake up your body and mind.',
+          'description': l10n.translate('perfectMorningRoutineDescription'),
           'icon': '🌅',
           'color': const Color(0xFFFFA726),
           'participants': 89,
           'habits': [
-            {'title': 'Meditate', 'icon': '🧘', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-            {'title': 'Morning stretch', 'icon': '🤸', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('meditateHabit'), 'icon': '🧘', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': l10n.translate('morningStretchHabit'), 'icon': '🤸', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'read_daily',
-          'title': 'Daily Reading Habit',
+          'title': l10n.translate('dailyReadingHabit'),
           'endTime': now.add(const Duration(days: 30)),
-          'description': 'Read 20 pages every day for a month and finish that book you have been meaning to read. Expand your knowledge and reduce screen time before bed.',
+          'description': l10n.translate('dailyReadingHabitDescription'),
           'icon': '📚',
           'color': const Color(0xFF8D6E63),
           'participants': 167,
           'habits': [
-            {'title': 'Read book', 'icon': '📖', 'targetValue': 20, 'targetUnit': 'pages', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': l10n.translate('readBookHabit'), 'icon': '📖', 'targetValue': 20, 'targetUnit': 'pages', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
           'id': 'eat_healthy',
-          'title': 'Healthy Eating Week',
+          'title': l10n.translate('healthyEatingWeek'),
           'endTime': now.add(const Duration(days: 7)),
-          'description': 'One week of nutritious meals! Focus on vegetables, home cooking, and cutting out processed foods. Small changes that make a big difference.',
+          'description': l10n.translate('healthyEatingWeekDescription'),
           'icon': '🥗',
           'color': const Color(0xFF66BB6A),
           'participants': 203,
           'habits': [
-            {'title': 'Eat vegetables', 'icon': '🥦', 'targetValue': 2, 'targetUnit': 'servings', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'Cook at home', 'icon': '🍳', 'targetValue': 1, 'targetUnit': 'meal', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('eatVegetablesHabit'), 'icon': '🥦', 'targetValue': 2, 'targetUnit': 'servings', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('cookAtHomeHabit'), 'icon': '🍳', 'targetValue': 1, 'targetUnit': 'meal', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
-        // ========== ЧЕЛЛЕНДЖИ ДЛЯ ПЛОХИХ ПРИВЫЧЕК (quit) ==========
         {
           'id': 'no_phone_before_bed',
-          'title': 'Better Sleep: No Phone Before Bed',
+          'title': l10n.translate('betterSleepNoPhoneBeforeBed'),
           'endTime': now.add(const Duration(days: 14)),
-          'description': 'Improve your sleep quality by eliminating screen time 1 hour before bed. Fall asleep faster and wake up more refreshed. Your eyes will thank you!',
+          'description': l10n.translate('betterSleepNoPhoneBeforeBedDescription'),
           'icon': '😴',
           'color': const Color(0xFF7E57C2),
           'participants': 342,
           'habits': [
-            {'title': 'No phone 1h before bed', 'icon': '📵', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
-            {'title': 'Read instead', 'icon': '📖', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': l10n.translate('noPhone1hBeforeBedHabit'), 'icon': '📵', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': l10n.translate('readInsteadHabit'), 'icon': '📖', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
         {
           'id': 'no_sugar_week',
-          'title': 'No Sugar Week',
+          'title': l10n.translate('noSugarWeek'),
           'endTime': now.add(const Duration(days: 7)),
-          'description': 'Challenge yourself to one week without added sugars. No desserts, no sodas, no sweet snacks. Break the sugar addiction and discover natural flavors!',
+          'description': l10n.translate('noSugarWeekDescription'),
           'icon': '🚫',
           'color': const Color(0xFFE91E63),
           'participants': 189,
           'habits': [
-            {'title': 'No sugar', 'icon': '🍰', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
-            {'title': 'Drink water', 'icon': '💧', 'targetValue': 6, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('noSugarHabit'), 'icon': '🍰', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': l10n.translate('drinkWaterHabit'), 'icon': '💧', 'targetValue': 6, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'reduce_caffeine',
-          'title': 'Reduce Caffeine Intake',
+          'title': l10n.translate('reduceCaffeineIntake'),
           'endTime': now.add(const Duration(days: 21)),
-          'description': 'Cut back on coffee and energy drinks. Limit to just 1 cup of coffee per day and feel more naturally energized without the crashes.',
+          'description': l10n.translate('reduceCaffeineIntakeDescription'),
           'icon': '☕',
           'color': const Color(0xFF795548),
           'participants': 76,
           'habits': [
-            {'title': 'Max 1 coffee', 'icon': '☕', 'targetValue': 1, 'targetUnit': 'cup', 'incrementStep': 1, 'habitType': 'quit'},
-            {'title': 'Drink herbal tea', 'icon': '🍵', 'targetValue': 2, 'targetUnit': 'cups', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('max1CoffeeHabit'), 'icon': '☕', 'targetValue': 1, 'targetUnit': 'cup', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': l10n.translate('drinkHerbalTeaHabit'), 'icon': '🍵', 'targetValue': 2, 'targetUnit': 'cups', 'incrementStep': 1, 'habitType': 'build'},
           ],
         },
         {
           'id': 'no_procrastination',
-          'title': 'Beat Procrastination',
+          'title': l10n.translate('beatProcrastination'),
           'endTime': now.add(const Duration(days: 14)),
-          'description': 'Fight the urge to delay important tasks. Complete your top 3 priorities daily and stay focused with distraction-free work sessions.',
+          'description': l10n.translate('beatProcrastinationDescription'),
           'icon': '🎯',
           'color': const Color(0xFF009688),
           'participants': 134,
           'habits': [
-            {'title': 'Complete 3 priorities', 'icon': '✅', 'targetValue': 3, 'targetUnit': 'tasks', 'incrementStep': 1, 'habitType': 'build'},
-            {'title': 'No social media at work', 'icon': '📱', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': l10n.translate('complete3PrioritiesHabit'), 'icon': '✅', 'targetValue': 3, 'targetUnit': 'tasks', 'incrementStep': 1, 'habitType': 'build'},
+            {'title': l10n.translate('noSocialMediaAtWorkHabit'), 'icon': '📱', 'targetValue': 1, 'targetUnit': 'day', 'incrementStep': 1, 'habitType': 'quit'},
           ],
         },
         {
           'id': 'less_tv',
-          'title': 'Less Screen Time',
+          'title': l10n.translate('lessScreenTime'),
           'endTime': now.add(const Duration(days: 14)),
-          'description': 'Reduce TV and streaming to max 1 hour per day. Reclaim your time for hobbies, exercise, or quality time with loved ones.',
+          'description': l10n.translate('lessScreenTimeDescription'),
           'icon': '📺',
           'color': const Color(0xFF607D8B),
           'participants': 98,
           'habits': [
-            {'title': 'Max 1h TV/Netflix', 'icon': '📺', 'targetValue': 1, 'targetUnit': 'hour', 'incrementStep': 1, 'habitType': 'quit'},
-            {'title': 'Go for a walk', 'icon': '🚶', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+            {'title': l10n.translate('max1hTvNetflixHabit'), 'icon': '📺', 'targetValue': 1, 'targetUnit': 'hour', 'incrementStep': 1, 'habitType': 'quit'},
+            {'title': l10n.translate('goForAWalkHabit'), 'icon': '🚶', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
           ],
         },
       ];

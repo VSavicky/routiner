@@ -73,6 +73,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       // 10 очков за каждую выполненную привычку
       return logsQuery.docs.length * 10;
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[PROFILE ERROR] Permission denied in _calculateTotalPoints');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return 0;
+      }
       print('[PROFILE ERROR] Failed to calculate total points: $e');
       return 0;
     }
@@ -144,6 +153,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         await _checkAndAwardAchievements(user.uid);
       }
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[PROFILE ERROR] Permission denied, user likely signed out');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return;
+      }
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -158,7 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   Future<void> _checkAndAwardAchievements(String userId) async {
     try {
       final achievementService = AchievementService();
-      
+    
       // Check points achievements
       await achievementService.checkAndAwardPointsAchievements(userId);
       
@@ -268,6 +286,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         _activities = activities;
       });
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[PROFILE ERROR] Permission denied in _loadActivities');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return;
+      }
       print('[PROFILE ERROR] Failed to load activities: $e');
     }
   }
@@ -300,6 +327,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         _friendsCount = friends.length;
       });
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[PROFILE ERROR] Permission denied in _loadFriends');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return;
+      }
       print('[PROFILE ERROR] Failed to load friends: $e');
     }
   }
@@ -335,6 +371,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         });
       }
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[PROFILE ERROR] Permission denied in _loadAchievements');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return;
+      }
       print('[PROFILE ERROR] Failed to load achievements: $e');
     }
   }

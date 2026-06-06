@@ -141,52 +141,52 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _getLocalizedChallengeTitle(String challengeId, BuildContext context) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('waterChallenge');
+        return context.l10n.translate('7DayWaterChallenge');
       case '21_day_fitness':
-        return context.l10n.translate('fitnessChallenge');
+        return context.l10n.translate('21DayFitnessKickstart');
       case 'morning_routine':
-        return context.l10n.translate('morningRoutineChallenge');
+        return context.l10n.translate('perfectMorningRoutine');
       default:
-        return ''; // Возвращаем пустую строку если нет маппинга
+        return '';
     }
   }
 
   String _getLocalizedChallengeDescription(String challengeId, BuildContext context) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('waterChallengeDescription');
+        return context.l10n.translate('7DayWaterChallengeDescription');
       case '21_day_fitness':
-        return context.l10n.translate('fitnessChallengeDescription');
+        return context.l10n.translate('21DayFitnessKickstartDescription');
       case 'morning_routine':
-        return context.l10n.translate('morningRoutineChallengeDescription');
+        return context.l10n.translate('perfectMorningRoutineDescription');
       default:
-        return ''; // Возвращаем пустую строку если нет маппинга
+        return '';
     }
   }
 
   String _getLocalizedLessonTitle(String lessonId, BuildContext context) {
     switch (lessonId) {
       case 'water_benefits':
-        return context.l10n.translate('waterBenefitsLesson');
+        return context.l10n.translate('hydrationScience');
       case 'walking_benefits':
-        return context.l10n.translate('walkingBenefitsLesson');
+        return context.l10n.translate('walkingForWellness');
       case 'morning_routine':
-        return context.l10n.translate('morningRoutineLesson');
+        return context.l10n.translate('perfectMorning');
       default:
-        return ''; // Возвращаем пустую строку если нет маппинга
+        return '';
     }
   }
 
   String _getLocalizedLessonSubtitle(String lessonId, BuildContext context) {
     switch (lessonId) {
       case 'water_benefits':
-        return context.l10n.translate('waterBenefitsSubtitle');
+        return context.l10n.translate('hydrationScienceSubtitle');
       case 'walking_benefits':
-        return context.l10n.translate('walkingBenefitsSubtitle');
+        return context.l10n.translate('walkingForWellnessSubtitle');
       case 'morning_routine':
-        return context.l10n.translate('morningRoutineSubtitle');
+        return context.l10n.translate('perfectMorningSubtitle');
       default:
-        return ''; // Возвращаем пустую строку если нет маппинга
+        return '';
     }
   }
 
@@ -413,67 +413,67 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 final clubs = [
                   {
                     'id': 'cat_lovers',
-                    'name': 'Cat Lovers',
-                    'description': 'Build daily habits while celebrating our feline friends',
+                    'name': context.l10n.translate('catLovers'),
+                    'description': context.l10n.translate('catLoversDescription'),
                     'emoji': '🐱',
                     'members': '500+',
                     'color': const Color(0xFFFF6B6B),
                     'habits': [
-                      {'title': 'Morning pet care', 'emoji': '�', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Cat feeding routine', 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
-                      {'title': 'Play with cat', 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('morningPetCareHabit'), 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('catFeedingRoutineHabit'), 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('playWithCatHabit'), 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': 'book_worms',
-                    'name': 'Book Worms',
-                    'description': 'Cultivate reading habits and expand your knowledge daily',
+                    'name': context.l10n.translate('bookWorms'),
+                    'description': context.l10n.translate('bookWormsDescription'),
                     'emoji': '📚',
                     'members': '1.2k',
                     'color': const Color(0xFF4ECDC4),
                     'habits': [
-                      {'title': 'Daily reading', 'emoji': '�', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
-                      {'title': 'Book notes', 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
-                      {'title': 'Library visit', 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('dailyReadingHabit2'), 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+                      {'title': context.l10n.translate('bookNotesHabit'), 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('libraryVisitHabit'), 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': 'runners',
-                    'name': 'Runners',
-                    'description': 'Build consistent running habits and achieve your fitness goals',
+                    'name': context.l10n.translate('runners'),
+                    'description': context.l10n.translate('runnersDescription'),
                     'emoji': '🏃',
                     'members': '800+',
                     'color': const Color(0xFF95E1D3),
                     'habits': [
-                      {'title': 'Morning run', 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
-                      {'title': 'Stretching', 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Hydration', 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('morningRunHabit'), 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('stretchingHabit'), 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('hydrationHabit'), 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': 'yoga_life',
-                    'name': 'Yoga Life',
-                    'description': 'Transform your life through daily yoga and mindfulness practices',
+                    'name': context.l10n.translate('yogaLife'),
+                    'description': context.l10n.translate('yogaLifeDescription'),
                     'emoji': '🧘',
                     'members': '2k',
                     'color': const Color(0xFFA8E6CF),
                     'habits': [
-                      {'title': 'Morning yoga', 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Meditation', 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Breathing exercises', 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('morningYogaHabit'), 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('meditationHabit'), 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('breathingExercisesHabit'), 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                   {
                     'id': 'meditation',
-                    'name': 'Meditation',
-                    'description': 'Find inner peace and build mental clarity through meditation',
+                    'name': context.l10n.translate('meditationClub'),
+                    'description': context.l10n.translate('meditationClubDescription'),
                     'emoji': '🧠',
                     'members': '3k+',
                     'color': const Color(0xFFC7CEEA),
                     'habits': [
-                      {'title': 'Daily meditation', 'emoji': '�', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-                      {'title': 'Mindful breathing', 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
-                      {'title': 'Gratitude journal', 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+                      {'title': context.l10n.translate('dailyMeditationHabit'), 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+                      {'title': context.l10n.translate('mindfulBreathingHabit'), 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
+                      {'title': context.l10n.translate('gratitudeJournalHabit'), 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
                     ],
                   },
                 ];

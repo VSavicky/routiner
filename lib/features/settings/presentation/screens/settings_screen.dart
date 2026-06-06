@@ -193,14 +193,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.l10n.translate('signOut'),
                   onTap: () async {
                     try {
-                      // Выходим из Firebase
                       await FirebaseAuth.instance.signOut();
-                      
-                      // Проверяем что контекст всё ещё валиден
-                      if (!mounted) return;
-                      
-                      // Переходим на экран авторизации и очищаем стек
-                      context.go('/auth');
+                      if (mounted) {
+                        context.go('/auth');
+                      }
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

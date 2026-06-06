@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/core/widgets/header.dart';
@@ -90,6 +91,15 @@ class _HomePageState extends State<HomePage> {
       // Загружаем присоединенные клубы
       await _loadJoinedClubs();
     } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+        print('[HOME ERROR] Permission denied, user likely signed out');
+        if (mounted) {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) context.go('/auth');
+        }
+        return;
+      }
       setState(() {
         _isLoading = false;
         _isLoadingHabits = false;
@@ -135,9 +145,26 @@ class _HomePageState extends State<HomePage> {
       case 'Go for a walk':
         return context.l10n.translate('goForAWalk');
       case 'cycling':
-        return context.l10n.translate('cycling');
       case 'Cycling':
         return context.l10n.translate('cycling');
+      case 'running':
+        return context.l10n.translate('running');
+      case 'meditation':
+        return context.l10n.translate('meditation');
+      case 'reading':
+        return context.l10n.translate('reading');
+      case 'fitness':
+        return context.l10n.translate('fitness');
+      case 'healthyEating':
+        return context.l10n.translate('healthyEating');
+      case 'drinkingWater':
+        return context.l10n.translate('drinkingWater');
+      case 'sleepSchedule':
+        return context.l10n.translate('sleepSchedule');
+      case 'journaling':
+        return context.l10n.translate('journaling');
+      case 'creativeWork':
+        return context.l10n.translate('creativeWork');
       default:
         return habitName;
     }
@@ -184,6 +211,15 @@ class _HomePageState extends State<HomePage> {
         setState(() => _isLoadingHabits = false);
       }, onError: (e) {
         print('[HABITS ERROR] Stream error: $e');
+        final errorMsg = e.toString().toLowerCase();
+        if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+          print('[HABITS ERROR] Permission denied, user likely signed out');
+          if (mounted) {
+            FirebaseAuth.instance.signOut().then((_) {
+              if (mounted) context.go('/auth');
+            });
+          }
+        }
         setState(() => _isLoadingHabits = false);
       });
     } catch (e, stackTrace) {

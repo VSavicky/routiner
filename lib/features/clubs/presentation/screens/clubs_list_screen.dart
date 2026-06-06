@@ -19,9 +19,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '500+',
         'color': const Color(0xFFFF6B6B),
         'habits': [
-          {'title': 'Morning pet care', 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Cat feeding routine', 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
-          {'title': 'Play with cat', 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('morningPetCareHabit'), 'emoji': '🐾', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('catFeedingRoutineHabit'), 'emoji': '🥫', 'targetValue': 2, 'targetUnit': 'times', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('playWithCatHabit'), 'emoji': '🎾', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
         ],
       },
       {
@@ -32,9 +32,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '1.2k',
         'color': const Color(0xFF4ECDC4),
         'habits': [
-          {'title': 'Daily reading', 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
-          {'title': 'Book notes', 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
-          {'title': 'Library visit', 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('dailyReadingHabit2'), 'emoji': '📖', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+          {'title': context.l10n.translate('bookNotesHabit'), 'emoji': '📝', 'targetValue': 1, 'targetUnit': 'page', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('libraryVisitHabit'), 'emoji': '🏛️', 'targetValue': 1, 'targetUnit': 'visit', 'incrementStep': 1, 'habitType': 'build'},
         ],
       },
       {
@@ -45,9 +45,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '800+',
         'color': const Color(0xFF95E1D3),
         'habits': [
-          {'title': 'Morning run', 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
-          {'title': 'Stretching', 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Hydration', 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('morningRunHabit'), 'emoji': '🏃', 'targetValue': 5, 'targetUnit': 'km', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('stretchingHabit'), 'emoji': '🤸', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('hydrationHabit'), 'emoji': '💧', 'targetValue': 8, 'targetUnit': 'glasses', 'incrementStep': 1, 'habitType': 'build'},
         ],
       },
       {
@@ -58,9 +58,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '2k',
         'color': const Color(0xFFA8E6CF),
         'habits': [
-          {'title': 'Morning yoga', 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Meditation', 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Breathing exercises', 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('morningYogaHabit'), 'emoji': '🧘', 'targetValue': 20, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('meditationHabit'), 'emoji': '🧠', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('breathingExercisesHabit'), 'emoji': '🌬️', 'targetValue': 5, 'targetUnit': 'min', 'incrementStep': 1, 'habitType': 'build'},
         ],
       },
       {
@@ -71,9 +71,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '3k+',
         'color': const Color(0xFFC7CEEA),
         'habits': [
-          {'title': 'Daily meditation', 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Mindful breathing', 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
-          {'title': 'Gratitude journal', 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('dailyMeditationHabit'), 'emoji': '🧘', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('mindfulBreathingHabit'), 'emoji': '🌬️', 'targetValue': 10, 'targetUnit': 'min', 'incrementStep': 2, 'habitType': 'build'},
+          {'title': context.l10n.translate('gratitudeJournalHabit'), 'emoji': '📔', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
         ],
       },
       {
@@ -84,9 +84,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '1.5k',
         'color': const Color(0xFFFFD93D),
         'habits': [
-          {'title': 'Strength training', 'emoji': '💪', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Protein intake', 'emoji': '🥗', 'targetValue': 25, 'targetUnit': 'grams', 'incrementStep': 5, 'habitType': 'build'},
-          {'title': 'Recovery stretching', 'emoji': '🤸', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('strengthTrainingHabit'), 'emoji': '💪', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('proteinIntakeHabit'), 'emoji': '🥗', 'targetValue': 25, 'targetUnit': 'grams', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('recoveryStretchingHabit'), 'emoji': '🤸', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
         ],
       },
       {
@@ -97,9 +97,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '750+',
         'color': const Color(0xFFE8B4F8),
         'habits': [
-          {'title': 'Daily sketch', 'emoji': '✏️', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
-          {'title': 'Creative writing', 'emoji': '✍️', 'targetValue': 200, 'targetUnit': 'words', 'incrementStep': 50, 'habitType': 'build'},
-          {'title': 'Inspiration gathering', 'emoji': '💡', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
+          {'title': context.l10n.translate('dailySketchHabit'), 'emoji': '✏️', 'targetValue': 30, 'targetUnit': 'min', 'incrementStep': 10, 'habitType': 'build'},
+          {'title': context.l10n.translate('creativeWritingHabit'), 'emoji': '✍️', 'targetValue': 200, 'targetUnit': 'words', 'incrementStep': 50, 'habitType': 'build'},
+          {'title': context.l10n.translate('inspirationGatheringHabit'), 'emoji': '💡', 'targetValue': 15, 'targetUnit': 'min', 'incrementStep': 5, 'habitType': 'build'},
         ],
       },
       {
@@ -110,9 +110,9 @@ class ClubsListScreen extends StatelessWidget {
         'members': '900+',
         'color': const Color(0xFF90EE90),
         'habits': [
-          {'title': 'Recycling', 'emoji': '♻️', 'targetValue': 5, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
-          {'title': 'Water conservation', 'emoji': '💧', 'targetValue': 10, 'targetUnit': 'liters', 'incrementStep': 2, 'habitType': 'build'},
-          {'title': 'Plastic reduction', 'emoji': '🚫', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'quit'},
+          {'title': context.l10n.translate('recyclingHabit'), 'emoji': '♻️', 'targetValue': 5, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'build'},
+          {'title': context.l10n.translate('waterConservationHabit'), 'emoji': '💧', 'targetValue': 10, 'targetUnit': 'liters', 'incrementStep': 2, 'habitType': 'build'},
+          {'title': context.l10n.translate('plasticReductionHabit'), 'emoji': '🚫', 'targetValue': 3, 'targetUnit': 'items', 'incrementStep': 1, 'habitType': 'quit'},
         ],
       },
     ];
