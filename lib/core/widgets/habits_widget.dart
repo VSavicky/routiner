@@ -157,6 +157,7 @@ class HabitsWidget extends StatefulWidget {
   final VoidCallback? onViewAllPressed;
   final bool isDarkBackground; // true = белые цвета для темного фона
   final bool isReadOnly; // Режим только для просмотра (будущие даты)
+  final bool hideHeader; // Скрыть заголовок секции (используется когда заголовок рисуется снаружи)
   final AppLocalizations l10n;
 
   const HabitsWidget({
@@ -165,6 +166,7 @@ class HabitsWidget extends StatefulWidget {
     this.onViewAllPressed,
     this.isDarkBackground = false,
     this.isReadOnly = false,
+    this.hideHeader = false,
     required this.l10n,
   });
 
@@ -219,31 +221,33 @@ class _HabitsWidgetState extends State<HabitsWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Заголовок привычек
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              widget.l10n.translate('habits'),
-              style: AppFonts.bodyTitleMedium.copyWith(
-                color: widget.isDarkBackground ? Colors.white : AppColors.black100,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            GestureDetector(
-              onTap: widget.onViewAllPressed,
-              child: Text(
-                widget.l10n.translate('viewAll'),
+        if (!widget.hideHeader)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.l10n.translate('habits'),
                 style: AppFonts.bodyTitleMedium.copyWith(
-                  color: AppColors.blue100,
+                  color: widget.isDarkBackground ? Colors.white : AppColors.black100,
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-          ],
-        ),
-        SizedBox(height: 5),
+              GestureDetector(
+                onTap: widget.onViewAllPressed,
+                child: Text(
+                  widget.l10n.translate('viewAll'),
+                  style: AppFonts.bodyTitleMedium.copyWith(
+                    color: AppColors.blue100,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        if (!widget.hideHeader)
+          SizedBox(height: 5),
         // Список контейнеров привычек
         ...widget.habits.asMap().entries.map((entry) {
           final index = entry.key;

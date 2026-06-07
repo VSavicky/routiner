@@ -302,87 +302,27 @@ class AchievementService {
     try {
       print('[ACHIEVEMENT DEBUG] Checking first habit achievement for user: $userId');
       
-      // ДВУКРАТНАЯ ПРОВЕРКА - по названию и прямым запросом
-      final hasFirstHabitByTitle = await _achievementRepository.hasAchievementByTitle(userId, 'First Habit');
-      
-      // Прямой запрос для надежности
-      final directQuery = await _firestore
-          .collection('achievements')
-          .where('userId', isEqualTo: userId)
-          .where('title', isEqualTo: 'First Habit')
-          .get();
-      
-      final hasFirstHabitDirect = directQuery.docs.isNotEmpty;
-      
-      print('[ACHIEVEMENT DEBUG] Has First Habit by title: $hasFirstHabitByTitle');
-      print('[ACHIEVEMENT DEBUG] Has First Habit direct: $hasFirstHabitDirect');
-      
-      if (hasFirstHabitByTitle || hasFirstHabitDirect) {
-        print('[ACHIEVEMENT DEBUG] User already has First Habit achievement - skipping');
-        return;
-      }
-      
-      // Проверяем все habitLogs пользователя для отладки
-      print('[ACHIEVEMENT DEBUG] Checking all habit logs for user: $userId');
-      final allLogsQuery = await _firestore
-          .collection('habitLogs')
-          .where('userId', isEqualTo: userId)
-          .get();
-      
-      print('[ACHIEVEMENT DEBUG] Total habit logs found: ${allLogsQuery.docs.length}');
-      
-      // Логируем все статусы привычек
-      for (var doc in allLogsQuery.docs) {
-        final data = doc.data() as Map<String, dynamic>?;
-        final status = data?['status'] ?? 'unknown';
-        final habitName = data?['habitName'] ?? 'unknown';
-        final date = data?['date'] as Timestamp?;
-        print('[ACHIEVEMENT DEBUG] Habit log: $habitName - status: $status - date: $date');
-      }
-      
       // Проверяем есть ли выполненные привычки
       final habitLogsQuery = await _firestore
           .collection('habitLogs')
           .where('userId', isEqualTo: userId)
           .where('status', isEqualTo: 'completed')
+          .limit(1)
           .get();
       
-      print('[ACHIEVEMENT DEBUG] Found ${habitLogsQuery.docs.length} completed habits for user');
+      if (habitLogsQuery.docs.isEmpty) {
+        print('[ACHIEVEMENT DEBUG] No completed habits found for user: $userId');
+        return;
+      }
       
-      if (habitLogsQuery.docs.isNotEmpty) {
-        // Сортируем на клиенте по дате (самая ранняя первая)
-        final sortedDocs = habitLogsQuery.docs.toList();
-        sortedDocs.sort((a, b) {
-          final dateA = (a.data()['date'] as Timestamp?)?.toDate() ?? DateTime.now();
-          final dateB = (b.data()['date'] as Timestamp?)?.toDate() ?? DateTime.now();
-          return dateA.compareTo(dateB);
-        });
-        
-        final firstHabit = sortedDocs.first;
+      // Используем _awardIfNotExists для атомарной проверки и выдачи
+      await _awardIfNotExists(userId, 'First Habit', () async {
+        final firstHabit = habitLogsQuery.docs.first;
         final habitData = firstHabit.data() as Map<String, dynamic>?;
         final habitName = habitData?['habitName'] ?? 'Unknown habit';
         final completedDate = (habitData?['date'] as Timestamp?)?.toDate() ?? DateTime.now();
         
-        print('[ACHIEVEMENT DEBUG] First completed habit: $habitName at $completedDate');
-        
-        // ФИНАЛЬНАЯ ПРОВЕРКА - получаем все достижения пользователя
-        final allUserAchievements = await _achievementRepository.getUserAchievements(userId);
-        print('[ACHIEVEMENT DEBUG] User currently has ${allUserAchievements.length} achievements');
-        
-        // Проверяем по названию и ID
-        final hasFirstHabitByName = allUserAchievements.any((a) => a.title == 'First Habit');
-        final hasFirstHabitById = allUserAchievements.any((a) => a.id == 'first_habit');
-        
-        print('[ACHIEVEMENT DEBUG] Has First Habit by name: $hasFirstHabitByName');
-        print('[ACHIEVEMENT DEBUG] Has First Habit by ID: $hasFirstHabitById');
-        
-        if (hasFirstHabitByName || hasFirstHabitById) {
-          print('[ACHIEVEMENT DEBUG] User already has First Habit achievement - SKIPPING AWARD');
-          return;
-        }
-        
-        // Выдаем достижение за ПЕРВУЮ выполненную привычку
-        final achievement = _achievementRepository.createAchievement(
+        return _achievementRepository.createAchievement(
           userId: userId,
           title: 'First Habit',
           description: 'Complete your first habit',
@@ -394,19 +334,7 @@ class AchievementService {
             'completedDate': completedDate.toIso8601String(),
           },
         );
-        
-        await _achievementRepository.awardAchievement(achievement);
-        print('[ACHIEVEMENT] First habit achievement awarded to user: $userId');
-        
-        // Создаем уведомление о получении достижения
-        await _createAchievementNotification(userId, achievement);
-        
-        // Принудительное обновление кэша достижений
-        print('[ACHIEVEMENT DEBUG] Clearing achievement cache for user: $userId');
-        // Здесь можно добавить логику для очистки кэша если она есть
-      } else {
-        print('[ACHIEVEMENT DEBUG] No completed habits found for user: $userId');
-      }
+      });
     } catch (e) {
       print('[ACHIEVEMENT SERVICE ERROR] Failed to check first habit achievement: $e');
     }
@@ -416,26 +344,6 @@ class AchievementService {
   Future<void> checkAndAwardAnyHabitAchievement(String userId) async {
     try {
       print('[ACHIEVEMENT DEBUG] Checking any habit achievement for user: $userId');
-      
-      // ДВУКРАТНАЯ ПРОВЕРКА - по названию и прямым запросом
-      final hasAchievementByTitle = await _achievementRepository.hasAchievementByTitle(userId, 'Habit Master');
-      
-      // Прямой запрос для надежности
-      final directQuery = await _firestore
-          .collection('achievements')
-          .where('userId', isEqualTo: userId)
-          .where('title', isEqualTo: 'Habit Master')
-          .get();
-      
-      final hasAchievementDirect = directQuery.docs.isNotEmpty;
-      
-      print('[ACHIEVEMENT DEBUG] Has Habit Master by title: $hasAchievementByTitle');
-      print('[ACHIEVEMENT DEBUG] Has Habit Master direct: $hasAchievementDirect');
-      
-      if (hasAchievementByTitle || hasAchievementDirect) {
-        print('[ACHIEVEMENT DEBUG] User already has Habit Master achievement - skipping');
-        return;
-      }
       
       // Получаем все выполненные привычки пользователя
       final habitLogsQuery = await _firestore
@@ -447,7 +355,13 @@ class AchievementService {
       print('[ACHIEVEMENT DEBUG] Found ${habitLogsQuery.docs.length} completed habits for user');
       
       // Выдаем достижение если выполнено 5+ привычек
-      if (habitLogsQuery.docs.length >= 5) {
+      if (habitLogsQuery.docs.length < 5) {
+        print('[ACHIEVEMENT DEBUG] User has less than 5 completed habits - no Habit Master yet');
+        return;
+      }
+
+      // Используем _awardIfNotExists для атомарной проверки и выдачи
+      await _awardIfNotExists(userId, 'Habit Master', () async {
         // Сортируем на клиенте по дате (самая последняя первая)
         final sortedDocs = habitLogsQuery.docs.toList();
         sortedDocs.sort((a, b) {
@@ -455,16 +369,13 @@ class AchievementService {
           final dateB = (b.data()['date'] as Timestamp?)?.toDate() ?? DateTime.now();
           return dateB.compareTo(dateA);
         });
-        
+
         final lastHabit = sortedDocs.first;
         final habitData = lastHabit.data() as Map<String, dynamic>?;
         final habitName = habitData?['habitName'] ?? 'Unknown habit';
         final completedDate = (habitData?['date'] as Timestamp?)?.toDate() ?? DateTime.now();
-        
-        print('[ACHIEVEMENT DEBUG] Awarding Habit Master for 5+ habits: $habitName at $completedDate');
-        
-        // Выдаем достижение за выполненные привычки
-        final achievement = _achievementRepository.createAchievement(
+
+        return _achievementRepository.createAchievement(
           userId: userId,
           title: 'Habit Master',
           description: 'Complete any habit',
@@ -476,15 +387,7 @@ class AchievementService {
             'completedDate': completedDate.toIso8601String(),
           },
         );
-        
-        await _achievementRepository.awardAchievement(achievement);
-        print('[ACHIEVEMENT] Any habit achievement awarded to user: $userId');
-        
-        // Создаем уведомление о получении достижения
-        await _createAchievementNotification(userId, achievement);
-      } else {
-        print('[ACHIEVEMENT DEBUG] User has less than 5 completed habits - no Habit Master yet');
-      }
+      });
     } catch (e) {
       print('[ACHIEVEMENT SERVICE ERROR] Failed to check any habit achievement: $e');
     }

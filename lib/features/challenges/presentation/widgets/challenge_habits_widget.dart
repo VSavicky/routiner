@@ -227,9 +227,9 @@ class _ChallengeHabitsWidgetState extends State<ChallengeHabitsWidget> {
   String _getLocalizedChallengeName(String challengeId) {
     switch (challengeId) {
       case '7_day_water':
-        return widget.l10n.translate('7DayWaterChallenge');
+        return widget.l10n.translate('sevenDayWaterChallenge');
       case '21_day_fitness':
-        return widget.l10n.translate('21DayFitnessKickstart');
+        return widget.l10n.translate('twentyOneDayFitnessKickstart');
       case 'morning_routine':
         return widget.l10n.translate('perfectMorningRoutine');
       case 'read_daily':

@@ -6,6 +6,7 @@ import 'package:routiner/core/constants/app_colors.dart';
 import 'package:routiner/core/constants/app_fonts.dart';
 import 'package:routiner/features/auth/domain/services/google_sign_in_service.dart';
 import 'package:routiner/l10n/app_localizations.dart';
+import 'package:routiner/main.dart' show changeAppLocale;
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -138,144 +139,213 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         child: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentPage = index;
-                    });
-                  },
-                  itemCount: _onboardingData.length,
-                  itemBuilder: (context, index) {
-                    final data = _onboardingData[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Spacer(),
-                          Flexible(
-                            flex: 2,
-                            child: Center(
-                              child: Image.asset(
-                                data['image']!,
-                                fit: BoxFit.contain,
+              Column(
+                children: [
+                  const SizedBox(height: 56),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemCount: _onboardingData.length,
+                      itemBuilder: (context, index) {
+                        final data = _onboardingData[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Spacer(),
+                              Flexible(
+                                flex: 2,
+                                child: Center(
+                                  child: Image.asset(
+                                    data['image']!,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
+                              const Spacer(),
+                              Text(
+                                context.l10n.translate(data['subtitle']!),
+                                style: AppFonts.headlineH2,
+                              ),
+                              const SizedBox(height: 32),
+                              Text(
+                                context.l10n.translate(data['description']!),
+                                style: AppFonts.body,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: List.generate(
+                        _onboardingData.length,
+                        (index) => Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _currentPage == index
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.4),
+                              shape: BoxShape.circle,
                             ),
                           ),
-                          const Spacer(),
-                          Text(
-                            context.l10n.translate(data['subtitle']!),
-                            style: AppFonts.headlineH2,
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            context.l10n.translate(data['description']!),
-                            style: AppFonts.body,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: List.generate(
-                    _onboardingData.length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index 
-                              ? Colors.white 
-                              : Colors.white.withOpacity(0.4),
-                          shape: BoxShape.circle,
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 48),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.go('/auth');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                    ),
-                    child: Text(
-                      context.l10n.translate('continueWithEmail'),
-                      style: AppFonts.body.copyWith(
-                        color: Colors.black,
+                  const SizedBox(height: 48),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.go('/auth');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                        ),
+                        child: Text(
+                          context.l10n.translate('continueWithEmail'),
+                          style: AppFonts.body.copyWith(
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signInWithGoogle,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                            ),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/icons/google.svg',
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                context.l10n.translate('continueWithGoogle'),
-                                style: AppFonts.body.copyWith(
-                                  color: Colors.black,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(Colors.black),
                                 ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icons/google.svg',
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    context.l10n.translate('continueWithGoogle'),
+                                    style: AppFonts.body.copyWith(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 84),
+                ],
+              ),
+              Positioned(
+                top: 0,
+                right: 16,
+                child: PopupMenuButton<String>(
+                  offset: const Offset(0, 44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color: Colors.white,
+                  elevation: 8,
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.language,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  onSelected: (language) {
+                    final localeMap = {
+                      'English': const Locale('en', 'US'),
+                      'Русский': const Locale('ru', 'RU'),
+                      'Қазақша': const Locale('kk', 'KZ'),
+                    };
+                    final locale = localeMap[language];
+                    if (locale != null) {
+                      changeAppLocale(locale);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    _buildLanguageItem('English', '🇺🇸'),
+                    _buildLanguageItem('Русский', '🇷🇺'),
+                    _buildLanguageItem('Қазақша', '🇰🇿'),
+                  ],
                 ),
               ),
-              const SizedBox(height: 84),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildLanguageItem(String language, String flag) {
+    return PopupMenuItem<String>(
+      value: language,
+      child: Row(
+        children: [
+          Text(
+            flag,
+            style: const TextStyle(fontSize: 20),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            language,
+            style: const TextStyle(
+              color: AppColors.black100,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

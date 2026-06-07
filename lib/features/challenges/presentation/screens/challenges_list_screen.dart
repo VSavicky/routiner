@@ -20,8 +20,9 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadChallenges();
-    // Обновляем таймеры каждую секунду
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadChallenges();
+    });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {});
     });
@@ -52,9 +53,9 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
     final l10n = context.l10n;
     switch (challengeId) {
       case '7_day_water':
-        return l10n.translate('7DayWaterChallenge');
+        return l10n.translate('sevenDayWaterChallenge');
       case '21_day_fitness':
-        return l10n.translate('21DayFitnessKickstart');
+        return l10n.translate('twentyOneDayFitnessKickstart');
       case 'morning_routine':
         return l10n.translate('perfectMorningRoutine');
       case 'read_daily':
@@ -85,9 +86,9 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
       final challenges = [
         {
           'id': '7_day_water',
-          'title': l10n.translate('7DayWaterChallenge'),
+          'title': l10n.translate('sevenDayWaterChallenge'),
           'endTime': now.add(const Duration(days: 7)),
-          'description': l10n.translate('7DayWaterChallengeDescription'),
+          'description': l10n.translate('sevenDayWaterChallengeDescription'),
           'icon': '💧',
           'color': const Color(0xFF29B6F6),
           'participants': 128,
@@ -97,9 +98,9 @@ class _ChallengesListScreenState extends State<ChallengesListScreen> {
         },
         {
           'id': '21_day_fitness',
-          'title': l10n.translate('21DayFitnessKickstart'),
+          'title': l10n.translate('twentyOneDayFitnessKickstart'),
           'endTime': now.add(const Duration(days: 21)),
-          'description': l10n.translate('21DayFitnessKickstartDescription'),
+          'description': l10n.translate('twentyOneDayFitnessKickstartDescription'),
           'icon': '🏃',
           'color': const Color(0xFF5B6EFC),
           'participants': 256,

@@ -22,8 +22,9 @@ import 'package:routiner/features/habits/presentation/screens/habits_list_screen
 import 'package:routiner/features/habits/presentation/screens/habit_detail_screen.dart';
 import 'package:routiner/features/clubs/presentation/screens/club_detail_screen.dart';
 import 'package:routiner/features/clubs/presentation/screens/clubs_list_screen.dart';
+import 'package:routiner/features/create_habit/presentation/screens/custom_habit_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:routiner/features/achievements/data/services/achievement_service.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -597,11 +598,11 @@ class _HomePageState extends State<HomePage> {
         _challengesRefreshKey++;
       });
       
-      // Если привычка выполнена - проверяем достижения
+      // Если привычка выполнена - показываем уведомление
       if (status == HabitStatus.completed) {
-        // Добавляем небольшую задержку чтобы habitLog успел сохраниться в Firestore
-        await Future.delayed(const Duration(milliseconds: 500));
-        await _checkAchievementsAfterHabitCompletion();
+        // Уведомления о достижениях обрабатываются через стрим в profile_screen
+        // и через AchievementService._awardIfNotExists при следующем открытии профиля
+        print('[ACHIEVEMENT] Habit completed - achievements will be checked on profile load');
       }
     } catch (e, stackTrace) {
       print('[STATUS ERROR] $e');
@@ -649,29 +650,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
     
-  /// Проверить достижения после выполнения привычки
-  Future<void> _checkAchievementsAfterHabitCompletion() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        print('[ACHIEVEMENT] Checking achievements after habit completion for user: ${user.uid}');
-        
-        // Импортируем AchievementService
-        final achievementService = AchievementService();
-        
-        // Проверяем достижение за первую выполненную привычку
-        await achievementService.checkAndAwardFirstHabitAchievement(user.uid);
-        
-        // Проверяем достижения за очки
-        await achievementService.checkAndAwardPointsAchievements(user.uid);
-        
-        print('[ACHIEVEMENT] Achievement check completed after habit completion');
-      }
-    } catch (e) {
-      print('[ACHIEVEMENT ERROR] Failed to check achievements after habit completion: $e');
-    }
-  }
-  
   /// Добавить шаг выполнения привычки
   Future<void> _incrementHabitProgress(String habitId, int increment) async {
     print('[INCREMENT] Adding $increment to habit $habitId');
@@ -894,6 +872,40 @@ class _HomePageState extends State<HomePage> {
                                 },
                               ),
                               SizedBox(height: 16),
+                              // Заголовок секции привычек
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    context.l10n.translate('habits'),
+                                    style: AppFonts.bodyTitleMedium.copyWith(
+                                      color: AppColors.black100,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => HabitsListScreen(
+                                            selectedDate: _selectedDate,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      context.l10n.translate('viewAll'),
+                                      style: AppFonts.bodyTitleMedium.copyWith(
+                                        color: AppColors.blue100,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5),
                               // Виджет привычек - реальные данные из Firestore
                               _isLoadingHabits
                                   ? Center(
@@ -902,30 +914,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     )
                                   : _habits.isEmpty
-                                      ? Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              SizedBox(height: 40),
-                                              Text(
-                                                context.l10n.translate('noHabitsYet'),
-                                                style: AppFonts.bodyTitleMedium.copyWith(
-                                                  color: AppColors.black100,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              SizedBox(height: 8),
-                                              Text(
-                                                context.l10n.translate('createFirstHabit'),
-                                                style: AppFonts.bodyAlternative.copyWith(
-                                                  color: AppColors.black60,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              SizedBox(height: 40),
-                                            ],
-                                          ),
-                                        )
+                                      ? _buildEmptyHabitsState(context)
                                       : HabitsWidget(
                                           habits: _habits
                                             // Фильтруем привычки: показываем только если дата создания <= выбранная дата
@@ -1038,6 +1027,7 @@ class _HomePageState extends State<HomePage> {
                                           }).toList(),
                                           l10n: context.l10n,
                                           isReadOnly: _getIsFutureDate(),
+                                          hideHeader: true,
                                           onViewAllPressed: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
@@ -1289,6 +1279,79 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyHabitsState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.black10,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: const Icon(
+                Icons.checklist_rounded,
+                size: 40,
+                color: AppColors.black40,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              context.l10n.translate('noHabitsYet'),
+              style: AppFonts.headlineH5.copyWith(
+                color: AppColors.black100,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.l10n.translate('createFirstHabit'),
+              style: AppFonts.bodyAlternative.copyWith(
+                color: AppColors.black60,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CustomHabitScreen(
+                      isBadHabit: false,
+                      moodEmoji: '😊',
+                      moodLabel: context.l10n.translate('good'),
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue100,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(
+                context.l10n.translate('createHabitTitle'),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -225,7 +225,10 @@ class LearningListScreen extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 12),
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  alignment: WrapAlignment.start,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -240,9 +243,10 @@ class LearningListScreen extends StatelessWidget {
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                         ),
+                                        softWrap: true,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
@@ -256,15 +260,18 @@ class LearningListScreen extends StatelessWidget {
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                         ),
+                                        softWrap: true,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const Spacer(),
                                     Text(
                                       lesson['duration'] as String,
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.8),
                                         fontSize: 12,
                                       ),
+                                      softWrap: true,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),

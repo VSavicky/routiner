@@ -466,9 +466,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   String _getLocalizedChallengeTitle(String challengeId) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('7DayWaterChallenge');
+        return context.l10n.translate('sevenDayWaterChallenge');
       case '21_day_fitness':
-        return context.l10n.translate('21DayFitnessKickstart');
+        return context.l10n.translate('twentyOneDayFitnessKickstart');
       case 'morning_routine':
         return context.l10n.translate('perfectMorningRoutine');
       case 'read_daily':
@@ -493,9 +493,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   String _getLocalizedChallengeDescription(String challengeId) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('7DayWaterChallengeDescription');
+        return context.l10n.translate('sevenDayWaterChallengeDescription');
       case '21_day_fitness':
-        return context.l10n.translate('21DayFitnessKickstartDescription');
+        return context.l10n.translate('twentyOneDayFitnessKickstartDescription');
       case 'morning_routine':
         return context.l10n.translate('perfectMorningRoutineDescription');
       case 'read_daily':

@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:routiner/features/achievements/data/models/achievement_model.dart';
-import 'package:routiner/features/achievements/data/repositories/achievement_repository.dart';
 import 'package:routiner/features/achievements/data/services/achievement_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:routiner/l10n/app_localizations.dart';
@@ -17,64 +16,47 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // User data
   String _userName = 'User';
   String? _avatarUrl;
   int _points = 0;
   int _friendsCount = 0;
-  List<Map<String, dynamic>> _activities = [];
-  List<Map<String, dynamic>> _friends = [];
-  List<AchievementModel> _achievements = [];
   bool _isLoading = true;
-  
+
   // Activity filter: 'month', 'week', 'day'
   String _activityFilter = 'month';
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_handleTabChange);
     _loadUserData();
   }
-  
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Обновляем данные когда экран становится активным снова
-    _loadUserData();
-  }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-  
-  void _handleTabChange() {
-    if (_tabController.indexIsChanging) {
-      setState(() {});
-    }
-  }
-  
-  // Подсчет очков из ВСЕХ выполненных привычек пользователя
+
   Future<int> _calculateTotalPoints(String userId) async {
     try {
       final logsQuery = await FirebaseFirestore.instance
           .collection('habitLogs')
           .where('userId', isEqualTo: userId)
           .where('status', isEqualTo: 'completed')
-          .limit(1000) // Ограничиваем для быстрой загрузки
+          .limit(1000)
           .get();
-      
-      // 10 очков за каждую выполненную привычку
+
       return logsQuery.docs.length * 10;
     } catch (e) {
       final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+      if (errorMsg.contains('permission-denied') ||
+          errorMsg.contains('permission denied')) {
         print('[PROFILE ERROR] Permission denied in _calculateTotalPoints');
         if (mounted) {
           await FirebaseAuth.instance.signOut();
@@ -86,39 +68,38 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       return 0;
     }
   }
-  
+
   Future<void> _loadUserData() async {
     if (mounted) {
       setState(() => _isLoading = true);
     }
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // Load user profile
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
-        
-        // Считаем реальные очки из всех выполненных привычек
+
         final totalPoints = await _calculateTotalPoints(user.uid);
-        
+
         if (userDoc.exists) {
           final data = userDoc.data();
           final firstName = data?['firstName'] ?? '';
           final lastName = data?['lastName'] ?? '';
           final fullName = '$firstName $lastName'.trim();
-          
+
           if (mounted) {
             setState(() {
-              _userName = fullName.isNotEmpty ? fullName : (user.displayName ?? 'User');
+              _userName = fullName.isNotEmpty
+                  ? fullName
+                  : (user.displayName ?? 'User');
               _avatarUrl = data?['avatarUrl'];
-              _points = totalPoints; // Реальные очки из всех выполненных привычек
+              _points = totalPoints;
             });
           }
-          
-          // Обновляем поле points в БД для синхронизации
+
           if ((data?['points'] ?? 0) != totalPoints) {
             await FirebaseFirestore.instance
                 .collection('users')
@@ -133,37 +114,19 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             });
           }
         }
-        
-        // Загружаем все данные параллельно для ускорения
-        final futures = <Future>[];
-        
-        // Load activities (logs from last month)
-        futures.add(_loadActivities(user.uid));
-        
-        // Load friends (mock data for now - will be from friends collection)
-        futures.add(_loadFriends(user.uid));
-        
-        // Load achievements
-        futures.add(_loadAchievements(user.uid));
-        
-        // Ждем выполнения всех запросов параллельно
-        await Future.wait(futures);
-        
-        // Check and award achievements (после загрузки данных)
+
         await _checkAndAwardAchievements(user.uid);
       }
     } catch (e) {
       final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
+      if (errorMsg.contains('permission-denied') ||
+          errorMsg.contains('permission denied')) {
         print('[PROFILE ERROR] Permission denied, user likely signed out');
         if (mounted) {
           await FirebaseAuth.instance.signOut();
           if (mounted) context.go('/auth');
         }
         return;
-      }
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
       print('[PROFILE ERROR] Failed to load user data: $e');
     } finally {
@@ -176,283 +139,25 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   Future<void> _checkAndAwardAchievements(String userId) async {
     try {
       final achievementService = AchievementService();
-    
-      // Check points achievements
+
       await achievementService.checkAndAwardPointsAchievements(userId);
-      
-      // Check streak achievements
       await achievementService.checkAndAwardStreakAchievements(userId);
-      
-      // Check first habit achievement
       await achievementService.checkAndAwardFirstHabitAchievement(userId);
-      
-      // Check any habit achievement (5+ habits)
       await achievementService.checkAndAwardAnyHabitAchievement(userId);
-      
+
       print('[PROFILE] Achievement check completed for user: $userId');
     } catch (e) {
       print('[PROFILE ERROR] Failed to check achievements: $e');
     }
   }
-  
-  Future<void> _loadActivities(String userId) async {
-    try {
-      final now = DateTime.now();
-      DateTime cutoffDate;
-      
-      // Определяем период фильтра
-      switch (_activityFilter) {
-        case 'day':
-          cutoffDate = DateTime(now.year, now.month, now.day); // Сегодня с 00:00
-          break;
-        case 'week':
-          cutoffDate = now.subtract(const Duration(days: 7));
-          break;
-        case 'month':
-        default:
-          cutoffDate = now.subtract(const Duration(days: 30));
-          break;
-      }
-      
-      // Get logs directly from Firestore
-      final logsQuery = await FirebaseFirestore.instance
-          .collection('habitLogs')
-          .where('userId', isEqualTo: userId)
-          .get();
-      
-      final activities = <Map<String, dynamic>>[];
-      
-      for (final doc in logsQuery.docs) {
-        final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
-        final status = data['status'] as String?;
-        final habitId = data['habitId'] as String?;
-        
-        // Фильтруем по дате на клиенте
-        if (date.isBefore(cutoffDate)) continue;
-        
-        // Получаем название привычки
-        String habitName = 'Habit';
-        if (habitId != null) {
-          try {
-            final habitDoc = await FirebaseFirestore.instance
-                .collection('habits')
-                .doc(habitId)
-                .get();
-            if (habitDoc.exists) {
-              habitName = habitDoc.data()?['name'] ?? 'Habit';
-            }
-          } catch (e) {
-            // Игнорируем ошибку, используем дефолтное название
-          }
-        }
-        
-        final localizedHabitName = _getLocalizedHabitName(habitName);
-        
-        if (status == 'completed') {
-          activities.add({
-            'type': 'completed',
-            'title': '${context.l10n.translate('completed')} "$localizedHabitName"',
-            'subtitle': _formatTime(date),
-            'date': date,
-            'points': 10,
-            'icon': 'up',
-          });
-        } else if (status == 'failed') {
-          activities.add({
-            'type': 'failed',
-            'title': '${context.l10n.translate('failed')} "$localizedHabitName"',
-            'subtitle': _formatTime(date),
-            'date': date,
-            'points': 0,
-            'icon': 'down',
-          });
-        } else if (status == 'skipped') {
-          activities.add({
-            'type': 'skipped',
-            'title': '${context.l10n.translate('skipped')} "$localizedHabitName"',
-            'subtitle': _formatTime(date),
-            'date': date,
-            'points': 0,
-            'icon': 'skip',
-          });
-        }
-      }
-      
-      // Сортируем по дате (новые сверху)
-      activities.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
-      
-      setState(() {
-        _activities = activities;
-      });
-    } catch (e) {
-      final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
-        print('[PROFILE ERROR] Permission denied in _loadActivities');
-        if (mounted) {
-          await FirebaseAuth.instance.signOut();
-          if (mounted) context.go('/auth');
-        }
-        return;
-      }
-      print('[PROFILE ERROR] Failed to load activities: $e');
-    }
-  }
-    
-  Future<void> _loadFriends(String userId) async {
-    try {
-      // For now, mock friends data
-      // In real app, this would come from a 'friends' collection
-      final friendsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .limit(10)
-          .get();
-      
-      final friends = <Map<String, dynamic>>[];
-      
-      for (final doc in friendsSnapshot.docs) {
-        if (doc.id != userId) {
-          final data = doc.data();
-          friends.add({
-            'id': doc.id,
-            'name': data['displayName'] ?? 'User',
-            'avatarUrl': data['avatarUrl'],
-            'points': data['points'] ?? 0,
-          });
-        }
-      }
-      
-      setState(() {
-        _friends = friends;
-        _friendsCount = friends.length;
-      });
-    } catch (e) {
-      final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
-        print('[PROFILE ERROR] Permission denied in _loadFriends');
-        if (mounted) {
-          await FirebaseAuth.instance.signOut();
-          if (mounted) context.go('/auth');
-        }
-        return;
-      }
-      print('[PROFILE ERROR] Failed to load friends: $e');
-    }
-  }
-  
-  Future<void> _loadAchievements(String userId) async {
-    try {
-      // Get achievements directly from Firestore like activities
-      final achievementsQuery = await FirebaseFirestore.instance
-          .collection('achievements')
-          .where('userId', isEqualTo: userId)
-          .limit(50) // Ограничиваем для быстрой загрузки
-          .get();
-      
-      final achievements = <AchievementModel>[];
-      
-      for (final doc in achievementsQuery.docs) {
-        final data = doc.data();
-        
-        try {
-          final achievement = AchievementModel.fromFirestore(data, doc.id);
-          achievements.add(achievement);
-        } catch (e) {
-          print('[PROFILE ERROR] Failed to parse achievement ${doc.id}: $e');
-        }
-      }
-      
-      // Сортируем по дате (новые сверху)
-      achievements.sort((a, b) => b.earnedAt.compareTo(a.earnedAt));
-      
-      if (mounted) {
-        setState(() {
-          _achievements = achievements;
-        });
-      }
-    } catch (e) {
-      final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('permission-denied') || errorMsg.contains('permission denied')) {
-        print('[PROFILE ERROR] Permission denied in _loadAchievements');
-        if (mounted) {
-          await FirebaseAuth.instance.signOut();
-          if (mounted) context.go('/auth');
-        }
-        return;
-      }
-      print('[PROFILE ERROR] Failed to load achievements: $e');
-    }
-  }
 
-    
-  String _formatTime(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final dateDay = DateTime(date.year, date.month, date.day);
-    
-    String dayText;
-    if (dateDay.isAtSameMomentAs(today)) {
-      dayText = context.l10n.translate('today');
-    } else if (dateDay.isAtSameMomentAs(yesterday)) {
-      dayText = context.l10n.translate('yesterday');
-    } else {
-      dayText = DateFormat('d MMM').format(date);
-    }
-    
-    final timeText = DateFormat('h:mm a').format(date);
-    return '$dayText, $timeText';
-  }
-  
-  String _formatRelativeTime(DateTime date) {
-    if (!mounted) {
-      // Fallback для случая когда контекст не готов
-      final now = DateTime.now();
-      final diff = now.difference(date);
-      
-      if (diff.inDays == 0) {
-        return 'Today';
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return '${diff.inDays} days ago';
-      } else if (diff.inDays < 30) {
-        return '${(diff.inDays / 7).floor()} weeks ago';
-      } else if (diff.inDays < 365) {
-        return '${(diff.inDays / 30).floor()} months ago';
-      } else {
-        return '${(diff.inDays / 365).floor()} years ago';
-      }
-    }
-    
-    final now = DateTime.now();
-    final diff = now.difference(date);
-    
-    if (diff.inDays == 0) {
-      return context.l10n.translate('today');
-    } else if (diff.inDays == 1) {
-      return context.l10n.translate('yesterday');
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays} ${context.l10n.translate('daysAgo')}';
-    } else if (diff.inDays < 30) {
-      return '${(diff.inDays / 7).floor()} ${context.l10n.translate('weeksAgo')}';
-    } else if (diff.inDays < 365) {
-      return '${(diff.inDays / 30).floor()} ${context.l10n.translate('monthsAgo')}';
-    } else {
-      return '${(diff.inDays / 365).floor()} ${context.l10n.translate('yearsAgo')}';
-    }
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () async {
-            // Обновляем данные пользователя
-            await _loadUserData();
-          },
+          onRefresh: _loadUserData,
           child: Column(
             children: [
               _buildHeader(),
@@ -500,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               onPressed: () {
                 context.push('/settings');
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.settings_outlined,
                 color: Colors.grey,
                 size: 20,
@@ -511,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
+
   Widget _buildProfileInfo() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -550,7 +255,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF3E0),
                     borderRadius: BorderRadius.circular(12),
@@ -581,7 +287,39 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
+
+  Widget _buildAvatar(String? avatarUrl, {double size = 30}) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return _buildDefaultAvatar();
+    }
+
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        final commaIndex = avatarUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64String = avatarUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64String);
+
+          return Image.memory(
+            bytes,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                _buildDefaultAvatar(),
+          );
+        }
+      } catch (e) {
+        print('[PROFILE ERROR] Failed to decode base64 avatar: $e');
+      }
+      return _buildDefaultAvatar();
+    }
+
+    return Image.network(
+      avatarUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+    );
+  }
+
   Widget _buildDefaultAvatar() {
     return Container(
       color: AppColors.blue100,
@@ -592,42 +330,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
-  /// Вспомогательный метод для отображения аватара (поддерживает base64 и network URL)
-  Widget _buildAvatar(String? avatarUrl, {double size = 30}) {
-    if (avatarUrl == null || avatarUrl.isEmpty) {
-      return _buildDefaultAvatar();
-    }
-    
-    // Проверяем если это base64 data URL
-    if (avatarUrl.startsWith('data:image')) {
-      try {
-        // Извлекаем base64 часть из data URL
-        final commaIndex = avatarUrl.indexOf(',');
-        if (commaIndex != -1) {
-          final base64String = avatarUrl.substring(commaIndex + 1);
-          final bytes = base64Decode(base64String);
-          
-          return Image.memory(
-            bytes,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
-          );
-        }
-      } catch (e) {
-        print('[PROFILE ERROR] Failed to decode base64 avatar: $e');
-      }
-      return _buildDefaultAvatar();
-    }
-    
-    // Иначе используем network URL
-    return Image.network(
-      avatarUrl,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
-    );
-  }
-  
+
   Widget _buildTabBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -668,30 +371,15 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  void _onFilterChanged(String newFilter) {
-    setState(() {
-      _activityFilter = newFilter;
-    });
-    // Перезагружаем активности с новым фильтром
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      _loadActivities(user.uid);
-    }
-  }
-
-  String _getActivityFilterText() {
-    switch (_activityFilter) {
-      case 'day':
-        return context.l10n.translate('today');
-      case 'week':
-        return context.l10n.translate('lastWeek');
-      case 'month':
-      default:
-        return context.l10n.translate('lastMonth');
-    }
-  }
-
   Widget _buildActivityTab() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return _buildEmptyState(
+        context.l10n.translate('noActivityYet'),
+        context.l10n.translate('startCompletingHabits'),
+      );
+    }
+
     return Column(
       children: [
         Padding(
@@ -716,7 +404,11 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   border: Border.all(color: const Color(0xFFE8EDF5)),
                 ),
                 child: PopupMenuButton<String>(
-                  onSelected: _onFilterChanged,
+                  onSelected: (value) {
+                    setState(() {
+                      _activityFilter = value;
+                    });
+                  },
                   icon: const Icon(
                     Icons.tune,
                     color: Colors.black54,
@@ -729,7 +421,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   ),
                   elevation: 4,
                   offset: const Offset(0, 40),
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  itemBuilder: (context) => [
                     PopupMenuItem<String>(
                       value: 'day',
                       child: Row(
@@ -737,14 +429,20 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           Icon(
                             Icons.today,
                             size: 18,
-                            color: _activityFilter == 'day' ? AppColors.blue100 : Colors.grey,
+                            color: _activityFilter == 'day'
+                                ? AppColors.blue100
+                                : Colors.grey,
                           ),
                           const SizedBox(width: 12),
                           Text(
                             context.l10n.translate('today'),
                             style: TextStyle(
-                              fontWeight: _activityFilter == 'day' ? FontWeight.w600 : FontWeight.normal,
-                              color: _activityFilter == 'day' ? AppColors.blue100 : Colors.black87,
+                              fontWeight: _activityFilter == 'day'
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: _activityFilter == 'day'
+                                  ? AppColors.blue100
+                                  : Colors.black87,
                             ),
                           ),
                         ],
@@ -757,14 +455,20 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           Icon(
                             Icons.view_week,
                             size: 18,
-                            color: _activityFilter == 'week' ? AppColors.blue100 : Colors.grey,
+                            color: _activityFilter == 'week'
+                                ? AppColors.blue100
+                                : Colors.grey,
                           ),
                           const SizedBox(width: 12),
                           Text(
                             context.l10n.translate('lastWeek'),
                             style: TextStyle(
-                              fontWeight: _activityFilter == 'week' ? FontWeight.w600 : FontWeight.normal,
-                              color: _activityFilter == 'week' ? AppColors.blue100 : Colors.black87,
+                              fontWeight: _activityFilter == 'week'
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: _activityFilter == 'week'
+                                  ? AppColors.blue100
+                                  : Colors.black87,
                             ),
                           ),
                         ],
@@ -777,14 +481,20 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                           Icon(
                             Icons.calendar_month,
                             size: 18,
-                            color: _activityFilter == 'month' ? AppColors.blue100 : Colors.grey,
+                            color: _activityFilter == 'month'
+                                ? AppColors.blue100
+                                : Colors.grey,
                           ),
                           const SizedBox(width: 12),
                           Text(
                             context.l10n.translate('lastMonth'),
                             style: TextStyle(
-                              fontWeight: _activityFilter == 'month' ? FontWeight.w600 : FontWeight.normal,
-                              color: _activityFilter == 'month' ? AppColors.blue100 : Colors.black87,
+                              fontWeight: _activityFilter == 'month'
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: _activityFilter == 'month'
+                                  ? AppColors.blue100
+                                  : Colors.black87,
                             ),
                           ),
                         ],
@@ -797,38 +507,447 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ),
         ),
         Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _activities.isEmpty
-                  ? _buildEmptyState(context.l10n.translate('noActivityYet'), context.l10n.translate('startCompletingHabits'))
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        // Обновляем данные при pull-to-refresh
-                        final user = FirebaseAuth.instance.currentUser;
-                        if (user != null) {
-                          await _loadUserData();
-                        }
-                      },
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(), // Важно для работы RefreshIndicator
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _activities.length,
-                        itemBuilder: (context, index) {
-                          return _buildActivityItem(_activities[index]);
-                        },
-                      ),
-                    ),
+          child: _ActivitiesStreamBuilder(
+            userId: user.uid,
+            activityFilter: _activityFilter,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActivityItem(Map<String, dynamic> activity) {
+  String _getActivityFilterText() {
+    switch (_activityFilter) {
+      case 'day':
+        return context.l10n.translate('today');
+      case 'week':
+        return context.l10n.translate('lastWeek');
+      case 'month':
+      default:
+        return context.l10n.translate('lastMonth');
+    }
+  }
+
+  Widget _buildAchievementsTab() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return _AchievementsStreamBuilder(userId: user.uid);
+  }
+
+  Widget _buildEmptyState(String title, String subtitle) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 64,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// StreamBuilder для активностей — реактивное обновление
+class _ActivitiesStreamBuilder extends StatelessWidget {
+  final String userId;
+  final String activityFilter;
+
+  const _ActivitiesStreamBuilder({
+    required this.userId,
+    required this.activityFilter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Стрим привычек пользователя для маппинга habitId -> habitName
+    final habitsStream = FirebaseFirestore.instance
+        .collection('habits')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+
+    // Стрим логов привычек
+    final logsStream = FirebaseFirestore.instance
+        .collection('habitLogs')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: habitsStream,
+      builder: (context, habitsSnapshot) {
+        // Собираем маппинг habitId -> name
+        final habitNames = <String, String>{};
+        if (habitsSnapshot.hasData) {
+          for (final doc in habitsSnapshot.data!.docs) {
+            final data = doc.data() as Map<String, dynamic>?;
+            if (data != null) {
+              final name = data['name'] as String?;
+              if (name != null && name.isNotEmpty) {
+                habitNames[doc.id] = name;
+              }
+            }
+          }
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: logsStream,
+          builder: (context, logsSnapshot) {
+            if (logsSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (logsSnapshot.hasError) {
+              print('[ACTIVITIES STREAM ERROR] ${logsSnapshot.error}');
+              return _buildEmptyState(context);
+            }
+
+            final docs = logsSnapshot.data?.docs ?? [];
+            final activities =
+                _processActivities(context, docs, habitNames);
+
+            if (activities.isEmpty) {
+              return _buildEmptyState(context);
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                await Future.delayed(const Duration(milliseconds: 300));
+              },
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: activities.length,
+                itemBuilder: (context, index) {
+                  return _ActivityItem(activity: activities[index]);
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 64,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.l10n.translate('noActivityYet'),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.l10n.translate('startCompletingHabits'),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _processActivities(
+    BuildContext context,
+    List<QueryDocumentSnapshot> docs,
+    Map<String, String> habitNames,
+  ) {
+    final now = DateTime.now();
+    DateTime cutoffDate;
+
+    switch (activityFilter) {
+      case 'day':
+        cutoffDate = DateTime(now.year, now.month, now.day);
+        break;
+      case 'week':
+        cutoffDate = now.subtract(const Duration(days: 7));
+        break;
+      case 'month':
+      default:
+        cutoffDate = now.subtract(const Duration(days: 30));
+        break;
+    }
+
+    final activities = <Map<String, dynamic>>[];
+
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) continue;
+
+      final date = (data['date'] as Timestamp?)?.toDate();
+      if (date == null || date.isBefore(cutoffDate)) continue;
+
+      final status = data['status'] as String?;
+      final habitId = data['habitId'] as String?;
+      final habitName = (habitId != null ? habitNames[habitId] : null) ?? 'Habit';
+
+      if (status == 'completed') {
+        activities.add({
+          'type': 'completed',
+          'title':
+              '${context.l10n.translate('completed')} "$habitName"',
+          'subtitle': _formatTime(context, date),
+          'date': date,
+          'points': 10,
+          'icon': 'up',
+        });
+      } else if (status == 'failed') {
+        activities.add({
+          'type': 'failed',
+          'title':
+              '${context.l10n.translate('failed')} "$habitName"',
+          'subtitle': _formatTime(context, date),
+          'date': date,
+          'points': 0,
+          'icon': 'down',
+        });
+      } else if (status == 'skipped') {
+        activities.add({
+          'type': 'skipped',
+          'title':
+              '${context.l10n.translate('skipped')} "$habitName"',
+          'subtitle': _formatTime(context, date),
+          'date': date,
+          'points': 0,
+          'icon': 'skip',
+        });
+      }
+    }
+
+    activities.sort(
+        (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+    return activities;
+  }
+
+  static String _formatTime(BuildContext context, DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateDay = DateTime(date.year, date.month, date.day);
+
+    String dayText;
+    if (dateDay.isAtSameMomentAs(today)) {
+      dayText = context.l10n.translate('today');
+    } else if (dateDay.isAtSameMomentAs(yesterday)) {
+      dayText = context.l10n.translate('yesterday');
+    } else {
+      dayText = DateFormat('d MMM').format(date);
+    }
+
+    final timeText = DateFormat('h:mm a').format(date);
+    return '$dayText, $timeText';
+  }
+}
+
+/// StreamBuilder для достижений — реактивное обновление
+class _AchievementsStreamBuilder extends StatelessWidget {
+  final String userId;
+
+  const _AchievementsStreamBuilder({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('achievements')
+          .where('userId', isEqualTo: userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          print('[ACHIEVEMENTS STREAM ERROR] ${snapshot.error}');
+          return const SizedBox();
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+        final achievements = _processAchievements(docs);
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${achievements.length} ${context.l10n.translate('achievements')}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.push('/all_achievements');
+                    },
+                    child: Text(
+                      context.l10n.translate('viewAll'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.purple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: achievements.isEmpty
+                  ? _buildEmptyState(context)
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await Future.delayed(
+                            const Duration(milliseconds: 300));
+                      },
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: achievements.length,
+                        itemBuilder: (context, index) {
+                          return _AchievementItem(
+                              achievement: achievements[index]);
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 40),
+        Container(
+          width: 200,
+          height: 50,
+          decoration: BoxDecoration(
+            color: AppColors.purple,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                context.push('/all_achievements');
+              },
+              child: Center(
+                child: Text(
+                  context.l10n.translate('getStarted'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: Text(
+            context.l10n.translate('keepGoingToUnlock'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<AchievementModel> _processAchievements(
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    final achievements = <AchievementModel>[];
+
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) continue;
+
+      try {
+        final achievement = AchievementModel.fromFirestore(data, doc.id);
+        achievements.add(achievement);
+      } catch (e) {
+        print('[PROFILE ERROR] Failed to parse achievement ${doc.id}: $e');
+      }
+    }
+
+    achievements.sort((a, b) => b.earnedAt.compareTo(a.earnedAt));
+    return achievements;
+  }
+}
+
+class _ActivityItem extends StatelessWidget {
+  final Map<String, dynamic> activity;
+
+  const _ActivityItem({required this.activity});
+
+  @override
+  Widget build(BuildContext context) {
     final icon = activity['icon'] as String;
     final points = activity['points'] as int? ?? 0;
-    
+
     Widget iconWidget;
-    
+
     if (icon == 'up') {
       iconWidget = Container(
         width: 40,
@@ -843,7 +962,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           size: 20,
         ),
       );
-      // Green color for success
     } else if (icon == 'down') {
       iconWidget = Container(
         width: 40,
@@ -858,7 +976,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           size: 20,
         ),
       );
-      // Red color for failure
     } else if (icon == 'skip') {
       iconWidget = Container(
         width: 40,
@@ -873,7 +990,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           size: 20,
         ),
       );
-      // Blue color for skipped
     } else {
       iconWidget = Container(
         width: 40,
@@ -887,9 +1003,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           style: TextStyle(fontSize: 20),
         ),
       );
-      // Orange color for achievement
     }
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -911,7 +1026,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center, // Центрируем по вертикали
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Text(
@@ -925,9 +1040,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     ),
                     if (points > 0)
                       Padding(
-                        padding: const EdgeInsets.only(right: 16, left: 8), // Отступы от иконки и от текста
+                        padding: const EdgeInsets.only(right: 16, left: 8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFA000).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -960,212 +1076,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       ),
     );
   }
-  
-  Widget _buildFriendItem(Map<String, dynamic> friend) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE8EDF5)),
-            ),
-            child: ClipOval(
-              child: _buildAvatar(friend['avatarUrl']),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  friend['name'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${friend['points']} ${context.l10n.translate('points')}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              // Remove friend
-            },
-            icon: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.delete_outline,
-                color: Colors.grey,
-                size: 18,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDefaultFriendAvatar(String name) {
-    return Container(
-      color: AppColors.blue100.withOpacity(0.2),
-      child: Center(
-        child: Text(
-          name.isNotEmpty ? name[0].toUpperCase() : '?',
-          style: TextStyle(
-            color: AppColors.blue100,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildAchievementsTab() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${_achievements.length} ${context.l10n.translate('achievements')}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  context.push('/all_achievements');
-                },
-                child: Text(
-                  context.l10n.translate('viewAll'),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.purple,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _achievements.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-                        Container(
-                          width: 200,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: AppColors.purple, // Фиолетовый цвет из AppColors
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.purple.withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                context.push('/all_achievements');
-                              },
-                              child: Center(
-                                child: Text(
-                                  context.l10n.translate('getStarted'),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: Text(
-                            context.l10n.translate('keepGoingToUnlock'),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        final user = FirebaseAuth.instance.currentUser;
-                        if (user != null) {
-                          await _loadUserData();
-                        }
-                      },
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _achievements.length,
-                        itemBuilder: (context, index) {
-                          return _buildAchievementItem(_achievements[index]);
-                        },
-                        shrinkWrap: true,
-                      ),
-                    ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildAchievementItem(AchievementModel achievement) {
-    // Локализуем название достижения при отображении
-    final localizedTitle = _getLocalizedAchievementTitle(achievement.id);
-    
+}
+
+class _AchievementItem extends StatelessWidget {
+  final AchievementModel achievement;
+
+  const _AchievementItem({required this.achievement});
+
+  @override
+  Widget build(BuildContext context) {
+    final localizedTitle =
+        _getLocalizedAchievementTitle(context, achievement.id);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -1211,7 +1133,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _formatRelativeTime(achievement.earnedAt),
+                  _formatRelativeTime(context, achievement.earnedAt),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Colors.grey,
@@ -1225,31 +1147,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  String _getLocalizedHabitName(String habitName) {
-    // Маппинг известных названий привычек на локализованные версии
-    switch (habitName.toLowerCase()) {
-      case 'recovery stretching':
-        return context.l10n.translate('recoveryStretching');
-      case 'protein intake':
-        return context.l10n.translate('proteinIntake');
-      case 'strength training':
-        return context.l10n.translate('strengthTraining');
-      case 'walk':
-        return context.l10n.translate('walk');
-      case 'meditate':
-        return context.l10n.translate('meditate');
-      case 'read':
-        return context.l10n.translate('read');
-      case 'drink water':
-        return context.l10n.translate('drinkWater');
-      case 'less sugar':
-        return context.l10n.translate('lessSugar');
-      default:
-        return habitName; // Возвращаем как есть если неизвестная привычка
-    }
-  }
-
-  String _getLocalizedAchievementTitle(String achievementId) {
+  static String _getLocalizedAchievementTitle(
+      BuildContext context, String achievementId) {
     switch (achievementId) {
       case 'first_habit':
         return context.l10n.translate('firstHabit');
@@ -1274,42 +1173,31 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       case 'challenge_5':
         return context.l10n.translate('challengeExpert');
       default:
-        return achievementId.replaceAll('_', ' ').split(' ').map((word) => 
-          word[0].toUpperCase() + word.substring(1).toLowerCase()
-        ).join(' ');
+        return achievementId
+            .replaceAll('_', ' ')
+            .split(' ')
+            .map((word) =>
+                word[0].toUpperCase() + word.substring(1).toLowerCase())
+            .join(' ');
     }
   }
-  
-  Widget _buildEmptyState(String title, String subtitle) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+
+  static String _formatRelativeTime(BuildContext context, DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return context.l10n.translate('today');
+    } else if (diff.inDays == 1) {
+      return context.l10n.translate('yesterday');
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} ${context.l10n.translate('daysAgo')}';
+    } else if (diff.inDays < 30) {
+      return '${(diff.inDays / 7).floor()} ${context.l10n.translate('weeksAgo')}';
+    } else if (diff.inDays < 365) {
+      return '${(diff.inDays / 30).floor()} ${context.l10n.translate('monthsAgo')}';
+    } else {
+      return '${(diff.inDays / 365).floor()} ${context.l10n.translate('yearsAgo')}';
+    }
   }
 }

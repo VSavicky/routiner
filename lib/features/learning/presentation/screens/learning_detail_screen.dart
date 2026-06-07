@@ -72,6 +72,7 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -144,16 +145,6 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 6),
-                        // Подзаголовок
-                        Text(
-                          widget.lesson['subtitle'] as String,
-                          style: AppFonts.bodyAlternative.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
                         const SizedBox(height: 12),
                         // Метаданные
                         Row(
@@ -209,7 +200,7 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
                 children: [
                 // Заголовок контента
                 Text(
-                  'What you\'ll learn',
+                  l10n.translate('youWillLearn'),
                   style: AppFonts.bodyTitleMedium.copyWith(
                     color: AppColors.black100,
                     fontSize: 18,
@@ -219,20 +210,20 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
                 
                 // Блоки с информацией
                 _buildContentBlock(
-                  '📚 Understanding',
-                  _getLessonContent(widget.lesson['id'] as String)['understanding'] ?? '',
+                  '📚 ${l10n.translate('understandingBlock')}',
+                  _getLessonContent(widget.lesson['id'] as String, l10n)['understanding'] ?? '',
                 ),
                 _buildContentBlock(
-                  '🎯 Key Benefits',
-                  _getLessonContent(widget.lesson['id'] as String)['benefits'] ?? '',
+                  '🎯 ${l10n.translate('keyBenefits')}',
+                  _getLessonContent(widget.lesson['id'] as String, l10n)['benefits'] ?? '',
                 ),
                 _buildContentBlock(
-                  '💡 Practical Tips',
-                  _getLessonContent(widget.lesson['id'] as String)['tips'] ?? '',
+                  '💡 ${l10n.translate('practicalTips')}',
+                  _getLessonContent(widget.lesson['id'] as String, l10n)['tips'] ?? '',
                 ),
                 _buildContentBlock(
-                  '📈 Implementation',
-                  _getLessonContent(widget.lesson['id'] as String)['implementation'] ?? '',
+                  '📈 ${l10n.translate('implementation')}',
+                  _getLessonContent(widget.lesson['id'] as String, l10n)['implementation'] ?? '',
                 ),
                 
                 const SizedBox(height: 24),
@@ -261,7 +252,7 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
                             ),
                           )
                         : Text(
-                            _isCompleted ? 'Completed ✓' : 'Mark as Completed',
+                            _isCompleted ? '${l10n.translate('completed')} ✓' : l10n.translate('markAsCompleted'),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -319,35 +310,35 @@ class _LearningDetailScreenState extends State<LearningDetailScreen> {
     );
   }
 
-  Map<String, String> _getLessonContent(String lessonId) {
+  Map<String, String> _getLessonContent(String lessonId, AppLocalizations l10n) {
     switch (lessonId) {
       case 'water_benefits':
         return {
-          'understanding': 'Water makes up about 60% of your body weight and is essential for nearly every bodily function. From regulating temperature to lubricating joints, proper hydration is fundamental to optimal health and performance.',
-          'benefits': '• Increased energy and mental clarity\n• Improved skin health and appearance\n• Better digestion and nutrient absorption\n• Enhanced physical performance and recovery\n• Stronger immune system function',
-          'tips': '• Start your day with a glass of water\n• Keep a reusable water bottle nearby\n• Set reminders to drink regularly\n• Flavor water with fruits if plain water is boring\n• Monitor your urine color as a hydration indicator',
-          'implementation': 'Begin with 8 glasses (64oz) daily and adjust based on your activity level, climate, and individual needs. Spread intake throughout the day rather than drinking large amounts at once.'
+          'understanding': l10n.translate('waterUnderstanding'),
+          'benefits': l10n.translate('waterBenefits'),
+          'tips': l10n.translate('waterTips'),
+          'implementation': l10n.translate('waterImplementation'),
         };
       case 'walking_benefits':
         return {
-          'understanding': 'Walking is one of the most accessible forms of exercise that offers tremendous health benefits without requiring special equipment or intense physical exertion.',
-          'benefits': '• Improved cardiovascular health\n• Stronger bones and muscles\n• Better mood and mental health\n• Weight management and metabolism boost\n• Reduced risk of chronic diseases',
-          'tips': '• Start with 10-15 minute daily walks\n• Maintain good posture while walking\n• Choose comfortable, supportive footwear\n• Vary your walking routes for interest\n• Listen to podcasts or music for enjoyment',
-          'implementation': 'Aim for 30 minutes of brisk walking most days of the week. This can be broken into shorter 10-minute walks throughout the day for the same benefits.'
+          'understanding': l10n.translate('walkingUnderstanding'),
+          'benefits': l10n.translate('walkingBenefits'),
+          'tips': l10n.translate('walkingTips'),
+          'implementation': l10n.translate('walkingImplementation'),
         };
       case 'morning_routine':
         return {
-          'understanding': 'How you start your day sets the tone for everything that follows. A well-designed morning routine can transform your productivity, mood, and overall life satisfaction.',
-          'benefits': '• Reduced stress and anxiety\n• Increased productivity and focus\n• Better time management\n• Improved sleep quality\n• Enhanced self-discipline and confidence',
-          'tips': '• Prepare the night before\n• Wake up at the same time daily\n• Avoid checking phone first thing\n• Include movement or stretching\n• Practice gratitude or meditation',
-          'implementation': 'Start small with 2-3 key activities and gradually build your routine over 2-3 weeks. Consistency matters more than intensity when building new habits.'
+          'understanding': l10n.translate('morningUnderstanding'),
+          'benefits': l10n.translate('morningBenefits'),
+          'tips': l10n.translate('morningTips'),
+          'implementation': l10n.translate('morningImplementation'),
         };
       default:
         return {
-          'understanding': 'Lesson content coming soon...',
-          'benefits': '• Loading benefits...\n• More to come...',
-          'tips': '• Tips coming soon...\n• Check back later...',
-          'implementation': 'Implementation details will be added soon...'
+          'understanding': l10n.translate('lessonContentComingSoon'),
+          'benefits': '• ${l10n.translate('lessonLoadingBenefits')}\n• ${l10n.translate('lessonMoreToCome')}',
+          'tips': '• ${l10n.translate('lessonTipsComingSoon')}\n• ${l10n.translate('lessonCheckBackLater')}',
+          'implementation': l10n.translate('lessonImplementationSoon'),
         };
     }
   }

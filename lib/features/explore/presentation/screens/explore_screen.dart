@@ -141,9 +141,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _getLocalizedChallengeTitle(String challengeId, BuildContext context) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('7DayWaterChallenge');
+        return context.l10n.translate('sevenDayWaterChallenge');
       case '21_day_fitness':
-        return context.l10n.translate('21DayFitnessKickstart');
+        return context.l10n.translate('twentyOneDayFitnessKickstart');
       case 'morning_routine':
         return context.l10n.translate('perfectMorningRoutine');
       default:
@@ -154,9 +154,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String _getLocalizedChallengeDescription(String challengeId, BuildContext context) {
     switch (challengeId) {
       case '7_day_water':
-        return context.l10n.translate('7DayWaterChallengeDescription');
+        return context.l10n.translate('sevenDayWaterChallengeDescription');
       case '21_day_fitness':
-        return context.l10n.translate('21DayFitnessKickstartDescription');
+        return context.l10n.translate('twentyOneDayFitnessKickstartDescription');
       case 'morning_routine':
         return context.l10n.translate('perfectMorningRoutineDescription');
       default:
@@ -887,23 +887,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                // Подзаголовок
-                                Text(
-                                  lesson['subtitle'] as String,
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 10,
-                                  ),
-                                  maxLines: 1,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const Spacer(),
                                 // Метаданные
-                                Row(
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 2,
+                                  alignment: WrapAlignment.start,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
@@ -918,15 +910,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           fontSize: 8,
                                           fontWeight: FontWeight.w500,
                                         ),
+                                        softWrap: true,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const Spacer(),
                                     Text(
                                       lesson['duration'] as String,
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.7),
                                         fontSize: 8,
                                       ),
+                                      softWrap: true,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
